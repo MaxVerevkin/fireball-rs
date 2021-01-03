@@ -6,6 +6,8 @@ use crate::params::Params;
 use crate::constants::*;
 use crate::structs::*;
 
+use std::f64::consts::{PI, TAU};
+
 /// Contains all necessary information to solve the problem
 pub struct Solver<'a> {
     data: &'a Data,
@@ -180,7 +182,6 @@ impl<'a> Solver<'a> {
     }
 
     /// Calculate the mean of squared errors (less is better)
-    /// TODO include descent angle
     fn evaluate_traj(&self, p1: &Spherical, p2: &Spherical) -> f64 {
         let start = p1.to_vec3();
         let end = p2.to_vec3();
@@ -195,11 +196,29 @@ impl<'a> Solver<'a> {
             let e_start = plane.dot(&sample.global_start).asin();
             let e_end = plane.dot(&sample.global_end).asin();
 
-            if sample.trust_start && perpendic.dot(&sample.global_start) > self.params.min_match {
+            let trust_start =
+                sample.trust_start && perpendic.dot(&sample.global_start) > self.params.min_match;
+            let trust_end =
+                sample.trust_end && perpendic.dot(&sample.global_end) > self.params.min_match;
+
+            if trust_start {
                 error += e_start * e_start;
                 count += 1.;
+
+                if trust_end && sample.trust_da {
+                    let start = (sample.global_start - plane * sample.global_start.dot(&plane))
+                        .to_local(&sample.geo_pos)
+                        .to_azimuthal();
+                    let end = (sample.global_end - plane * sample.global_end.dot(&plane))
+                        .to_local(&sample.geo_pos)
+                        .to_azimuthal();
+
+                    let diff = angle_diff(descent_angle(&start, &end), sample.descent_angle);
+                    error += diff * diff * 0.5;
+                    count += 1.;
+                }
             }
-            if sample.trust_end && perpendic.dot(&sample.global_end) > self.params.min_match {
+            if trust_end {
                 error += e_end * e_end;
                 count += 1.;
             }
@@ -207,4 +226,83 @@ impl<'a> Solver<'a> {
 
         error / count
     }
+}
+
+fn angle_diff(a1: f64, a2: f64) -> f64 {
+    (a2 - a1 + PI).rem_euclid(TAU) - PI
+}
+
+fn descent_angle(start: &Azimuthal, end: &Azimuthal) -> f64 {
+    let dz = angle_diff(start.z, end.z);
+
+    let cos_l = start.h.sin() * end.h.sin() + start.h.cos() * end.h.cos() * dz.cos();
+    let sin_l = (1. - cos_l * cos_l).sqrt();
+
+    let a = ((end.h.sin() - start.h.sin() * cos_l) / (start.h.cos() * sin_l)).acos();
+    if a.is_nan() {
+        return 0.;
+    }
+
+    if dz > 0. {
+        a
+    } else {
+        TAU - a
+    }
+}
+
+#[test]
+fn angle_diff_test() {
+    assert_eq!(angle_diff(PI, TAU).abs(), PI);
+    assert_eq!(angle_diff(PI, 10. * TAU).abs(), PI);
+    assert_eq!(angle_diff(PI, 0.).abs(), PI);
+
+    assert!(angle_diff(PI + 0.1, TAU) - (PI - 0.1) < 1e-10);
+    assert!(angle_diff(PI - 0.1, 0.) - (-PI + 0.1) < 1e-10);
+
+    assert!(angle_diff(PI - 1., -0.1) - (-1.1) < 1e-10);
+    assert!(angle_diff(PI + 1., TAU - 0.1) - (PI - 1.1) < 1e-10);
+}
+
+#[test]
+fn descent_angle_test() {
+    // basic vertical
+    assert_eq!(
+        descent_angle(&Azimuthal { z: 1., h: 0.1 }, &Azimuthal { z: 1., h: 0.2 }),
+        0.,
+    );
+    assert!(
+        (descent_angle(&Azimuthal { z: 1., h: 0.3 }, &Azimuthal { z: 1., h: 0.2 }) - (PI)) < 1e-5,
+    );
+
+    // basic horizontal
+    assert!(
+        (descent_angle(&Azimuthal { z: 1., h: 0.3 }, &Azimuthal { z: 1.01, h: 0.3 }) - (PI / 2.))
+            < 1e-5,
+    );
+    assert!(
+        (descent_angle(&Azimuthal { z: 1., h: 0.3 }, &Azimuthal { z: 0.99, h: 0.3 })
+            - (3. * PI / 2.))
+            < 1e-2,
+    );
+
+    // different quarters
+    assert!(
+        (descent_angle(&Azimuthal { z: 1., h: 1. }, &Azimuthal { z: 1.01, h: 1.01 }) - (PI / 4.))
+            < 1e-2,
+    );
+    assert!(
+        (descent_angle(&Azimuthal { z: 1., h: 1. }, &Azimuthal { z: 1.01, h: 0.99 })
+            - (PI / 4. * 3.))
+            < 0.3,
+    );
+    assert!(
+        (descent_angle(&Azimuthal { z: 1., h: 1. }, &Azimuthal { z: 0.99, h: 0.99 })
+            - (PI / 4. * 5.))
+            < 0.3,
+    );
+    assert!(
+        (descent_angle(&Azimuthal { z: 1., h: 1. }, &Azimuthal { z: 0.99, h: 1.01 })
+            - (PI / 4. * 7.))
+            < 0.3,
+    );
 }

@@ -10,6 +10,8 @@
 //! $ fireball -h
 //! ```
 //! to see which parameters of the implementation can be tweaked.
+//!
+//! TODO Write tets and some more documentation
 
 mod constants;
 mod data;

@@ -56,10 +56,40 @@ impl Vec3 {
         }
     }
 
+    /// Translate cartesian coordinates to azimuthal
+    pub fn to_azimuthal(&self) -> Azimuthal {
+        let xy = f64::hypot(self.x, self.y);
+        Azimuthal {
+            z: f64::atan2(self.x, self.y),
+            h: f64::atan(self.z / xy),
+        }
+    }
+
     /// Translate local cartesian coordinates (East, North, Zenith) to global (x, y, z)
     pub fn to_global(&self, pos: &Spherical) -> Self {
-        let (east, north, normal) = pos.directions();
-        east * self.x + north * self.y + normal * self.z
+        let (east, north, zenith) = pos.directions();
+        east * self.x + north * self.y + zenith * self.z
+    }
+
+    /// Translate global cartesian coordinates (x, y, z) to local (East, North, Zenith)
+    pub fn to_local(&self, pos: &Spherical) -> Self {
+        let (east, north, zenith) = pos.directions();
+        let ex = Vec3 {
+            x: east.x,
+            y: north.x,
+            z: zenith.x,
+        };
+        let ey = Vec3 {
+            x: east.y,
+            y: north.y,
+            z: zenith.y,
+        };
+        let ez = Vec3 {
+            x: east.z,
+            y: north.z,
+            z: zenith.z,
+        };
+        ex * self.x + ey * self.y + ez * self.z
     }
 
     /// Compute the `dot` product of two vectors
