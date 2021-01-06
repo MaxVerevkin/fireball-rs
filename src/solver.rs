@@ -4,9 +4,8 @@ use crate::data::Data;
 use crate::params::Params;
 
 use crate::constants::*;
+use crate::maths::*;
 use crate::structs::*;
-
-use std::f64::consts::{PI, TAU};
 
 /// Contains all necessary information to solve the problem
 pub struct Solver<'a> {
@@ -162,8 +161,10 @@ impl<'a> Solver<'a> {
             let pip = *point - sample.global_pos;
             let plane = pip.cross(&v).normalize();
             let perpendic = v.cross(&plane).normalize();
+
             let k_start = sample.global_start;
             let k_end = sample.global_end;
+
             if sample.trust_end && perpendic.dot(&k_end) > self.params.min_match {
                 let l_end = pip.dot(&(perpendic * (k_end.dot(&v) / k_end.dot(&perpendic)) - *v));
                 l_end_mean += l_end;
@@ -193,29 +194,32 @@ impl<'a> Solver<'a> {
             let plane = (end - sample.global_pos).cross(&velocity).normalize();
             let perpendic = velocity.cross(&plane);
 
-            let e_start = plane.dot(&sample.global_start).asin();
-            let e_end = plane.dot(&sample.global_end).asin();
+            let k_start = sample.global_start;
+            let k_end = sample.global_end;
 
-            let trust_start =
-                sample.trust_start && perpendic.dot(&sample.global_start) > self.params.min_match;
-            let trust_end =
-                sample.trust_end && perpendic.dot(&sample.global_end) > self.params.min_match;
+            let e_start = plane.dot(&k_start).asin();
+            let e_end = plane.dot(&k_end).asin();
+
+            let trust_start = sample.trust_start && perpendic.dot(&k_start) > self.params.min_match;
+            let trust_end = sample.trust_end && perpendic.dot(&k_end) > self.params.min_match;
 
             if trust_start {
                 error += e_start * e_start;
                 count += 1.;
 
                 if trust_end && sample.trust_da {
-                    let start = (sample.global_start - plane * sample.global_start.dot(&plane))
+                    let start = (k_start - plane * k_start.dot(&plane))
                         .to_local(&sample.geo_pos)
                         .to_azimuthal();
-                    let end = (sample.global_end - plane * sample.global_end.dot(&plane))
+                    let end = (k_end - plane * k_end.dot(&plane))
                         .to_local(&sample.geo_pos)
                         .to_azimuthal();
 
-                    let diff = angle_diff(descent_angle(&start, &end), sample.descent_angle);
-                    error += diff * diff * 0.5;
-                    count += 1.;
+                    if let Some(da) = descent_angle(&start, &end) {
+                        let diff = angle_diff(da, sample.descent_angle);
+                        error += diff * diff * 0.5;
+                        count += 1.;
+                    }
                 }
             }
             if trust_end {
@@ -226,83 +230,4 @@ impl<'a> Solver<'a> {
 
         error / count
     }
-}
-
-fn angle_diff(a1: f64, a2: f64) -> f64 {
-    (a2 - a1 + PI).rem_euclid(TAU) - PI
-}
-
-fn descent_angle(start: &Azimuthal, end: &Azimuthal) -> f64 {
-    let dz = angle_diff(start.z, end.z);
-
-    let cos_l = start.h.sin() * end.h.sin() + start.h.cos() * end.h.cos() * dz.cos();
-    let sin_l = (1. - cos_l * cos_l).sqrt();
-
-    let a = ((end.h.sin() - start.h.sin() * cos_l) / (start.h.cos() * sin_l)).acos();
-    if a.is_nan() {
-        return 0.;
-    }
-
-    if dz > 0. {
-        a
-    } else {
-        TAU - a
-    }
-}
-
-#[test]
-fn angle_diff_test() {
-    assert_eq!(angle_diff(PI, TAU).abs(), PI);
-    assert_eq!(angle_diff(PI, 10. * TAU).abs(), PI);
-    assert_eq!(angle_diff(PI, 0.).abs(), PI);
-
-    assert!(angle_diff(PI + 0.1, TAU) - (PI - 0.1) < 1e-10);
-    assert!(angle_diff(PI - 0.1, 0.) - (-PI + 0.1) < 1e-10);
-
-    assert!(angle_diff(PI - 1., -0.1) - (-1.1) < 1e-10);
-    assert!(angle_diff(PI + 1., TAU - 0.1) - (PI - 1.1) < 1e-10);
-}
-
-#[test]
-fn descent_angle_test() {
-    // basic vertical
-    assert_eq!(
-        descent_angle(&Azimuthal { z: 1., h: 0.1 }, &Azimuthal { z: 1., h: 0.2 }),
-        0.,
-    );
-    assert!(
-        (descent_angle(&Azimuthal { z: 1., h: 0.3 }, &Azimuthal { z: 1., h: 0.2 }) - (PI)) < 1e-5,
-    );
-
-    // basic horizontal
-    assert!(
-        (descent_angle(&Azimuthal { z: 1., h: 0.3 }, &Azimuthal { z: 1.01, h: 0.3 }) - (PI / 2.))
-            < 1e-5,
-    );
-    assert!(
-        (descent_angle(&Azimuthal { z: 1., h: 0.3 }, &Azimuthal { z: 0.99, h: 0.3 })
-            - (3. * PI / 2.))
-            < 1e-2,
-    );
-
-    // different quarters
-    assert!(
-        (descent_angle(&Azimuthal { z: 1., h: 1. }, &Azimuthal { z: 1.01, h: 1.01 }) - (PI / 4.))
-            < 1e-2,
-    );
-    assert!(
-        (descent_angle(&Azimuthal { z: 1., h: 1. }, &Azimuthal { z: 1.01, h: 0.99 })
-            - (PI / 4. * 3.))
-            < 0.3,
-    );
-    assert!(
-        (descent_angle(&Azimuthal { z: 1., h: 1. }, &Azimuthal { z: 0.99, h: 0.99 })
-            - (PI / 4. * 5.))
-            < 0.3,
-    );
-    assert!(
-        (descent_angle(&Azimuthal { z: 1., h: 1. }, &Azimuthal { z: 0.99, h: 1.01 })
-            - (PI / 4. * 7.))
-            < 0.3,
-    );
 }

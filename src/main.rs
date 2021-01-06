@@ -15,6 +15,7 @@
 
 mod constants;
 mod data;
+mod maths;
 mod params;
 mod solver;
 mod structs;

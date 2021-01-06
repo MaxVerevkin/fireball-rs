@@ -1,5 +1,8 @@
 //! Basic structures such as Vec3
 
+pub mod matrix33;
+
+use std::f64::consts::FRAC_PI_2;
 use std::ops::{Add, Div, Mul, Sub};
 
 /// 3D vector
@@ -37,13 +40,12 @@ impl Vec3 {
     }
 
     /// Return a unit vector (i.e. with the magnitude of one) with the same direction
-    pub fn normalize(&self) -> Self {
+    pub fn normalize(mut self) -> Self {
         let l = self.length();
-        Self {
-            x: self.x / l,
-            y: self.y / l,
-            z: self.z / l,
-        }
+        self.x /= l;
+        self.y /= l;
+        self.z /= l;
+        self
     }
 
     /// Translate cartesian coordinates to spherical
@@ -67,29 +69,24 @@ impl Vec3 {
 
     /// Translate local cartesian coordinates (East, North, Zenith) to global (x, y, z)
     pub fn to_global(&self, pos: &Spherical) -> Self {
-        let (east, north, zenith) = pos.directions();
-        east * self.x + north * self.y + zenith * self.z
+        matrix33::mul_vec(
+            &matrix33::mul_mat(
+                &matrix33::rz(FRAC_PI_2 + pos.lon),
+                &matrix33::rx(FRAC_PI_2 - pos.lat),
+            ),
+            self,
+        )
     }
 
     /// Translate global cartesian coordinates (x, y, z) to local (East, North, Zenith)
     pub fn to_local(&self, pos: &Spherical) -> Self {
-        let (east, north, zenith) = pos.directions();
-        let ex = Vec3 {
-            x: east.x,
-            y: north.x,
-            z: zenith.x,
-        };
-        let ey = Vec3 {
-            x: east.y,
-            y: north.y,
-            z: zenith.y,
-        };
-        let ez = Vec3 {
-            x: east.z,
-            y: north.z,
-            z: zenith.z,
-        };
-        ex * self.x + ey * self.y + ez * self.z
+        matrix33::mul_vec(
+            &matrix33::mul_mat(
+                &matrix33::rx(-FRAC_PI_2 + pos.lat),
+                &matrix33::rz(-FRAC_PI_2 - pos.lon),
+            ),
+            self,
+        )
     }
 
     /// Compute the `dot` product of two vectors
@@ -156,27 +153,6 @@ impl Spherical {
             y: xy * self.lon.sin(),
             z: self.r * self.lat.sin(),
         }
-    }
-
-    /// Calculate a tuple of three unit vectors: the direction to the East,
-    /// North and Zenith for an observer with a specified spherical location
-    pub fn directions(&self) -> (Vec3, Vec3, Vec3) {
-        let east = Vec3 {
-            x: -self.lon.sin(),
-            y: self.lon.cos(),
-            z: 0.,
-        };
-        let north = Vec3 {
-            x: -self.lat.sin() * self.lon.cos(),
-            y: -self.lat.sin() * self.lon.sin(),
-            z: self.lat.cos(),
-        };
-        let zenith = Vec3 {
-            x: self.lat.cos() * self.lon.cos(),
-            y: self.lat.cos() * self.lon.sin(),
-            z: self.lat.sin(),
-        };
-        (east, north, zenith)
     }
 }
 
