@@ -60,14 +60,21 @@ impl DataSample {
             r: EARTH_R + arr[2],
         };
         let descent_angle = arr[3].to_radians();
-        let start = Azimuthal {
+        let mut start = Azimuthal {
             z: arr[4].to_radians(),
             h: arr[5].to_radians(),
         };
-        let end = Azimuthal {
+        let mut end = Azimuthal {
             z: arr[6].to_radians(),
             h: arr[7].to_radians(),
         };
+
+        // do not trust witness if he claims that start == end
+        if (start.z - end.z).abs() < 1e-5 && (start.h - end.h).abs() < 1e-4 {
+            end.z = -1.;
+            start.z = -1.;
+        }
+
         Self {
             geo_pos,
             global_pos: geo_pos.to_vec3(),
@@ -81,8 +88,8 @@ impl DataSample {
             global_end: end.to_vec3().to_global(&geo_pos),
 
             trust_da: descent_angle >= 0.,
-            trust_start: arr[4] >= 0. && arr[5] >= 0.,
-            trust_end: arr[6] >= 0. && arr[7] >= 0.,
+            trust_start: start.z >= 0. && start.h >= 0.,
+            trust_end: end.z >= 0. && end.h >= 0.,
         }
     }
 }
