@@ -2,16 +2,33 @@
 
 use super::*;
 
+/// Generate Rx matrix
+///
+/// Rx matrix represents rotation about X-axis
+///
+/// | 1  0       0       |
+/// | 0  cos(a)  -sin(a) |
+/// | 0  sin(a)  cos(a)  |
+///
 pub fn rx(angle: f64) -> [f64; 9] {
     let (sin, cos) = angle.sin_cos();
     [1., 0., 0., 0., cos, sin, 0., -sin, cos]
 }
 
+/// Generate Rz matrix
+///
+/// Rz matrix represents rotation about Z-axis
+///
+/// | cos(a)  -sin(a)  0 |
+/// | sin(a)  cos(a)   0 |
+/// | 0       0        1 |
+///
 pub fn rz(angle: f64) -> [f64; 9] {
     let (sin, cos) = angle.sin_cos();
     [cos, sin, 0., -sin, cos, 0., 0., 0., 1.]
 }
 
+/// Compute M*v
 pub fn mul_vec(mat: &[f64; 9], v: &Vec3) -> Vec3 {
     Vec3 {
         x: v.x * mat[0] + v.y * mat[3] + v.z * mat[6],
@@ -20,6 +37,7 @@ pub fn mul_vec(mat: &[f64; 9], v: &Vec3) -> Vec3 {
     }
 }
 
+/// Compute M1*M2
 pub fn mul_mat(mat: &[f64; 9], other: &[f64; 9]) -> [f64; 9] {
     [
         other[0] * mat[0] + other[1] * mat[3] + other[2] * mat[6],
