@@ -1,7 +1,7 @@
 //! The data structures
 //!
 //! The data is given in a form:
-//! ```
+//! ```text
 //!     lat lon h A z_start h_start z_end h_end t
 //! ```
 //! where:
@@ -52,21 +52,36 @@ pub struct Data {
 }
 
 impl DataSample {
-    /// Construct new sample from an array of `f64` given in the same order as in file
-    pub fn from_array(arr: &[f64; 9]) -> Self {
+    /// Create new instance of `DataSample` from text
+    pub fn from_text(line: &str) -> Option<Self> {
+        let mut nums = [0f64; 9];
+        let mut words = line.split_whitespace();
+        for i in 0..9 {
+            let word = words.next()?;
+            nums[i] = match word.parse() {
+                Ok(n) => n,
+                Err(_) => return None,
+            };
+        }
+
+        // check if line is too long
+        if words.next().is_some() {
+            return None;
+        }
+
         let geo_pos = Spherical {
-            lat: arr[0].to_radians(),
-            lon: arr[1].to_radians(),
-            r: EARTH_R + arr[2],
+            lat: nums[0].to_radians(),
+            lon: nums[1].to_radians(),
+            r: EARTH_R + nums[2],
         };
-        let descent_angle = arr[3].to_radians();
+        let descent_angle = nums[3].to_radians();
         let mut start = Azimuthal {
-            z: arr[4].to_radians(),
-            h: arr[5].to_radians(),
+            z: nums[4].to_radians(),
+            h: nums[5].to_radians(),
         };
         let mut end = Azimuthal {
-            z: arr[6].to_radians(),
-            h: arr[7].to_radians(),
+            z: nums[6].to_radians(),
+            h: nums[7].to_radians(),
         };
 
         // do not trust witness if he claims that start == end
@@ -75,14 +90,14 @@ impl DataSample {
             start.z = -1.;
         }
 
-        Self {
+        Some(Self {
             geo_pos,
             global_pos: geo_pos.to_vec3(),
 
             descent_angle,
             start,
             end,
-            duration: arr[8],
+            duration: nums[8],
 
             global_start: start.to_vec3().to_global(&geo_pos),
             global_end: end.to_vec3().to_global(&geo_pos),
@@ -90,7 +105,7 @@ impl DataSample {
             trust_da: descent_angle >= 0.,
             trust_start: start.z >= 0. && start.h >= 0.,
             trust_end: end.z >= 0. && end.h >= 0.,
-        }
+        })
     }
 }
 
@@ -114,29 +129,16 @@ impl Data {
 
         // Read data file
         while file.read_line(&mut buffer)? != 0 {
-            // Check line
-            let mut nums = [0f64; 9];
-            let mut words = buffer.split_whitespace();
-            let bad_line_error = Err(Error::new(
-                ErrorKind::InvalidData,
-                "Each line in the file must contain 9 numbers",
-            ));
-            for i in 0..9 {
-                let word = match words.next() {
-                    Some(w) => w,
-                    None => return bad_line_error,
-                };
-                nums[i] = match word.parse() {
-                    Ok(n) => n,
-                    Err(_) => return bad_line_error,
-                };
-            }
-            if words.next().is_some() {
-                return bad_line_error;
-            }
-
             // Fill the data in
-            let sample = DataSample::from_array(&nums);
+            let sample = match DataSample::from_text(&buffer) {
+                Some(s) => s,
+                None => {
+                    return Err(Error::new(
+                        ErrorKind::InvalidData,
+                        "Invalid file: each line must contain 9 numbers",
+                    ))
+                }
+            };
             data.mean_lat += sample.geo_pos.lat;
             mean_lon_sin += sample.geo_pos.lon.sin();
             mean_lon_cos += sample.geo_pos.lon.cos();

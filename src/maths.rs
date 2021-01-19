@@ -30,20 +30,6 @@ pub fn descent_angle(start: &Azimuthal, end: &Azimuthal) -> Option<f64> {
     Some(if dz > 0. { a } else { TAU - a })
 }
 
-/// Compute azimuth given observer location and point which he observes
-//pub fn azimuth(observer: &Spherical, point: &Spherical) -> f64 {
-//descent_angle(
-//&Azimuthal {
-//z: observer.lon,
-//h: observer.lat,
-//},
-//&Azimuthal {
-//z: point.lon,
-//h: point.lat,
-//},
-//)
-//}
-
 #[cfg(test)]
 mod tests {
     use crate::maths::*;

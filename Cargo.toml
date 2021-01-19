@@ -9,5 +9,8 @@ edition = "2018"
 version = "2.33.3"
 default-features = false
 
+[dev-dependencies]
+rand = "0.8.1"
+
 [profile.release]
 panic = 'abort'

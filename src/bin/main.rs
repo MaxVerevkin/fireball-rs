@@ -1,33 +1,20 @@
 //! This program aims to reconstruct the trajectory of a fireball given
 //! only data collected from witnesses.
 //!
-//! The current implementation uses binary search to find two points
-//! in the space that represents the trajectory of a fireball. The binary search
-//! itself minimizes the mean-square-error of observations given trajectory.
-//!
 //! Run:
-//! ```
+//! ```bash
 //! $ fireball -h
 //! ```
 //! to see which parameters of the implementation can be tweaked.
-//!
-//! TODO Write tets and some more documentation
 
-mod constants;
-mod data;
-mod maths;
-mod params;
-mod solver;
-mod structs;
-
-use constants::EARTH_R;
-use data::Data;
-use params::Params;
-use solver::Solver;
+use fireball::constants::EARTH_R;
+use fireball::data::Data;
+use fireball::params::Params;
+use fireball::solver::Solver;
 
 fn main() {
     // Parse argruments
-    let params = Params::new();
+    let params = Params::from_cmd();
 
     // Create new data structure
     let data = match Data::from_file(&params.file_name) {

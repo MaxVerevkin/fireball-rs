@@ -14,7 +14,7 @@ pub struct Params {
 
 impl Params {
     /// Automaticaly parse arguments using clap
-    pub fn new() -> Self {
+    pub fn from_cmd() -> Self {
         let matches = app_from_crate!()
             .arg(
                 Arg::with_name("file")

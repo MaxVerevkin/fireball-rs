@@ -27,121 +27,114 @@ impl<'a> Solver<'a> {
 
     /// Solution
     pub fn solve(&self) -> Solved {
+        let mid = Spherical {
+            lat: self.data.mean_lat,
+            lon: self.data.mean_lon,
+            r: EARTH_R,
+        }
+        .to_vec3();
+
         // Default bounds
-        // 0.08 ~ 4.58 degrees
         let def_min = [
-            self.data.mean_lat - 0.08,
-            self.data.mean_lon - 0.08,
-            EARTH_R + 30_000.,
-            self.data.mean_lat - 0.08,
-            self.data.mean_lon - 0.08,
-            EARTH_R + 10_000.,
+            mid.x - 700_000.,
+            mid.y - 700_000.,
+            mid.z - 700_000.,
+            mid.x - 700_000.,
+            mid.y - 700_000.,
+            mid.z - 700_000.,
         ];
         let def_max = [
-            self.data.mean_lat + 0.08,
-            self.data.mean_lon + 0.08,
-            EARTH_R + 120_000.,
-            self.data.mean_lat + 0.08,
-            self.data.mean_lon + 0.08,
-            EARTH_R + 90_000.,
+            mid.x + 700_000.,
+            mid.y + 700_000.,
+            mid.z + 700_000.,
+            mid.x + 700_000.,
+            mid.y + 700_000.,
+            mid.z + 700_000.,
         ];
 
         // Initial trajectory
-        let mut traj = [
-            self.data.mean_lat,
-            self.data.mean_lon,
-            EARTH_R + 75_000.,
-            self.data.mean_lat,
-            self.data.mean_lon,
-            EARTH_R + 50_000.,
-        ];
-
-        // Bounds
-        let mut min = def_min.clone();
-        let mut max = def_max.clone();
+        let mut traj = [mid.x, mid.y, mid.z, mid.x, mid.y, mid.z + 1000.];
 
         // Binary search over 6 variables that
         // minimizes evaluate_traj function
         let mut tmp;
         for _ in 0..self.params.repeat {
             for i in 0..6 {
-                min[i] = def_min[i];
-                max[i] = def_max[i];
+                let mut min = def_min[i];
+                let mut max = def_max[i];
                 for _ in 0..self.params.depth {
-                    tmp = (min[i] + max[i]) * 0.5;
-                    let change = (max[i] - min[i]) * 0.15;
+                    tmp = (min + max) * 0.5;
+                    let change = (max - min) * 0.15;
 
                     traj[i] = tmp - change;
                     let e1 = self.evaluate_traj(
-                        &Spherical {
-                            lat: traj[0],
-                            lon: traj[1],
-                            r: traj[2],
+                        &Vec3 {
+                            x: traj[0],
+                            y: traj[1],
+                            z: traj[2],
                         },
-                        &Spherical {
-                            lat: traj[3],
-                            lon: traj[4],
-                            r: traj[5],
+                        &Vec3 {
+                            x: traj[3],
+                            y: traj[4],
+                            z: traj[5],
                         },
                     );
 
                     traj[i] = tmp + change;
                     let e2 = self.evaluate_traj(
-                        &Spherical {
-                            lat: traj[0],
-                            lon: traj[1],
-                            r: traj[2],
+                        &Vec3 {
+                            x: traj[0],
+                            y: traj[1],
+                            z: traj[2],
                         },
-                        &Spherical {
-                            lat: traj[3],
-                            lon: traj[4],
-                            r: traj[5],
+                        &Vec3 {
+                            x: traj[3],
+                            y: traj[4],
+                            z: traj[5],
                         },
                     );
 
                     if e1 < e2 {
-                        max[i] = tmp + change;
+                        max = tmp + change;
                     } else {
-                        min[i] = tmp - change;
+                        min = tmp - change;
                     }
                 }
-                traj[i] = (min[i] + max[i]) * 0.5;
+                traj[i] = (min + max) * 0.5;
             }
         }
 
         // p1 and p2 are now known
-        let p1 = Spherical {
-            lat: traj[0],
-            lon: traj[1],
-            r: traj[2],
+        let p1 = Vec3 {
+            x: traj[0],
+            y: traj[1],
+            z: traj[2],
         };
-        let p2 = Spherical {
-            lat: traj[3],
-            lon: traj[4],
-            r: traj[5],
+        let p2 = Vec3 {
+            x: traj[3],
+            y: traj[4],
+            z: traj[5],
         };
 
         // calculate the velocity
-        let point = p1.to_vec3();
-        let velocity = (p2.to_vec3() - point).normalize();
+        let velocity = (p2 - p1).normalize();
 
         // FIXME
         eprintln!(
             "Distance from the 'true' answer: {} km",
-            (point
-                - (Spherical {
-                    lat: 33.1f64.to_radians(),
-                    lon: 34.3f64.to_radians(),
-                    r: EARTH_R + 43_300.
-                })
-                .to_vec3())
+            (p1 - (Spherical {
+                lat: 33.1f64.to_radians(),
+                lon: 34.3f64.to_radians(),
+                r: EARTH_R + 43_300.
+            })
+            .to_vec3())
             .cross(&velocity)
             .length()
                 / 1000.
         );
 
         // calculate flash location as well as speed
-        let (flash, speed) = self.calc_flash_and_speed(&point, &velocity);
+        let (flash, speed) = self.calc_flash_and_speed(&p1, &velocity);
 
         // return
         Solved {
@@ -183,16 +176,13 @@ impl<'a> Solver<'a> {
     }
 
     /// Calculate the mean of squared errors (less is better)
-    fn evaluate_traj(&self, p1: &Spherical, p2: &Spherical) -> f64 {
-        let start = p1.to_vec3();
-        let end = p2.to_vec3();
-        let velocity = (end - start).normalize();
-
+    pub fn evaluate_traj(&self, p1: &Vec3, p2: &Vec3) -> f64 {
+        let vel = (*p1 - *p2).normalize();
         let mut error = 0.;
         let mut count = 0.;
         for sample in &self.data.samples {
-            let plane = (end - sample.global_pos).cross(&velocity).normalize();
-            let perpendic = velocity.cross(&plane);
+            let plane = (*p1 - sample.global_pos).cross(&vel).normalize();
+            let perpendic = vel.cross(&plane);
 
             let k_start = sample.global_start;
             let k_end = sample.global_end;
