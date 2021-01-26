@@ -27,33 +27,33 @@ impl<'a> Solver<'a> {
 
     /// Solution
     pub fn solve(&self) -> Solved {
-        let mid = Spherical {
-            lat: self.data.mean_lat,
-            lon: self.data.mean_lon,
-            r: EARTH_R,
-        }
-        .to_vec3();
-
         // Default bounds
         let def_min = [
-            mid.x - 700_000.,
-            mid.y - 700_000.,
-            mid.z - 700_000.,
-            mid.x - 700_000.,
-            mid.y - 700_000.,
-            mid.z - 700_000.,
+            self.data.mean_pos.x - 700_000.,
+            self.data.mean_pos.y - 700_000.,
+            self.data.mean_pos.z - 700_000.,
+            self.data.mean_pos.x - 700_000.,
+            self.data.mean_pos.y - 700_000.,
+            self.data.mean_pos.z - 700_000.,
         ];
         let def_max = [
-            mid.x + 700_000.,
-            mid.y + 700_000.,
-            mid.z + 700_000.,
-            mid.x + 700_000.,
-            mid.y + 700_000.,
-            mid.z + 700_000.,
+            self.data.mean_pos.x + 700_000.,
+            self.data.mean_pos.y + 700_000.,
+            self.data.mean_pos.z + 700_000.,
+            self.data.mean_pos.x + 700_000.,
+            self.data.mean_pos.y + 700_000.,
+            self.data.mean_pos.z + 700_000.,
         ];
 
         // Initial trajectory
-        let mut traj = [mid.x, mid.y, mid.z, mid.x, mid.y, mid.z + 1000.];
+        let mut traj = [
+            self.data.mean_pos.x,
+            self.data.mean_pos.y,
+            self.data.mean_pos.z,
+            self.data.mean_pos.x,
+            self.data.mean_pos.y,
+            self.data.mean_pos.z + 1000.,
+        ];
 
         // Binary search over 6 variables that
         // minimizes evaluate_traj function
@@ -120,17 +120,24 @@ impl<'a> Solver<'a> {
         let velocity = (p2 - p1).normalize();
 
         // FIXME
+        let true_ans = (Spherical {
+            lat: 33.1f64.to_radians(),
+            lon: 34.3f64.to_radians(),
+            r: EARTH_R + 43_300.,
+        })
+        .to_vec3();
         eprintln!(
-            "Distance from the 'true' answer: {} km",
-            (p1 - (Spherical {
-                lat: 33.1f64.to_radians(),
-                lon: 34.3f64.to_radians(),
-                r: EARTH_R + 43_300.
-            })
-            .to_vec3())
-            .cross(&velocity)
-            .length()
-                / 1000.
+            "Distance from the 'true' answer: {} km, {}",
+            (p1 - true_ans).cross(&velocity).length() / 1000.,
+            self.evaluate_traj(
+                &true_ans,
+                &(true_ans
+                    + Vec3 {
+                        x: 7_5000.,
+                        y: 23_5000.,
+                        z: 11_9000.
+                    })
+            )
         );
 
         // calculate flash location as well as speed
@@ -178,8 +185,8 @@ impl<'a> Solver<'a> {
     /// Calculate the mean of squared errors (less is better)
     pub fn evaluate_traj(&self, p1: &Vec3, p2: &Vec3) -> f64 {
         let vel = (*p1 - *p2).normalize();
-        let mut error = 0.;
         let mut count = 0.;
+        let mut error = 0.;
         for sample in &self.data.samples {
             let plane = (*p1 - sample.global_pos).cross(&vel).normalize();
             let perpendic = vel.cross(&plane);

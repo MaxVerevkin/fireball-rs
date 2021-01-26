@@ -14,14 +14,20 @@ use fireball::solver::Solver;
 
 fn main() {
     // Parse argruments
-    let params = Params::from_cmd();
+    let params = match Params::from_cmd() {
+        Some(p) => p,
+        None => {
+            eprintln!("error: Could not initialize command line arguments");
+            std::process::exit(1);
+        }
+    };
 
     // Create new data structure
     let data = match Data::from_file(&params.file_name) {
         Ok(d) => d,
         Err(e) => {
             eprintln!("error: {}", e);
-            std::process::exit(1);
+            std::process::exit(2);
         }
     };
 

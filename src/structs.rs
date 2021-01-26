@@ -1,7 +1,7 @@
 //! Basic structures such as Vec3
 
 use std::f64::consts::FRAC_PI_2;
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, Sub};
 
 /// 3D vector
 #[derive(Debug, Copy, Clone)]
@@ -37,6 +37,15 @@ pub struct Matrix33 {
 }
 
 impl Vec3 {
+    /// Create new vector {0, 0, 0}
+    pub fn new() -> Self {
+        Vec3 {
+            x: 0.,
+            y: 0.,
+            z: 0.,
+        }
+    }
+
     /// Compute the magnitude of the vector
     pub fn length(&self) -> f64 {
         (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
@@ -44,10 +53,7 @@ impl Vec3 {
 
     /// Return a unit vector (i.e. with the magnitude of one) with the same direction
     pub fn normalize(mut self) -> Self {
-        let l = self.length();
-        self.x /= l;
-        self.y /= l;
-        self.z /= l;
+        self /= self.length();
         self
     }
 
@@ -108,6 +114,13 @@ impl Add for Vec3 {
         }
     }
 }
+impl AddAssign for Vec3 {
+    fn add_assign(&mut self, other: Self) {
+        self.x += other.x;
+        self.y += other.y;
+        self.z += other.z;
+    }
+}
 impl Sub for Vec3 {
     type Output = Self;
     fn sub(self, other: Self) -> Self {
@@ -131,11 +144,15 @@ impl Mul<f64> for Vec3 {
 impl Div<f64> for Vec3 {
     type Output = Self;
     fn div(self, other: f64) -> Self {
-        Self {
-            x: self.x / other,
-            y: self.y / other,
-            z: self.z / other,
-        }
+        self * (1. / other)
+    }
+}
+impl DivAssign<f64> for Vec3 {
+    fn div_assign(&mut self, other: f64) {
+        let k = 1. / other;
+        self.x *= k;
+        self.y *= k;
+        self.z *= k;
     }
 }
 
@@ -241,6 +258,7 @@ impl Matrix33 {
 #[cfg(test)]
 mod tests {
     use super::{Matrix33, Vec3};
+    use crate::aprox_eq::AproxEq;
     use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_6};
 
     #[test]
@@ -265,9 +283,9 @@ mod tests {
             z: 1.,
         });
 
-        assert!((x.x + FRAC_PI_3.sin()).abs() < 1e-10);
-        assert!((x.y - FRAC_PI_3.cos()).abs() < 1e-10);
-        assert!((x.z - 0.).abs() < 1e-10);
+        assert!(x.x.aprox_eq(-FRAC_PI_3.sin()));
+        assert!(x.y.aprox_eq(FRAC_PI_3.cos()));
+        assert!(x.z.aprox_eq(0.0));
         assert!((y.x + FRAC_PI_6.sin() * FRAC_PI_3.cos()).abs() < 1e-10);
         assert!((y.y + FRAC_PI_6.sin() * FRAC_PI_3.sin()).abs() < 1e-10);
         assert!((y.z - FRAC_PI_6.cos()).abs() < 1e-10);

@@ -5,6 +5,10 @@
 //! in the space that represents the trajectory of a fireball. The binary search
 //! itself minimizes the mean-square-error of observations given trajectory.
 
+//#![deny(warnings)]
+//#![deny(warnings, missing_docs)]
+
+pub mod aprox_eq;
 pub mod constants;
 pub mod data;
 pub mod maths;

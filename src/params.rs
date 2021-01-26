@@ -14,7 +14,7 @@ pub struct Params {
 
 impl Params {
     /// Automaticaly parse arguments using clap
-    pub fn from_cmd() -> Self {
+    pub fn from_cmd() -> Option<Self> {
         let matches = app_from_crate!()
             .arg(
                 Arg::with_name("file")
@@ -48,11 +48,11 @@ impl Params {
             )
             .get_matches();
 
-        Params {
-            file_name: matches.value_of("file").unwrap().to_owned(),
-            depth: matches.value_of("depth").unwrap().parse().unwrap(),
-            repeat: matches.value_of("repeat").unwrap().parse().unwrap(),
-            min_match: matches.value_of("min_match").unwrap().parse().unwrap(),
-        }
+        Some(Params {
+            file_name: matches.value_of("file")?.to_owned(),
+            depth: matches.value_of("depth")?.parse().ok()?,
+            repeat: matches.value_of("repeat")?.parse().ok()?,
+            min_match: matches.value_of("min_match")?.parse().ok()?,
+        })
     }
 }
