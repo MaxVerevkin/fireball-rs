@@ -9,7 +9,7 @@ pub fn angle_diff(a1: f64, a2: f64) -> f64 {
 }
 
 /// Compute descent angle
-pub fn descent_angle(start: &Azimuthal, end: &Azimuthal) -> Option<f64> {
+pub fn descent_angle(start: Azimuthal, end: Azimuthal) -> Option<f64> {
     let dz = angle_diff(start.z, end.z);
     if dz.abs() < 1e-5 {
         return if (end.h - start.h).abs() < 1e-5 {

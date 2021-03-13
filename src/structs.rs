@@ -1,5 +1,6 @@
 //! Basic structures such as Vec3
 
+use std::convert::Into;
 use std::f64::consts::FRAC_PI_2;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, Sub};
 
@@ -32,6 +33,7 @@ pub struct Azimuthal {
 }
 
 /// 3x3 Matirix
+#[derive(Debug, Clone)]
 pub struct Matrix33 {
     val: [f64; 9],
 }
@@ -52,51 +54,36 @@ impl Vec3 {
     }
 
     /// Return a unit vector (i.e. with the magnitude of one) with the same direction
-    pub fn normalize(mut self) -> Self {
-        self /= self.length();
-        self
+    pub fn normalized(self) -> Self {
+        self / self.length()
     }
 
-    /// Translate cartesian coordinates to spherical
-    pub fn to_spherical(&self) -> Spherical {
-        let xy = f64::hypot(self.x, self.y);
-        Spherical {
-            lat: f64::atan(self.z / xy),
-            lon: f64::atan2(self.y, self.x),
-            r: self.length(),
-        }
-    }
-
-    /// Translate cartesian coordinates to azimuthal
-    pub fn to_azimuthal(&self) -> Azimuthal {
-        let xy = f64::hypot(self.x, self.y);
-        Azimuthal {
-            z: f64::atan2(self.x, self.y),
-            h: f64::atan(self.z / xy),
-        }
+    /// Normalize a vercor
+    pub fn normalize(&mut self) {
+        *self /= self.length();
     }
 
     /// Translate local cartesian coordinates (East, North, Zenith) to global (x, y, z)
-    pub fn to_global(&self, pos: &Spherical) -> Self {
+    pub fn to_global(&self, pos: Spherical) -> Self {
         Matrix33::rz(FRAC_PI_2 + pos.lon)
             .mul_mat(&Matrix33::rx(FRAC_PI_2 - pos.lat))
             .mul_vec(self)
     }
 
     /// Translate global cartesian coordinates (x, y, z) to local (East, North, Zenith)
-    pub fn to_local(&self, pos: &Spherical) -> Self {
+    pub fn to_local(&self, pos: Spherical) -> Self {
         Matrix33::rx(-FRAC_PI_2 + pos.lat)
             .mul_mat(&Matrix33::rz(-FRAC_PI_2 - pos.lon))
             .mul_vec(self)
     }
 
     /// Compute the `dot` product of two vectors
-    pub fn dot(&self, other: &Vec3) -> f64 {
+    pub fn dot(&self, other: Vec3) -> f64 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }
 
     /// Compute the `cross` product of two vectors
-    pub fn cross(&self, other: &Vec3) -> Self {
+    pub fn cross(&self, other: Vec3) -> Self {
         Self {
             x: self.y * other.z - self.z * other.y,
             y: self.z * other.x - self.x * other.z,
@@ -104,6 +91,30 @@ impl Vec3 {
         }
     }
 }
+
+/// Translate cartesian coordinates to spherical
+impl Into<Spherical> for Vec3 {
+    fn into(self) -> Spherical {
+        let xy = f64::hypot(self.x, self.y);
+        Spherical {
+            lat: f64::atan(self.z / xy),
+            lon: f64::atan2(self.y, self.x),
+            r: self.length(),
+        }
+    }
+}
+
+/// Translate cartesian coordinates to azimuthal
+impl Into<Azimuthal> for Vec3 {
+    fn into(self) -> Azimuthal {
+        let xy = f64::hypot(self.x, self.y);
+        Azimuthal {
+            z: f64::atan2(self.x, self.y),
+            h: f64::atan(self.z / xy),
+        }
+    }
+}
+
 impl Add for Vec3 {
     type Output = Self;
     fn add(self, other: Self) -> Self {

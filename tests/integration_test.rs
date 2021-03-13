@@ -11,14 +11,9 @@ use fireball::structs::*;
 #[test]
 fn test() {
     let tests: usize = 1;
-    let must_pass: usize = 2;
+    let must_pass: usize = 1;
     let mut passed: usize = 0;
     for _ in 0..tests {
-        // (-pi/2, pi/2)
-        //let mean_lat = 30f64.to_radians();
-        // (-pi, pi)
-        //let mean_lon = 30f64.to_radians();
-
         // (-pi/2, pi/2)
         let mean_lat = -FRAC_PI_2 + random::<f64>() * PI;
         // (-pi, pi)
@@ -30,13 +25,43 @@ fn test() {
 
         let params = Params {
             file_name: String::new(),
-            depth: 20,
-            repeat: 50000,
-            min_match: 0.2,
+            range: 500_000.,
+            depth: 25,
+            repeat: 500,
+            min_match: 0.0,
         };
 
         let solver = Solver::new(&data, &params);
         let solved = solver.solve();
+
+        // Draw a plot for generated data.
+        use std::io::Write;
+        let xyz1 = flash.to_vec3();
+        let xyz2 = xyz1 + vel * 20_000.;
+        let xyz1 = [xyz1.x, xyz1.y, xyz1.z];
+        let mut file = std::fs::File::create("data_real.dat").expect("create failed");
+        for dx in -1000..1000 {
+            let x = dx as f64 * 200.;
+            file.write(
+                format!(
+                    "{} {}\n",
+                    x / 1000.,
+                    solver.evaluate_traj(
+                        &Vec3 {
+                            x: xyz1[0] + x,
+                            y: xyz1[1],
+                            z: xyz1[2],
+                        },
+                        &xyz2
+                    )
+                )
+                .as_bytes(),
+            )
+            .unwrap();
+        }
+
+        dbg!(solved.error);
+        dbg!(solved.raw);
 
         if ((flash.r - solved.flash.r).abs() < 1000.)
             && ((flash.lat - solved.flash.lat).abs() < 0.01)
@@ -47,13 +72,13 @@ fn test() {
         {
             passed += 1;
         } else {
-            dbg!(solved.error);
+            dbg!(flash);
+            dbg!(solved.flash);
+            dbg!(vel);
+            dbg!(solved.velocity);
+
             let flash = flash.to_vec3();
             dbg!(solver.evaluate_traj(&flash, &(flash - vel)));
-            //dbg!(flash);
-            //dbg!(solved.flash);
-            //dbg!(vel);
-            //dbg!(solved.velocity);
         }
     }
     dbg!(passed);
@@ -65,8 +90,12 @@ fn gen_data(mean_lat: f64, mean_lon: f64, flash: &Spherical, vel: &Vec3, n: u32)
     let p2 = flash.to_vec3();
     let mut data = Data {
         samples: Vec::new(),
-        mean_lon,
-        mean_lat,
+        mean_pos: Spherical {
+            lat: mean_lat,
+            lon: mean_lon,
+            r: EARTH_R,
+        }
+        .to_vec3(),
     };
 
     for _ in 0..n {

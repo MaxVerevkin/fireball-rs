@@ -5,12 +5,13 @@ authors = ["Max Verevkin <me@maxverevkin.tk>"]
 description = "This program aims to reconstruct the trajectory of a fireball given only data collected from witnesses"
 edition = "2018"
 
+[dependencies]
+rand = "0.8.1"
+
 [dependencies.clap]
 version = "2.33.3"
 default-features = false
 
-[dev-dependencies]
-rand = "0.8.1"
-
 [profile.release]
 panic = 'abort'
+lto = 'fat'

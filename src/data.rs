@@ -89,8 +89,8 @@ impl DataSample {
                 end,
                 duration,
 
-                global_start: start.to_vec3().to_global(&geo_pos),
-                global_end: end.to_vec3().to_global(&geo_pos),
+                global_start: start.to_vec3().to_global(geo_pos),
+                global_end: end.to_vec3().to_global(geo_pos),
 
                 trust_da: descent_angle >= 0.,
                 trust_start: start.z >= 0. && start.h >= 0.,
