@@ -113,7 +113,7 @@ impl<'a> Solver<'a> {
         let mut file = std::fs::File::create("data_solved.dat").expect("create failed");
         for dx in -1000..1000 {
             let x = dx as f64 * 200.;
-            file.write(
+            file.write_all(
                 format!(
                     "{} {}\n",
                     x / 1000.,

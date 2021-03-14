@@ -42,17 +42,17 @@ fn test() {
         let mut file = std::fs::File::create("data_real.dat").expect("create failed");
         for dx in -1000..1000 {
             let x = dx as f64 * 200.;
-            file.write(
+            file.write_all(
                 format!(
                     "{} {}\n",
                     x / 1000.,
                     solver.evaluate_traj(
-                        &Vec3 {
+                        Vec3 {
                             x: xyz1[0] + x,
                             y: xyz1[1],
                             z: xyz1[2],
                         },
-                        &xyz2
+                        xyz2
                     )
                 )
                 .as_bytes(),
@@ -78,7 +78,7 @@ fn test() {
             dbg!(solved.velocity);
 
             let flash = flash.to_vec3();
-            dbg!(solver.evaluate_traj(&flash, &(flash - vel)));
+            dbg!(solver.evaluate_traj(flash, flash - vel));
         }
     }
     dbg!(passed);
@@ -112,8 +112,8 @@ fn gen_data(mean_lat: f64, mean_lon: f64, flash: &Spherical, vel: &Vec3, n: u32)
         let k_start_golbal = p1 - global_pos;
         let k_end_golbal = p2 - global_pos;
 
-        let k_start = k_start_golbal.to_local(&geo_pos).to_azimuthal();
-        let k_end = k_end_golbal.to_local(&geo_pos).to_azimuthal();
+        let k_start = k_start_golbal.to_local(geo_pos).into();
+        let k_end = k_end_golbal.to_local(geo_pos).into();
 
         data.samples.push(
             DataSample::from_text(&format!(
@@ -121,7 +121,7 @@ fn gen_data(mean_lat: f64, mean_lon: f64, flash: &Spherical, vel: &Vec3, n: u32)
                 geo_pos.lat.to_degrees(),
                 geo_pos.lon.to_degrees(),
                 geo_pos.r - EARTH_R,
-                descent_angle(&k_start, &k_end).unwrap().to_degrees(),
+                descent_angle(k_start, k_end).unwrap().to_degrees(),
                 k_start.z.to_degrees(),
                 k_start.h.to_degrees(),
                 k_end.z.to_degrees(),
@@ -150,7 +150,7 @@ fn gen_traj(mean_lat: f64, mean_lon: f64) -> (Spherical, Vec3) {
 
     (
         p2,
-        (p2.to_vec3() - p1.to_vec3()).normalize() * (5_000. + random::<f64>() * 20_000.),
+        (p2.to_vec3() - p1.to_vec3()).normalized() * (5_000. + random::<f64>() * 20_000.),
     )
 }
 

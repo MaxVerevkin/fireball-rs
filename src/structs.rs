@@ -12,40 +12,20 @@ pub struct Vec3 {
     pub z: f64,
 }
 
-/// Spherical coordinates triple
-#[derive(Debug, Copy, Clone)]
-pub struct Spherical {
-    /// Positive latitude means North, negative means South
-    pub lat: f64,
-    /// Positive longitude means East, negative means West
-    pub lon: f64,
-    /// Relative to the center of the Earth
-    pub r: f64,
-}
-
-/// Azimuthal coordinates tuple
-#[derive(Debug, Copy, Clone)]
-pub struct Azimuthal {
-    /// Azimuth is equal to zero when points to North,
-    /// 90 degrees when points to West, and so on
-    pub z: f64,
-    pub h: f64,
-}
-
-/// 3x3 Matirix
-#[derive(Debug, Clone)]
-pub struct Matrix33 {
-    val: [f64; 9],
+impl Default for Vec3 {
+    fn default() -> Self {
+        Self {
+            x: 0.,
+            y: 0.,
+            z: 0.,
+        }
+    }
 }
 
 impl Vec3 {
     /// Create new vector {0, 0, 0}
     pub fn new() -> Self {
-        Vec3 {
-            x: 0.,
-            y: 0.,
-            z: 0.,
-        }
+        Default::default()
     }
 
     /// Compute the magnitude of the vector
@@ -165,6 +145,32 @@ impl DivAssign<f64> for Vec3 {
         self.y *= k;
         self.z *= k;
     }
+}
+
+/// Spherical coordinates triple
+#[derive(Debug, Copy, Clone)]
+pub struct Spherical {
+    /// Positive latitude means North, negative means South
+    pub lat: f64,
+    /// Positive longitude means East, negative means West
+    pub lon: f64,
+    /// Relative to the center of the Earth
+    pub r: f64,
+}
+
+/// Azimuthal coordinates tuple
+#[derive(Debug, Copy, Clone)]
+pub struct Azimuthal {
+    /// Azimuth is equal to zero when points to North,
+    /// 90 degrees when points to West, and so on
+    pub z: f64,
+    pub h: f64,
+}
+
+/// 3x3 Matirix
+#[derive(Debug, Clone)]
+pub struct Matrix33 {
+    val: [f64; 9],
 }
 
 impl Spherical {
