@@ -50,41 +50,41 @@ mod tests {
     #[test]
     fn descent_angle_test() {
         assert_eq!(
-            descent_angle(&Azimuthal { z: 1., h: 0.1 }, &Azimuthal { z: 1., h: 0.2 }).unwrap(),
-            0.
+            descent_angle(Azimuthal { z: 1., h: 0.1 }, Azimuthal { z: 1., h: 0.2 }),
+            Some(0.)
         );
         assert!(
-            (descent_angle(&Azimuthal { z: 1., h: 1. }, &Azimuthal { z: 1.01, h: 1.01 }).unwrap()
+            (descent_angle(Azimuthal { z: 1., h: 1. }, Azimuthal { z: 1.01, h: 1.01 }).unwrap()
                 - (PI / 4.))
                 < 1e-2
         );
         assert!(
-            (descent_angle(&Azimuthal { z: 1., h: 0.3 }, &Azimuthal { z: 1.01, h: 0.3 }).unwrap()
+            (descent_angle(Azimuthal { z: 1., h: 0.3 }, Azimuthal { z: 1.01, h: 0.3 }).unwrap()
                 - (PI / 2.))
                 < 1e-5
         );
         assert!(
-            (descent_angle(&Azimuthal { z: 1., h: 1. }, &Azimuthal { z: 1.01, h: 0.99 }).unwrap()
+            (descent_angle(Azimuthal { z: 1., h: 1. }, Azimuthal { z: 1.01, h: 0.99 }).unwrap()
                 - (PI / 4. * 3.))
                 < 0.3
         );
         assert!(
-            (descent_angle(&Azimuthal { z: 1., h: 0.3 }, &Azimuthal { z: 1., h: 0.2 }).unwrap()
+            (descent_angle(Azimuthal { z: 1., h: 0.3 }, Azimuthal { z: 1., h: 0.2 }).unwrap()
                 - (PI))
                 < 1e-5
         );
         assert!(
-            (descent_angle(&Azimuthal { z: 1., h: 1. }, &Azimuthal { z: 0.99, h: 0.99 }).unwrap()
+            (descent_angle(Azimuthal { z: 1., h: 1. }, Azimuthal { z: 0.99, h: 0.99 }).unwrap()
                 - (PI / 4. * 5.))
                 < 0.3
         );
         assert!(
-            (descent_angle(&Azimuthal { z: 1., h: 0.3 }, &Azimuthal { z: 0.99, h: 0.3 }).unwrap()
+            (descent_angle(Azimuthal { z: 1., h: 0.3 }, Azimuthal { z: 0.99, h: 0.3 }).unwrap()
                 - (3. * PI / 2.))
                 < 1e-2
         );
         assert!(
-            (descent_angle(&Azimuthal { z: 1., h: 1. }, &Azimuthal { z: 0.99, h: 1.01 }).unwrap()
+            (descent_angle(Azimuthal { z: 1., h: 1. }, Azimuthal { z: 0.99, h: 1.01 }).unwrap()
                 - (PI / 4. * 7.))
                 < 0.3
         );
