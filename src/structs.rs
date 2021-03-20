@@ -1,5 +1,6 @@
 //! Basic structures such as Vec3
 
+use rand::prelude::*;
 use std::convert::Into;
 use std::f64::consts::FRAC_PI_2;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, Sub};
@@ -26,6 +27,14 @@ impl Vec3 {
     /// Create new vector {0, 0, 0}
     pub fn new() -> Self {
         Default::default()
+    }
+
+    pub fn rand(range: f64) -> Self {
+        Self {
+            x: range * (random::<f64>() * 2. - 1.),
+            y: range * (random::<f64>() * 2. - 1.),
+            z: range * (random::<f64>() * 2. - 1.),
+        }
     }
 
     /// Compute the magnitude of the vector

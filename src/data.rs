@@ -27,7 +27,7 @@ use crate::constants::*;
 use crate::structs::*;
 
 /// Represents data given by a witness
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DataSample {
     pub geo_pos: Spherical,
     pub global_pos: Vec3,
@@ -46,6 +46,7 @@ pub struct DataSample {
 }
 
 /// A collenction of observations
+#[derive(Clone)]
 pub struct Data {
     pub samples: Vec<DataSample>,
     pub mean_pos: Vec3,

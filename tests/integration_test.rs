@@ -4,14 +4,13 @@ use std::f64::consts::{FRAC_PI_2, PI, TAU};
 use fireball::constants::EARTH_R;
 use fireball::data::{Data, DataSample};
 use fireball::maths::descent_angle;
-use fireball::params::Params;
-use fireball::solver::Solver;
+use fireball::solver::{Params, Solver};
 use fireball::structs::*;
 
 #[test]
 fn test() {
-    let tests: usize = 1;
-    let must_pass: usize = 1;
+    let tests: usize = 10;
+    let must_pass: usize = 4;
     let mut passed: usize = 0;
     for _ in 0..tests {
         // (-pi/2, pi/2)
@@ -24,15 +23,12 @@ fn test() {
         let data = gen_data(mean_lat, mean_lon, &flash, &vel, 300);
 
         let params = Params {
-            file_name: String::new(),
             range: 500_000.,
-            depth: 25,
-            repeat: 500,
             min_match: 0.0,
         };
 
-        let solver = Solver::new(&data, &params);
-        let solved = solver.solve();
+        let solver = Solver::new(data, params);
+        let solution = solver.solve();
 
         // Draw a plot for generated data.
         use std::io::Write;
@@ -60,29 +56,29 @@ fn test() {
             .unwrap();
         }
 
-        dbg!(solved.error);
-        dbg!(solved.raw);
+        dbg!(solution.error);
+        dbg!(solution.raw);
 
-        if ((flash.r - solved.flash.r).abs() < 1000.)
-            && ((flash.lat - solved.flash.lat).abs() < 0.01)
-            && ((flash.lon - solved.flash.lon).abs() < 0.01)
-            && ((vel.x - solved.velocity.x).abs() < 500.)
-            && ((vel.y - solved.velocity.y).abs() < 500.)
-            && ((vel.z - solved.velocity.z).abs() < 500.)
+        if ((flash.r - solution.flash.r).abs() < 1000.)
+            && ((flash.lat - solution.flash.lat).abs() < 0.01)
+            && ((flash.lon - solution.flash.lon).abs() < 0.01)
+            && ((vel.x - solution.velocity.x).abs() < 500.)
+            && ((vel.y - solution.velocity.y).abs() < 500.)
+            && ((vel.z - solution.velocity.z).abs() < 500.)
         {
             passed += 1;
         } else {
             dbg!(flash);
-            dbg!(solved.flash);
+            dbg!(solution.flash);
             dbg!(vel);
-            dbg!(solved.velocity);
+            dbg!(solution.velocity);
 
             let flash = flash.to_vec3();
             dbg!(solver.evaluate_traj(flash, flash - vel));
         }
     }
     dbg!(passed);
-    assert!(passed > must_pass);
+    assert!(passed >= must_pass);
 }
 
 // generate some random data

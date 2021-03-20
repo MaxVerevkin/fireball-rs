@@ -12,6 +12,5 @@ pub mod aprox_eq;
 pub mod constants;
 pub mod data;
 pub mod maths;
-pub mod params;
 pub mod solver;
 pub mod structs;
