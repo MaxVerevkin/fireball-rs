@@ -4,8 +4,8 @@
 /// Equals to `f64::EPSILON.sqrt()`
 pub const F64_TOLERANCE: f64 = 0.000000014901161193847656_f64;
 
-/// Compare two objects with some tolerance
 pub trait AproxEq {
+    /// Compare two objects with some tolerance
     fn aprox_eq(self, rhs: Self) -> bool;
 }
 

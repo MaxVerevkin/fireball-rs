@@ -9,8 +9,8 @@ use fireball::structs::*;
 
 #[test]
 fn test() {
-    let tests: usize = 10;
-    let must_pass: usize = 4;
+    let tests: usize = 100;
+    let must_pass: usize = 100;
     let mut passed: usize = 0;
     for _ in 0..tests {
         // (-pi/2, pi/2)
@@ -20,7 +20,7 @@ fn test() {
 
         // gnenerate trajectory
         let (flash, vel) = gen_traj(mean_lat, mean_lon);
-        let data = gen_data(mean_lat, mean_lon, &flash, &vel, 300);
+        let data = gen_data(mean_lat, mean_lon, &flash, vel, 300);
 
         let params = Params {
             range: 500_000.,
@@ -56,18 +56,17 @@ fn test() {
             .unwrap();
         }
 
-        dbg!(solution.error);
-        dbg!(solution.raw);
-
-        if ((flash.r - solution.flash.r).abs() < 1000.)
+        if ((flash.r - solution.flash.r).abs() < 5000.)
             && ((flash.lat - solution.flash.lat).abs() < 0.01)
             && ((flash.lon - solution.flash.lon).abs() < 0.01)
-            && ((vel.x - solution.velocity.x).abs() < 500.)
-            && ((vel.y - solution.velocity.y).abs() < 500.)
-            && ((vel.z - solution.velocity.z).abs() < 500.)
+            && ((vel.x - solution.velocity.x).abs() < 900.)
+            && ((vel.y - solution.velocity.y).abs() < 900.)
+            && ((vel.z - solution.velocity.z).abs() < 900.)
         {
             passed += 1;
         } else {
+            dbg!(solution.error);
+            dbg!(solution.raw);
             dbg!(flash);
             dbg!(solution.flash);
             dbg!(vel);
@@ -82,7 +81,7 @@ fn test() {
 }
 
 // generate some random data
-fn gen_data(mean_lat: f64, mean_lon: f64, flash: &Spherical, vel: &Vec3, n: u32) -> Data {
+fn gen_data(mean_lat: f64, mean_lon: f64, flash: &Spherical, vel: Vec3, n: u32) -> Data {
     let p2 = flash.to_vec3();
     let mut data = Data {
         samples: Vec::new(),
@@ -103,13 +102,13 @@ fn gen_data(mean_lat: f64, mean_lon: f64, flash: &Spherical, vel: &Vec3, n: u32)
         };
         let global_pos = geo_pos.to_vec3();
 
-        let p1 = p2 - *vel * duration;
+        let p1 = p2 - vel * duration;
 
         let k_start_golbal = p1 - global_pos;
         let k_end_golbal = p2 - global_pos;
 
-        let k_start = k_start_golbal.to_local(geo_pos).into();
-        let k_end = k_end_golbal.to_local(geo_pos).into();
+        let k_start: Azimuthal = k_start_golbal.to_local(geo_pos).into();
+        let k_end: Azimuthal = k_end_golbal.to_local(geo_pos).into();
 
         data.samples.push(
             DataSample::from_text(&format!(
@@ -117,7 +116,7 @@ fn gen_data(mean_lat: f64, mean_lon: f64, flash: &Spherical, vel: &Vec3, n: u32)
                 geo_pos.lat.to_degrees(),
                 geo_pos.lon.to_degrees(),
                 geo_pos.r - EARTH_R,
-                descent_angle(k_start, k_end).unwrap().to_degrees(),
+                descent_angle(p2, vel, global_pos, k_start_golbal).to_degrees(),
                 k_start.z.to_degrees(),
                 k_start.h.to_degrees(),
                 k_end.z.to_degrees(),
