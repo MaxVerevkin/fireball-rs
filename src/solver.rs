@@ -128,10 +128,9 @@ impl Solver {
 
     /// Calculate the flash location and the speed of the fireball
     fn calc_flash_and_speed(&self, point: Vec3, v: Vec3) -> (Spherical, f64) {
-        let mut l_end_mean = 0.;
-        let mut speed = 0.;
-        let mut l_count = 0.;
-        let mut speed_count = 0.;
+        let mut speed_vec = Vec::new();
+        let mut l_end_vec = Vec::new();
+
         for sample in &self.data.samples {
             let pip = point - sample.global_pos;
             let plane = pip.cross(v).normalized();
@@ -145,20 +144,26 @@ impl Solver {
 
             //if trust_end {
             let l_end = pip.dot(perpendic * (k_end.dot(v) / k_end.dot(perpendic)) - v);
-            l_end_mean += l_end;
-            l_count += 1.;
+            l_end_vec.push(l_end);
             //if trust_start {
-            let l_start = pip.dot(perpendic * (k_start.dot(v) / k_start.dot(perpendic)) - v);
-            speed += (l_end - l_start) / sample.duration;
-            speed_count += 1.;
+            if sample.duration > 0. {
+                let l_start = pip.dot(perpendic * (k_start.dot(v) / k_start.dot(perpendic)) - v);
+                speed_vec.push((l_end - l_start) / sample.duration);
+            }
             //}
             //}
         }
-        l_end_mean /= l_count;
-        speed /= speed_count;
+
+        l_end_vec.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
+        speed_vec.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
+
+        let l_end = l_end_vec[l_end_vec.len() / 2];
+        let speed = speed_vec[speed_vec.len() / 2];
+
         //dbg!(l_count);
         //dbg!(speed_count);
-        ((point + v * l_end_mean).into(), speed)
+        //dbg!(ls);
+        ((point + v * l_end).into(), speed)
     }
 
     /// Calculate the mean of squared errors (less is better)
