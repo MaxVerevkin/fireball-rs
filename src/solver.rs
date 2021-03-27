@@ -39,26 +39,26 @@ impl Solver {
 
     /// Find the solution
     pub fn solve(&self) -> Solution {
-        let (p1, p2) = self.monte_carlo(self.data.mean_pos, self.params.range, 1_000., 0.45);
+        let (p1, p2) = self.monte_carlo(self.data.mean_pos, self.params.range, 5_000., 0.35);
 
-        #[cfg(debug_assertions)]
-        {
-            // Draw a plot
-            use std::io::Write;
-            let mut file = std::fs::File::create("data_solved.dat").expect("create failed");
-            for dx in -1000..1000 {
-                let x = dx as f64 * 200.;
-                file.write_all(
-                    format!(
-                        "{} {}\n",
-                        x / 1000.,
-                        self.evaluate_traj(p1 + Vec3 { x, y: 0., z: 0. }, p2)
-                    )
-                    .as_bytes(),
-                )
-                .unwrap();
-            }
-        }
+        //#[cfg(debug_assertions)]
+        //{
+        //// Draw a plot
+        //use std::io::Write;
+        //let mut file = std::fs::File::create("data_solved.dat").expect("create failed");
+        //for dx in -1000..1000 {
+        //let x = dx as f64 * 200.;
+        //file.write_all(
+        //format!(
+        //"{} {}\n",
+        //x / 1000.,
+        //self.evaluate_traj(p1 + Vec3 { x, y: 0., z: 0. }, p2)
+        //)
+        //.as_bytes(),
+        //)
+        //.unwrap();
+        //}
+        //}
 
         // calculate the velocity
         let velocity = (p2 - p1).normalized();
@@ -85,7 +85,7 @@ impl Solver {
         let fx = || {
             let mut error = std::f64::INFINITY;
             let mut answer = (mid_point, mid_point);
-            for _ in 0..10_000 {
+            for _ in 0..20_000 {
                 // Generate two points
                 let p1 = mid_point + Vec3::rand(range);
                 let p2 = mid_point + Vec3::rand(range);

@@ -31,30 +31,30 @@ fn test() {
         let solution = solver.solve();
 
         // Draw a plot for generated data.
-        use std::io::Write;
-        let xyz1 = flash.to_vec3();
-        let xyz2 = xyz1 + vel * 20_000.;
-        let xyz1 = [xyz1.x, xyz1.y, xyz1.z];
-        let mut file = std::fs::File::create("data_real.dat").expect("create failed");
-        for dx in -1000..1000 {
-            let x = dx as f64 * 200.;
-            file.write_all(
-                format!(
-                    "{} {}\n",
-                    x / 1000.,
-                    solver.evaluate_traj(
-                        Vec3 {
-                            x: xyz1[0] + x,
-                            y: xyz1[1],
-                            z: xyz1[2],
-                        },
-                        xyz2
-                    )
-                )
-                .as_bytes(),
-            )
-            .unwrap();
-        }
+        //use std::io::Write;
+        //let xyz1 = flash.to_vec3();
+        //let xyz2 = xyz1 + vel * 20_000.;
+        //let xyz1 = [xyz1.x, xyz1.y, xyz1.z];
+        //let mut file = std::fs::File::create("data_real.dat").expect("create failed");
+        //for dx in -1000..1000 {
+        //let x = dx as f64 * 200.;
+        //file.write_all(
+        //format!(
+        //"{} {}\n",
+        //x / 1000.,
+        //solver.evaluate_traj(
+        //Vec3 {
+        //x: xyz1[0] + x,
+        //y: xyz1[1],
+        //z: xyz1[2],
+        //},
+        //xyz2
+        //)
+        //)
+        //.as_bytes(),
+        //)
+        //.unwrap();
+        //}
 
         if ((flash.r - solution.flash.r).abs() < 5000.)
             && ((flash.lat - solution.flash.lat).abs() < 0.01)
