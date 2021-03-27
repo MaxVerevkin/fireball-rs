@@ -1,7 +1,5 @@
 //! The implementation itself
 
-use std::sync::Arc;
-
 use crate::data::Data;
 use crate::maths::*;
 use crate::structs::*;
@@ -9,7 +7,7 @@ use crate::structs::*;
 /// Contains all necessary information to solve the problem
 #[derive(Clone)]
 pub struct Solver {
-    data: Arc<Data>,
+    data: Data,
     params: Params,
 }
 
@@ -31,10 +29,7 @@ pub struct Solution {
 impl Solver {
     /// Construct new solver given dataset and paramesters
     pub fn new(data: Data, params: Params) -> Solver {
-        Solver {
-            data: Arc::new(data),
-            params,
-        }
+        Solver { data, params }
     }
 
     /// Find the solution
