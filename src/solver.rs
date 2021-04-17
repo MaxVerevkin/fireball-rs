@@ -34,7 +34,7 @@ impl Solver {
 
     /// Find the solution
     pub fn solve(&self) -> Solution {
-        let (p1, p2) = self.monte_carlo(self.data.mean_pos, self.params.range, 5_000., 0.35);
+        let (p1, p2) = self.monte_carlo(self.data.mean_pos, self.params.range, 5_000., 0.4);
 
         //#[cfg(debug_assertions)]
         //{
@@ -80,7 +80,7 @@ impl Solver {
         let fx = || {
             let mut error = std::f64::INFINITY;
             let mut answer = (mid_point, mid_point);
-            for _ in 0..20_000 {
+            for _ in 0..25_000 {
                 // Generate two points
                 let p1 = mid_point + Vec3::rand(range);
                 let p2 = mid_point + Vec3::rand(range);
