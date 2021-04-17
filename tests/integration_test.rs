@@ -10,7 +10,7 @@ use fireball::structs::*;
 #[test]
 fn test() {
     let tests: usize = 100;
-    let must_pass: usize = 101;
+    let must_pass: usize = 100;
     let mut passed: usize = 0;
     for _ in 0..tests {
         // (-pi/2, pi/2)

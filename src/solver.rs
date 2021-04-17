@@ -36,11 +36,11 @@ impl Solver {
     pub fn solve(&self) -> Solution {
         let (p1, p2) = self.monte_carlo(
             self.data.mean_pos,
-            150_000,
+            300_000,
             num_cpus::get(),
             self.params.range,
             5_000.,
-            0.4,
+            0.45,
         );
 
         //#[cfg(debug_assertions)]
