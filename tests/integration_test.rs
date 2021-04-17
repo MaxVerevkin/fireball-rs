@@ -9,8 +9,8 @@ use fireball::structs::*;
 
 #[test]
 fn test() {
-    let tests: usize = 100;
-    let must_pass: usize = 100;
+    let tests: usize = 50;
+    let must_pass: usize = 50;
     let mut passed: usize = 0;
     for _ in 0..tests {
         // (-pi/2, pi/2)
@@ -77,7 +77,6 @@ fn test() {
         }
     }
     dbg!(passed);
-    dbg!(num_cpus::get());
     assert!(passed >= must_pass);
 }
 

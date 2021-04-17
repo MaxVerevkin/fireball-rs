@@ -36,7 +36,7 @@ impl Solver {
     pub fn solve(&self) -> Solution {
         let (p1, p2) = self.monte_carlo(
             self.data.mean_pos,
-            300_000,
+            350_000,
             num_cpus::get(),
             self.params.range,
             5_000.,
@@ -208,7 +208,8 @@ impl Solver {
 
             let angle = descent_angle(sample.global_pos, k_start, vel);
             let diff = angle_diff(angle, sample.descent_angle);
-            error += diff * diff * 0.5;
+            //error += diff * diff * 0.5;
+            error += diff * diff;
             count += 1.;
             //}
             //if trust_end {
