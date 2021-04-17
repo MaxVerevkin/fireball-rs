@@ -77,6 +77,7 @@ fn test() {
         }
     }
     dbg!(passed);
+    dbg!(num_cpus::get());
     assert!(passed >= must_pass);
 }
 

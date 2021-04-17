@@ -34,7 +34,14 @@ impl Solver {
 
     /// Find the solution
     pub fn solve(&self) -> Solution {
-        let (p1, p2) = self.monte_carlo(self.data.mean_pos, self.params.range, 5_000., 0.4);
+        let (p1, p2) = self.monte_carlo(
+            self.data.mean_pos,
+            150_000,
+            num_cpus::get(),
+            self.params.range,
+            5_000.,
+            0.4,
+        );
 
         //#[cfg(debug_assertions)]
         //{
@@ -73,50 +80,54 @@ impl Solver {
     fn monte_carlo(
         &self,
         mid_point: Vec3,
+        number: usize,
+        cores: usize,
         range: f64,
         target_range: f64,
         range_mul: f64,
     ) -> (Vec3, Vec3) {
-        let fx = || {
-            let mut error = std::f64::INFINITY;
-            let mut answer = (mid_point, mid_point);
-            for _ in 0..25_000 {
-                // Generate two points
-                let p1 = mid_point + Vec3::rand(range);
-                let p2 = mid_point + Vec3::rand(range);
+        let answers = crossbeam_utils::thread::scope(|scope| {
+            let mut threads = Vec::with_capacity(cores);
+            for _ in 0..cores {
+                threads.push(scope.spawn(|_| {
+                    let mut error = std::f64::INFINITY;
+                    let mut answer = (mid_point, mid_point);
+                    for _ in 0..(number / cores) {
+                        // Generate two points
+                        let p1 = mid_point + Vec3::rand(range);
+                        let p2 = mid_point + Vec3::rand(range);
 
-                let err = self.evaluate_traj(p1, p2);
-                if err < error {
-                    answer = (p1, p2);
-                    error = err;
-                }
+                        let err = self.evaluate_traj(p1, p2);
+                        if err < error {
+                            answer = (p1, p2);
+                            error = err;
+                        }
+                    }
+                    (error, answer)
+                }));
             }
-            (answer, error)
-        };
-
-        let (a0, a1, a2, a3) = crossbeam_utils::thread::scope(|scope| {
-            let a1 = scope.spawn(|_| fx());
-            let a2 = scope.spawn(|_| fx());
-            let a3 = scope.spawn(|_| fx());
-
-            let a0 = fx();
-
-            let a1 = a1.join().unwrap();
-            let a2 = a2.join().unwrap();
-            let a3 = a3.join().unwrap();
-
-            (a0, a1, a2, a3)
+            threads
+                .into_iter()
+                .map(|t| t.join().unwrap())
+                .collect::<Vec<(f64, (Vec3, Vec3))>>()
         })
         .unwrap();
 
-        let answer = if a0.1 < a1.1 { a0 } else { a1 };
-        let answer = if answer.1 < a2.1 { answer } else { a2 };
-        let answer = if answer.1 < a3.1 { answer } else { a3 };
-        let answer = answer.0;
+        let mut error = f64::INFINITY;
+        let mut answer = None;
+        for ans in answers {
+            if ans.0 < error {
+                error = ans.0;
+                answer = Some(ans.1);
+            }
+        }
+        let answer = answer.unwrap();
 
         if range > target_range {
             self.monte_carlo(
                 (answer.0 + answer.1) * 0.5,
+                number,
+                cores,
                 range * range_mul,
                 target_range,
                 range_mul,
