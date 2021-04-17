@@ -10,7 +10,7 @@ use fireball::structs::*;
 #[test]
 fn test() {
     let tests: usize = 100;
-    let must_pass: usize = 100;
+    let must_pass: usize = 101;
     let mut passed: usize = 0;
     for _ in 0..tests {
         // (-pi/2, pi/2)
@@ -116,7 +116,7 @@ fn gen_data(mean_lat: f64, mean_lon: f64, flash: &Spherical, vel: Vec3, n: u32) 
                 geo_pos.lat.to_degrees(),
                 geo_pos.lon.to_degrees(),
                 geo_pos.r - EARTH_R,
-                descent_angle(p2, vel, global_pos, k_start_golbal).to_degrees(),
+                descent_angle(global_pos, k_start_golbal, vel).to_degrees(),
                 k_start.z.to_degrees(),
                 k_start.h.to_degrees(),
                 k_end.z.to_degrees(),

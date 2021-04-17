@@ -3,18 +3,14 @@
 use crate::structs::*;
 use std::f64::consts::{PI, TAU};
 
-pub fn descent_angle(point: Vec3, vel: Vec3, observer: Vec3, k: Vec3) -> f64 {
-    let plane = (point - observer).cross(vel).normalized();
-    let z = observer.normalized();
-    let x = k.cross(z).normalized();
-
-    let nx = plane.dot(x);
-    let nz = plane.dot(z);
-    let alpha = f64::atan2(nx, nz) + std::f64::consts::FRAC_PI_2;
-    if alpha < 0. {
-        alpha + std::f64::consts::TAU
+pub fn descent_angle(observer: Vec3, k: Vec3, vel: Vec3) -> f64 {
+    let x = k.cross(observer).normalized();
+    let y = x.cross(k).normalized();
+    let angle = f64::atan2(vel.dot(x), vel.dot(y));
+    if angle < 0. {
+        angle + TAU
     } else {
-        alpha
+        angle
     }
 }
 

@@ -195,17 +195,8 @@ impl Solver {
             error += e_start * e_start;
             count += 1.;
 
-            let z = sample.global_pos.normalized();
-            let x = k_start.cross(z).normalized();
-
-            let nx = plane.dot(x);
-            let nz = plane.dot(z);
-            let mut alpha = f64::atan2(nx, nz) + std::f64::consts::FRAC_PI_2;
-            if alpha < 0. {
-                alpha += std::f64::consts::TAU;
-            }
-
-            let diff = angle_diff(alpha, sample.descent_angle);
+            let angle = descent_angle(sample.global_pos, k_start, vel);
+            let diff = angle_diff(angle, sample.descent_angle);
             error += diff * diff * 0.5;
             count += 1.;
             //}
