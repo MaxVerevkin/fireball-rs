@@ -22,34 +22,57 @@ fn main() {
                 .required(true),
         )
         .arg(
-            Arg::with_name("range")
-                .help("The range of values to search in (km)")
-                .default_value("700000.0")
+            Arg::with_name("initial_range")
+                .help("The initial range (in meters) of values used to get a rough approximation")
+                .default_value("500000.0")
                 .takes_value(true)
-                .long("range"),
+                .long("initial_range"),
         )
         .arg(
-            Arg::with_name("min_match")
-                .help(
-                    "Number that represents how accurate the observation should be to be included",
-                )
-                .default_value("0.0")
+            Arg::with_name("initial_iterations")
+                .help("The number of iterations for initial monte carlo approximation")
+                .default_value("10000")
                 .takes_value(true)
-                .long("min-match"),
+                .long("initial_iterations"),
+        )
+        .arg(
+            Arg::with_name("main_iterations")
+                .help("The number of iterations for main monte carlo search")
+                .default_value("10000")
+                .takes_value(true)
+                .long("main_iterations"),
+        )
+        .arg(
+            Arg::with_name("threads")
+                .help("The number of threads this program will spawn")
+                .default_value("1")
+                .takes_value(true)
+                .long("threads")
+                .short("j"),
         )
         .get_matches();
 
     let file_name = matches.value_of("file").unwrap();
-    let range: f64 = matches
-        .value_of("range")
+    let initial_range: f64 = matches
+        .value_of("initial_range")
         .unwrap()
         .parse()
-        .expect("failed to parse `range`");
-    let min_match: f64 = matches
-        .value_of("min_match")
+        .expect("failed to parse `initial_range`");
+    let initial_iterations: usize = matches
+        .value_of("initial_iterations")
         .unwrap()
         .parse()
-        .expect("failed to parse `min_match`");
+        .expect("failed to parse `initial_iterations`");
+    let main_iterations: usize = matches
+        .value_of("main_iterations")
+        .unwrap()
+        .parse()
+        .expect("failed to parse `main_iterations`");
+    let threads: usize = matches
+        .value_of("threads")
+        .unwrap()
+        .parse()
+        .expect("failed to parse `threads`");
 
     // Create new data structure
     let data = match Data::from_file(file_name) {
@@ -61,7 +84,15 @@ fn main() {
     };
 
     // Solve!
-    let solver = Solver::new(data, Params { range, min_match });
+    let solver = Solver::new(
+        data,
+        Params {
+            initial_range,
+            initial_iterations,
+            main_iterations,
+            threads,
+        },
+    );
     let solution = solver.solve();
 
     // Print the answer

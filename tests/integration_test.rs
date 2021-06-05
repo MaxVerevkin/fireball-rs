@@ -9,8 +9,8 @@ use fireball::structs::*;
 
 #[test]
 fn test() {
-    let tests: usize = 50;
-    let must_pass: usize = 50;
+    let tests: usize = 100;
+    let must_pass: usize = 95;
     let mut passed: usize = 0;
     for _ in 0..tests {
         // (-pi/2, pi/2)
@@ -20,11 +20,13 @@ fn test() {
 
         // gnenerate trajectory
         let (flash, vel) = gen_traj(mean_lat, mean_lon);
-        let data = gen_data(mean_lat, mean_lon, &flash, vel, 300);
+        let data = gen_data(mean_lat, mean_lon, &flash, vel, 200);
 
         let params = Params {
-            range: 500_000.,
-            min_match: 0.0,
+            initial_range: 500_000.,
+            initial_iterations: 10_000,
+            main_iterations: 10_000,
+            threads: 4,
         };
 
         let solver = Solver::new(data, params);
@@ -66,7 +68,6 @@ fn test() {
             passed += 1;
         } else {
             dbg!(solution.error);
-            dbg!(solution.raw);
             dbg!(flash);
             dbg!(solution.flash);
             dbg!(vel);

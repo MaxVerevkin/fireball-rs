@@ -6,9 +6,9 @@ description = "This program aims to reconstruct the trajectory of a fireball giv
 edition = "2018"
 
 [dependencies]
-rand = "0.8.1"
+rand = "0.8"
+rand_distr = "0.4"
 crossbeam-utils = "0.8.3"
-num_cpus = "1.13.0"
 
 [dependencies.clap]
 version = "2.33.3"

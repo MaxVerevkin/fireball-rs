@@ -1,35 +1,22 @@
 //! Basic structures such as Vec3
 
-use rand::prelude::*;
+use rand::{random, rngs::ThreadRng, Rng};
+use rand_distr::StandardNormal;
 use std::convert::Into;
-use std::f64::consts::FRAC_PI_2;
+use std::f64::consts::{FRAC_PI_2, PI};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, Sub};
 
 /// 3D vector
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
     pub z: f64,
 }
 
-impl Default for Vec3 {
-    fn default() -> Self {
-        Self {
-            x: 0.,
-            y: 0.,
-            z: 0.,
-        }
-    }
-}
-
 impl Vec3 {
-    /// Create new vector {0, 0, 0}
-    pub fn new() -> Self {
-        Default::default()
-    }
-
-    pub fn rand(range: f64) -> Self {
+    /// Generate a random vector in range from (-r,-r,r) to (r,r,r)
+    pub fn rand_uniform(range: f64) -> Self {
         Self {
             x: range * (random::<f64>() * 2. - 1.),
             y: range * (random::<f64>() * 2. - 1.),
@@ -156,6 +143,63 @@ impl DivAssign<f64> for Vec3 {
     }
 }
 
+// FIXME write docs
+// TODO rename
+#[derive(Debug, Copy, Clone)]
+pub struct Tunnel {
+    pub mid_point: Vec3,
+    pub k: Vec3,
+    pub r: f64,
+}
+
+// TODO move to math.rs
+fn rand_point(rng: &mut ThreadRng, r_sigma: f64) -> (f64, f64) {
+    // Generate a point in polar system with coordinates being
+    // r = N(0, r)
+    // phi = U(-pi, pi)
+    let r: f64 = rng.sample(StandardNormal);
+    let r = r * r_sigma;
+    let phi = rng.gen::<f64>() * PI;
+
+    // Polar to cartesian
+    let (sin, cos) = phi.sin_cos();
+    (r * sin, r * cos)
+}
+
+impl Tunnel {
+    pub fn random(&self) -> Self {
+        let mut rng = rand::thread_rng();
+        let (x1, y1) = rand_point(&mut rng, self.r);
+        let (x2, y2) = rand_point(&mut rng, 1.);
+
+        // Build a temporal coordinate system in which
+        // - i is "x"
+        // - j is "y"
+        // - `self.k` is "z"
+        let i = Vec3 {
+            x: 0.,
+            y: self.k.z,
+            z: -self.k.y,
+        }
+        .normalized();
+        let j = self.k.cross(i).normalized();
+
+        // Sanity check
+        debug_assert!(i.dot(j) < 1e-5);
+        debug_assert!(self.k.dot(i) < 1e-5);
+        debug_assert!(self.k.dot(j) < 1e-5);
+
+        //let x: f64 = rng.sample(StandardNormal);
+
+        Self {
+            mid_point: self.mid_point + i * x1 + j * y1,
+            //mid_point: self.mid_point + self.k * (x * self.r) + i * x1 + j * y1,
+            k: (self.k + i * x2 + j * y2).normalized(),
+            r: self.r,
+        }
+    }
+}
+
 /// Spherical coordinates triple
 #[derive(Debug, Copy, Clone)]
 pub struct Spherical {
@@ -163,7 +207,7 @@ pub struct Spherical {
     pub lat: f64,
     /// Positive longitude means East, negative means West
     pub lon: f64,
-    /// Relative to the center of the Earth
+    /// Distance to the center of the Earth
     pub r: f64,
 }
 

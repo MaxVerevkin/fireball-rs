@@ -12,18 +12,20 @@ pub struct Solver {
 }
 
 /// Contains all necessary information to solve the problem
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Params {
-    pub min_match: f64,
-    pub range: f64,
+    pub initial_range: f64,
+    pub initial_iterations: usize,
+    pub main_iterations: usize,
+    pub threads: usize,
 }
 
 /// The answer
+#[derive(Debug, Clone, Copy)]
 pub struct Solution {
     pub error: f64,
     pub flash: Spherical,
     pub velocity: Vec3,
-    pub raw: (Vec3, Vec3),
 }
 
 impl Solver {
@@ -34,70 +36,57 @@ impl Solver {
 
     /// Find the solution
     pub fn solve(&self) -> Solution {
-        let (p1, p2) = self.monte_carlo(
-            self.data.mean_pos,
-            400_000,
-            num_cpus::get(),
-            self.params.range,
-            5_000.,
-            0.5,
-        );
+        // Get a rough estimation
+        let (p1, p2) = self.initial_mc();
 
-        //#[cfg(debug_assertions)]
-        //{
-        //// Draw a plot
-        //use std::io::Write;
-        //let mut file = std::fs::File::create("data_solved.dat").expect("create failed");
-        //for dx in -1000..1000 {
-        //let x = dx as f64 * 200.;
-        //file.write_all(
-        //format!(
-        //"{} {}\n",
-        //x / 1000.,
-        //self.evaluate_traj(p1 + Vec3 { x, y: 0., z: 0. }, p2)
-        //)
-        //.as_bytes(),
-        //)
-        //.unwrap();
-        //}
-        //}
+        // Construct a tunnel
+        let k = (p2 - p1).normalized();
+        let (l1, l2) = self.lambdas(p1, k);
+        let mut tunnel = Tunnel {
+            mid_point: p1 + k * ((l1 + l2) * 0.5),
+            k,
+            r: 200_000.,
+        };
 
-        // calculate the velocity
-        let velocity = (p2 - p1).normalized();
+        // Run 10 iterations
+        // TODO make configurable
+        for _ in 0..10 {
+            let (mid_point, k) = self.mc(tunnel);
+            //let (l1, l2) = self.lambdas(mid_point, k);
+            //tunnel.mid_point = mid_point + k * ((l1 + l2) * 0.5);
+            tunnel.mid_point = mid_point;
+            tunnel.k = k;
+            tunnel.r *= 0.5;
+        }
 
         // calculate flash location as well as speed
-        let (flash, speed) = self.calc_flash_and_speed(p1, velocity);
+        let (flash, speed) = self.calc_flash_and_speed(tunnel.mid_point, tunnel.k);
+        let velocity = tunnel.k * speed;
 
         // return
         Solution {
-            error: (self.evaluate_traj(p1, p2)),
+            error: self.evaluate_traj(tunnel.mid_point, tunnel.k),
             flash,
-            velocity: velocity * speed,
-            raw: (p1, p2),
+            velocity,
         }
     }
 
-    fn monte_carlo(
-        &self,
-        mid_point: Vec3,
-        number: usize,
-        cores: usize,
-        range: f64,
-        target_range: f64,
-        range_mul: f64,
-    ) -> (Vec3, Vec3) {
+    fn initial_mc(&self) -> (Vec3, Vec3) {
+        let mid_point = self.data.mean_pos;
+        let range = self.params.initial_range;
+
         let answers = crossbeam_utils::thread::scope(|scope| {
-            let mut threads = Vec::with_capacity(cores);
-            for _ in 0..cores {
+            let mut threads = Vec::with_capacity(self.params.threads);
+            for _ in 0..self.params.threads {
                 threads.push(scope.spawn(|_| {
                     let mut error = std::f64::INFINITY;
                     let mut answer = (mid_point, mid_point);
-                    for _ in 0..(number / cores) {
+                    for _ in 0..(self.params.initial_iterations / self.params.threads) {
                         // Generate two points
-                        let p1 = mid_point + Vec3::rand(range);
-                        let p2 = mid_point + Vec3::rand(range);
+                        let p1 = mid_point + Vec3::rand_uniform(range);
+                        let p2 = mid_point + Vec3::rand_uniform(range);
 
-                        let err = self.evaluate_traj(p1, p2);
+                        let err = self.evaluate_traj(p1, (p2 - p1).normalized());
                         if err < error {
                             answer = (p1, p2);
                             error = err;
@@ -113,28 +102,73 @@ impl Solver {
         })
         .unwrap();
 
-        let mut error = f64::INFINITY;
-        let mut answer = None;
-        for ans in answers {
-            if ans.0 < error {
-                error = ans.0;
-                answer = Some(ans.1);
+        answers
+            .iter()
+            .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
+            .unwrap()
+            .1
+    }
+
+    fn mc(&self, tunnel: Tunnel) -> (Vec3, Vec3) {
+        let answers = crossbeam_utils::thread::scope(|scope| {
+            let mut threads = Vec::with_capacity(self.params.threads);
+            for _ in 0..self.params.threads {
+                threads.push(scope.spawn(|_| {
+                    let mut error = std::f64::INFINITY;
+                    let mut answer = tunnel;
+                    for _ in 0..(self.params.main_iterations / self.params.threads) {
+                        let rand_ans = tunnel.random();
+                        let err = self.evaluate_traj(rand_ans.mid_point, rand_ans.k);
+                        if err < error {
+                            answer = rand_ans;
+                            error = err;
+                        }
+                    }
+                    (error, (answer.mid_point, answer.k))
+                }));
+            }
+            threads
+                .into_iter()
+                .map(|t| t.join().unwrap())
+                .collect::<Vec<(f64, (Vec3, Vec3))>>()
+        })
+        .unwrap();
+
+        answers
+            .iter()
+            .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
+            .unwrap()
+            .1
+    }
+
+    fn lambdas(&self, point: Vec3, vel: Vec3) -> (f64, f64) {
+        let mut l_begin_vec = Vec::with_capacity(self.data.samples.len());
+        let mut l_end_vec = Vec::with_capacity(self.data.samples.len());
+
+        for sample in &self.data.samples {
+            let pip = point - sample.global_pos;
+            let plane = pip.cross(vel).normalized();
+            let perpendic = vel.cross(plane).normalized();
+
+            let k_start = sample.global_start;
+            let k_end = sample.global_end;
+
+            let trust_start = sample.trust_start && perpendic.dot(k_start) > 0.;
+            let trust_end = sample.trust_end && perpendic.dot(k_end) > 0.;
+
+            if trust_start {
+                l_begin_vec
+                    .push(pip.dot(perpendic * (k_start.dot(vel) / k_start.dot(perpendic)) - vel));
+            }
+            if trust_end {
+                l_end_vec.push(pip.dot(perpendic * (k_end.dot(vel) / k_end.dot(perpendic)) - vel));
             }
         }
-        let answer = answer.unwrap();
 
-        if range > target_range {
-            self.monte_carlo(
-                (answer.0 + answer.1) * 0.5,
-                number,
-                cores,
-                range * range_mul,
-                target_range,
-                range_mul,
-            )
-        } else {
-            answer
-        }
+        let l_begin = quick_median(&mut l_begin_vec);
+        let l_end = quick_median(&mut l_end_vec);
+
+        (l_begin, l_end)
     }
 
     /// Calculate the flash location and the speed of the fireball
@@ -150,47 +184,35 @@ impl Solver {
             let k_start = sample.global_start;
             let k_end = sample.global_end;
 
-            //let trust_start = sample.trust_start && perpendic.dot(k_start) > self.params.min_match;
-            //let trust_end = sample.trust_end && perpendic.dot(k_end) > self.params.min_match;
+            let trust_start = sample.trust_start && perpendic.dot(k_start) > 0.;
+            let trust_end = sample.trust_end && perpendic.dot(k_end) > 0.;
 
-            //if trust_end {
-            let l_end = pip.dot(perpendic * (k_end.dot(v) / k_end.dot(perpendic)) - v);
-            l_end_vec.push(l_end);
-            //if trust_start {
-            if sample.duration > 0. {
-                let l_start = pip.dot(perpendic * (k_start.dot(v) / k_start.dot(perpendic)) - v);
-                speed_vec.push((l_end - l_start) / sample.duration);
+            if trust_end {
+                let l_end = pip.dot(perpendic * (k_end.dot(v) / k_end.dot(perpendic)) - v);
+                l_end_vec.push(l_end);
+                if trust_start && sample.duration > 0. {
+                    let l_start =
+                        pip.dot(perpendic * (k_start.dot(v) / k_start.dot(perpendic)) - v);
+                    speed_vec.push((l_end - l_start) / sample.duration);
+                }
             }
-            //}
-            //}
         }
 
-        l_end_vec.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
-        speed_vec.sort_unstable_by(|a, b| a.partial_cmp(b).unwrap());
+        let l_end = quick_median(&mut l_end_vec);
+        let speed = quick_median(&mut speed_vec);
 
-        let l_end = l_end_vec[l_end_vec.len() / 2];
-        let speed = speed_vec[speed_vec.len() / 2];
+        //dbg!(l_end_vec.len());
+        //dbg!(speed_vec.len());
 
-        //dbg!(l_count);
-        //dbg!(speed_count);
-        //dbg!(ls);
         ((point + v * l_end).into(), speed)
     }
 
     /// Calculate the mean of squared errors (less is better)
-    pub fn evaluate_traj(&self, p1: Vec3, p2: Vec3) -> f64 {
-        // Get normalized velocity
-        let mut vel = p1 - p2;
-        // Check if two points are too close.
-        if vel.length() < 10. {
-            return f64::INFINITY;
-        }
-        vel.normalize();
-
+    pub fn evaluate_traj(&self, p: Vec3, vel: Vec3) -> f64 {
         let mut count = 0.;
         let mut error = 0.;
         for sample in &self.data.samples {
-            let plane = (p1 - sample.global_pos).cross(vel).normalized();
+            let plane = (p - sample.global_pos).cross(vel).normalized();
             //let perpendic = vel.cross(plane);
 
             let k_start = sample.global_start;

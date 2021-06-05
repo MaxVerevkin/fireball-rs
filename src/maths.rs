@@ -19,6 +19,73 @@ pub fn angle_diff(a1: f64, a2: f64) -> f64 {
     (a2 - a1 + PI).rem_euclid(TAU) - PI
 }
 
+fn quick_sort(list: &mut [f64], target_index: usize) {
+    let len = list.len();
+
+    if len < 2 {
+        return;
+    } else if len == 2 {
+        if list[0] > list[1] {
+            list.swap(0, 1);
+        }
+        return;
+    } else if len == 3 {
+        if list[0] > list[1] {
+            list.swap(0, 1);
+        }
+        if list[0] > list[2] {
+            list.swap(0, 2);
+        }
+        if list[1] > list[2] {
+            list.swap(1, 2);
+        }
+        return;
+    }
+
+    let piv = list[0];
+    let mut left = 1;
+    let mut right = len - 1;
+
+    while left <= right {
+        if list[left] <= piv {
+            left += 1;
+        } else {
+            list.swap(left, right);
+            right -= 1;
+        }
+    }
+
+    list.swap(0, left - 1);
+
+    if target_index <= left {
+        quick_sort(&mut list[..(left - 1)], target_index);
+    }
+    if target_index >= right {
+        quick_sort(
+            &mut list[(right + 1)..],
+            target_index.saturating_sub(right + 1),
+        );
+    }
+}
+
+pub fn quick_median(list: &mut [f64]) -> f64 {
+    let len = list.len();
+    if len == 0 {
+        f64::INFINITY
+    } else if len == 1 {
+        list[0]
+    } else if len == 2 {
+        (list[0] + list[1]) * 0.5
+    } else {
+        quick_sort(list, len / 2);
+        if len % 2 == 0 {
+            (list[len / 2] + list[len / 2 - 1]) * 0.5
+        } else {
+            list[len / 2]
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::maths::*;

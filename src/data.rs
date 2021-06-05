@@ -106,7 +106,7 @@ impl Data {
     pub fn from_file(file_name: &str) -> Result<Self, Error> {
         let mut data = Data {
             samples: Vec::new(),
-            mean_pos: Vec3::new(),
+            mean_pos: Vec3::default(),
         };
 
         // Open data file
