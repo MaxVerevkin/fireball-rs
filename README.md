@@ -9,9 +9,8 @@ $ fireball -h
 to see which parameters of the implementation can be tweaked.
 
 ## Implementation
-The current implementation uses binary search to find two points
-in the space that represents the trajectory of a fireball. The binary search
-itself minimizes the mean-square-error of observations given trajectory.
+The current implementation uses random search to find two points in the space that best represent
+the trajectory of a fireball. The search itself minimizes the mean-square-error of a trajectory.
 
 ## Data format
 The data is given in a form:
