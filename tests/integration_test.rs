@@ -10,7 +10,7 @@ use fireball::structs::*;
 #[test]
 fn test() {
     let tests: usize = 100;
-    let must_pass: usize = 95;
+    let must_pass: usize = 100;
     let mut passed: usize = 0;
     for _ in 0..tests {
         // (-pi/2, pi/2)
@@ -97,8 +97,8 @@ fn gen_data(mean_lat: f64, mean_lon: f64, flash: &Spherical, vel: Vec3, n: u32) 
     for _ in 0..n {
         let duration = 1. + random::<f64>() * 3.;
         let geo_pos = Spherical {
-            lat: mean_lat - (5f64).to_radians() + random::<f64>() * (10f64).to_radians(),
-            lon: mean_lon - (5f64).to_radians() + random::<f64>() * (10f64).to_radians(),
+            lat: mean_lat - (3f64).to_radians() + random::<f64>() * (6f64).to_radians(),
+            lon: mean_lon - (3f64).to_radians() + random::<f64>() * (6f64).to_radians(),
             r: EARTH_R + random::<f64>() * 2_000.,
         };
         let global_pos = geo_pos.to_vec3();

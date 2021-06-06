@@ -3,7 +3,7 @@
 use rand::{random, rngs::ThreadRng, Rng};
 use rand_distr::StandardNormal;
 use std::convert::Into;
-use std::f64::consts::{FRAC_PI_2, PI};
+use std::f64::consts::{FRAC_PI_2, PI, TAU};
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, Sub};
 
 /// 3D vector
@@ -84,8 +84,9 @@ impl Into<Spherical> for Vec3 {
 impl Into<Azimuthal> for Vec3 {
     fn into(self) -> Azimuthal {
         let xy = f64::hypot(self.x, self.y);
+        let z = f64::atan2(self.x, self.y);
         Azimuthal {
-            z: f64::atan2(self.x, self.y),
+            z: if z < 0. { z + TAU } else { z },
             h: f64::atan(self.z / xy),
         }
     }

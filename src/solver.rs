@@ -221,23 +221,22 @@ impl Solver {
             let e_start = plane.dot(k_start).asin();
             let e_end = plane.dot(k_end).asin();
 
-            //let trust_start = sample.trust_start && perpendic.dot(k_start) > self.params.min_match;
-            //let trust_end = sample.trust_end && perpendic.dot(k_end) > self.params.min_match;
+            //if sample.trust_start && perpendic.dot(k_start) > 0. {
+            if sample.trust_start {
+                error += e_start * e_start;
+                count += 1.;
 
-            //if trust_start {
-            error += e_start * e_start;
-            count += 1.;
-
-            let angle = descent_angle(sample.global_pos, k_start, vel);
-            let diff = angle_diff(angle, sample.descent_angle);
-            error += diff * diff * 0.5;
-            //error += diff * diff;
-            count += 1.;
-            //}
-            //if trust_end {
-            error += e_end * e_end;
-            count += 1.;
-            //}
+                let angle = descent_angle(sample.global_pos, k_start, vel);
+                let diff = angle_diff(angle, sample.descent_angle);
+                error += diff * diff * 0.5;
+                //error += diff * diff;
+                count += 1.;
+            }
+            //if sample.trust_end && perpendic.dot(k_end) > 0. {
+            if sample.trust_end {
+                error += e_end * e_end;
+                count += 1.;
+            }
         }
 
         //dbg!(count);

@@ -46,7 +46,7 @@ pub struct DataSample {
 }
 
 /// A collenction of observations
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Data {
     pub samples: Vec<DataSample>,
     pub mean_pos: Vec3,
