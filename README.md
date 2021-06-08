@@ -8,11 +8,16 @@ $ fireball -h
 ```
 to see which parameters of the implementation can be tweaked.
 
-## Implementation
-The current implementation uses random search to find two points in the space that best represent
-the trajectory of a fireball. The search itself minimizes the mean-square-error of a trajectory.
+## Project Structure
 
-## Data format
+- /src/maths.rs & /src/aprox_eq.rs & /src/constants.rs - Some mathematical functions and constants.
+- /src/structs.rs - Data structures
+- /src/data.rs - Process the input data
+- /src/solver.rs - The actual search algorithm and evaluation function
+- /src/bin/fireball.rs - The front-end (the actual program)
+- /tests/integration_test.rs - Random data generator
+
+## Data Format
 The data is given in a form:
 ```
     lat lon h A z_start h_start z_end h_end t

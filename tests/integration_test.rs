@@ -32,31 +32,40 @@ fn test() {
         let solver = Solver::new(data, params);
         let solution = solver.solve();
 
-        // Draw a plot for generated data.
-        //use std::io::Write;
-        //let xyz1 = flash.to_vec3();
-        //let xyz2 = xyz1 + vel * 20_000.;
-        //let xyz1 = [xyz1.x, xyz1.y, xyz1.z];
-        //let mut file = std::fs::File::create("data_real.dat").expect("create failed");
-        //for dx in -1000..1000 {
-        //let x = dx as f64 * 200.;
-        //file.write_all(
-        //format!(
+        //// Draw a plot for generated data.
+        //use std::{fs::File, io::Write};
+        //let point = flash.to_vec3();
+        //let mut offset = Vec3::default();
+        //offset.x = -1_000_000.;
+        //let mut file = File::create("data_real.dat").unwrap();
+        //for _ in 0..2_000 {
+        //let point = point + offset;
+        //write!(
+        //file,
         //"{} {}\n",
-        //x / 1000.,
-        //solver.evaluate_traj(
-        //Vec3 {
-        //x: xyz1[0] + x,
-        //y: xyz1[1],
-        //z: xyz1[2],
-        //},
-        //xyz2
-        //)
-        //)
-        //.as_bytes(),
+        //offset.x / 1_000.,
+        //solver.evaluate_traj(point, vel.normalized())
         //)
         //.unwrap();
+        //offset.x += 1_000.;
         //}
+        //// Draw a plot for solution.
+        //let point = solution.flash.to_vec3();
+        //let mut offset = Vec3::default();
+        //offset.x = -1_000_000.;
+        //let mut file = File::create("data_sol.dat").unwrap();
+        //for _ in 0..2_000 {
+        //let point = point + offset;
+        //write!(
+        //file,
+        //"{} {}\n",
+        //offset.x / 1_000.,
+        //solver.evaluate_traj(point, solution.velocity.normalized())
+        //)
+        //.unwrap();
+        //offset.x += 1_000.;
+        //}
+        //return;
 
         if ((flash.r - solution.flash.r).abs() < 5000.)
             && ((flash.lat - solution.flash.lat).abs() < 0.01)

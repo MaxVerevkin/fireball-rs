@@ -3,6 +3,7 @@
 use crate::data::Data;
 use crate::maths::*;
 use crate::structs::*;
+use std::f64::consts::{FRAC_PI_2, PI};
 
 /// Contains all necessary information to solve the problem
 #[derive(Clone)]
@@ -62,6 +63,24 @@ impl Solver {
         // calculate flash location as well as speed
         let (flash, speed) = self.calc_flash_and_speed(tunnel.mid_point, tunnel.k);
         let velocity = tunnel.k * speed;
+
+        //// Draw a plot for solution.
+        use std::{fs::File, io::Write};
+        let point = flash.to_vec3();
+        let mut offset = Vec3::default();
+        offset.x = -1_000_000.;
+        let mut file = File::create("data_sol.dat").unwrap();
+        for _ in 0..2_000 {
+            let point = point + offset;
+            write!(
+                file,
+                "{} {}\n",
+                offset.x / 1_000.,
+                self.evaluate_traj(point, velocity.normalized())
+            )
+            .unwrap();
+            offset.x += 1_000.;
+        }
 
         // return
         Solution {
@@ -209,11 +228,10 @@ impl Solver {
 
     /// Calculate the mean of squared errors (less is better)
     pub fn evaluate_traj(&self, p: Vec3, vel: Vec3) -> f64 {
-        let mut count = 0.;
         let mut error = 0.;
         for sample in &self.data.samples {
             let plane = (p - sample.global_pos).cross(vel).normalized();
-            //let perpendic = vel.cross(plane);
+            let perpendic = vel.cross(plane);
 
             let k_start = sample.global_start;
             let k_end = sample.global_end;
@@ -223,24 +241,30 @@ impl Solver {
 
             //if sample.trust_start && perpendic.dot(k_start) > 0. {
             if sample.trust_start {
-                error += e_start * e_start;
-                count += 1.;
+                if perpendic.dot(k_start) > 0. {
+                    error += e_start * e_start;
 
-                let angle = descent_angle(sample.global_pos, k_start, vel);
-                let diff = angle_diff(angle, sample.descent_angle);
-                error += diff * diff * 0.5;
+                    let angle = descent_angle(sample.global_pos, k_start, vel);
+                    let diff = angle_diff(angle, sample.descent_angle);
+                    error += diff * diff;
+                } else {
+                    error += FRAC_PI_2 * FRAC_PI_2;
+                    error += PI * PI;
+                }
                 //error += diff * diff;
-                count += 1.;
             }
             //if sample.trust_end && perpendic.dot(k_end) > 0. {
             if sample.trust_end {
-                error += e_end * e_end;
-                count += 1.;
+                if perpendic.dot(k_end) > 0. {
+                    error += e_end * e_end;
+                } else {
+                    error += FRAC_PI_2 * FRAC_PI_2;
+                }
             }
         }
 
         //dbg!(count);
 
-        error / count
+        error
     }
 }
