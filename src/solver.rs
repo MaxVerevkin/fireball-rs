@@ -65,22 +65,22 @@ impl Solver {
         let velocity = tunnel.k * speed;
 
         //// Draw a plot for solution.
-        use std::{fs::File, io::Write};
-        let point = flash.to_vec3();
-        let mut offset = Vec3::default();
-        offset.x = -1_000_000.;
-        let mut file = File::create("data_sol.dat").unwrap();
-        for _ in 0..2_000 {
-            let point = point + offset;
-            write!(
-                file,
-                "{} {}\n",
-                offset.x / 1_000.,
-                self.evaluate_traj(point, velocity.normalized())
-            )
-            .unwrap();
-            offset.x += 1_000.;
-        }
+        //use std::{fs::File, io::Write};
+        //let point = flash.to_vec3();
+        //let mut offset = Vec3::default();
+        //offset.x = -1_000_000.;
+        //let mut file = File::create("data_sol.dat").unwrap();
+        //for _ in 0..2_000 {
+        //let point = point + offset;
+        //write!(
+        //file,
+        //"{} {}\n",
+        //offset.x / 1_000.,
+        //self.evaluate_traj(point, velocity.normalized())
+        //)
+        //.unwrap();
+        //offset.x += 1_000.;
+        //}
 
         // return
         Solution {
@@ -99,7 +99,15 @@ impl Solver {
             for _ in 0..self.params.threads {
                 threads.push(scope.spawn(|_| {
                     let mut error = std::f64::INFINITY;
-                    let mut answer = (mid_point, mid_point);
+                    let mut answer = (
+                        mid_point,
+                        mid_point
+                            + Vec3 {
+                                x: 10.,
+                                y: 10.,
+                                z: 10.,
+                            },
+                    );
                     for _ in 0..(self.params.initial_iterations / self.params.threads) {
                         // Generate two points
                         let p1 = mid_point + Vec3::rand_uniform(range);
@@ -241,23 +249,29 @@ impl Solver {
 
             //if sample.trust_start && perpendic.dot(k_start) > 0. {
             if sample.trust_start {
-                if perpendic.dot(k_start) > 0. {
+                let c = perpendic.dot(k_start);
+                if c > 0. {
                     error += e_start * e_start;
 
-                    let angle = descent_angle(sample.global_pos, k_start, vel);
-                    let diff = angle_diff(angle, sample.descent_angle);
-                    error += diff * diff;
+                    //let angle = descent_angle(sample.global_pos, k_start, vel);
+                    //let diff = angle_diff(angle, sample.descent_angle);
+                    //error += diff * diff;
                 } else {
+                    //let c = c.clamp(0., 0.1) * 10.;
+                    //error += c * e_start * e_start + (1. - c) * FRAC_PI_2 * FRAC_PI_2;
                     error += FRAC_PI_2 * FRAC_PI_2;
-                    error += PI * PI;
+                    //error += PI * PI;
                 }
                 //error += diff * diff;
             }
             //if sample.trust_end && perpendic.dot(k_end) > 0. {
             if sample.trust_end {
-                if perpendic.dot(k_end) > 0. {
+                let c = perpendic.dot(k_end);
+                if c > 0. {
                     error += e_end * e_end;
                 } else {
+                    //let c = c.clamp(0., 0.1) * 10.;
+                    //error += c * e_end * e_end + (1. - c) * FRAC_PI_2 * FRAC_PI_2;
                     error += FRAC_PI_2 * FRAC_PI_2;
                 }
             }

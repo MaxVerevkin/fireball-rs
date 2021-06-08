@@ -32,7 +32,7 @@ fn test() {
         let solver = Solver::new(data, params);
         let solution = solver.solve();
 
-        //// Draw a plot for generated data.
+        // Draw a plot for generated data.
         //use std::{fs::File, io::Write};
         //let point = flash.to_vec3();
         //let mut offset = Vec3::default();
