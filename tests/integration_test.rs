@@ -10,7 +10,7 @@ use fireball::structs::*;
 #[test]
 fn test() {
     let tests: usize = 100;
-    let must_pass: usize = 100;
+    let must_pass: usize = 95;
     let mut passed: usize = 0;
     for _ in 0..tests {
         // (-pi/2, pi/2)
@@ -21,6 +21,7 @@ fn test() {
         // gnenerate trajectory
         let (flash, vel) = gen_traj(mean_lat, mean_lon);
         let data = gen_data(mean_lat, mean_lon, &flash, vel, 200);
+        let flash = flash.to_vec3();
 
         let params = Params {
             initial_range: 500_000.,
@@ -33,8 +34,9 @@ fn test() {
         let solution = solver.solve();
 
         // Draw a plot for generated data.
+        //let plot = || {
         //use std::{fs::File, io::Write};
-        //let point = flash.to_vec3();
+        //let point = flash;
         //let mut offset = Vec3::default();
         //offset.x = -1_000_000.;
         //let mut file = File::create("data_real.dat").unwrap();
@@ -50,7 +52,7 @@ fn test() {
         //offset.x += 1_000.;
         //}
         //// Draw a plot for solution.
-        //let point = solution.flash.to_vec3();
+        //let point = solution.flash;
         //let mut offset = Vec3::default();
         //offset.x = -1_000_000.;
         //let mut file = File::create("data_sol.dat").unwrap();
@@ -65,25 +67,27 @@ fn test() {
         //.unwrap();
         //offset.x += 1_000.;
         //}
-        //return;
+        //};
 
-        if ((flash.r - solution.flash.r).abs() < 5000.)
-            && ((flash.lat - solution.flash.lat).abs() < 0.01)
-            && ((flash.lon - solution.flash.lon).abs() < 0.01)
-            && ((vel.x - solution.velocity.x).abs() < 900.)
-            && ((vel.y - solution.velocity.y).abs() < 900.)
-            && ((vel.z - solution.velocity.z).abs() < 900.)
-        {
+        let flash_distance = (flash - solution.flash).length();
+        let vel_angle = vel.normalized().dot(solution.velocity.normalized()).acos();
+        let vel_diff = (vel.length() - solution.velocity.length()).abs();
+
+        let max_vel_diff = vel.length() * 0.1;
+
+        if flash_distance < 20_000. && vel_angle < 0.17 && vel_diff < max_vel_diff {
             passed += 1;
         } else {
-            dbg!(solution.error);
-            dbg!(flash);
-            dbg!(solution.flash);
-            dbg!(vel);
-            dbg!(solution.velocity);
+            eprintln!("====FAILED TESTCASE====");
+            eprintln!("Solution error = {}", solution.error);
+            eprintln!("Flash error = {}", flash_distance);
+            eprintln!("Velocity angle = {}", vel_angle.to_degrees());
+            eprintln!("Velocity rel error = {}", vel_diff / vel.length());
+            eprintln!();
 
-            let flash = flash.to_vec3();
-            dbg!(solver.evaluate_traj(flash, flash - vel));
+            //plot();
+            //dbg!(passed);
+            //panic!();
         }
     }
     dbg!(passed);
@@ -158,17 +162,3 @@ fn gen_traj(mean_lat: f64, mean_lon: f64) -> (Spherical, Vec3) {
         (p2.to_vec3() - p1.to_vec3()).normalized() * (5_000. + random::<f64>() * 20_000.),
     )
 }
-
-// Compute azimuth given observer location and point which he observes
-//fn azimuth(observer: &Spherical, point: &Spherical) -> Option<f64> {
-//descent_angle(
-//&Azimuthal {
-//z: observer.lon,
-//h: observer.lat,
-//},
-//&Azimuthal {
-//z: point.lon,
-//h: point.lat,
-//},
-//)
-//}

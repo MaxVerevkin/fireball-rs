@@ -12,6 +12,7 @@ use clap::*;
 use fireball::constants::EARTH_R;
 use fireball::data::Data;
 use fireball::solver::{Params, Solver};
+use fireball::structs::Spherical;
 
 fn main() {
     let matches = app_from_crate!()
@@ -94,15 +95,16 @@ fn main() {
         },
     );
     let solution = solver.solve();
+    let flash: Spherical = solution.flash.into();
 
     // Print the answer
     // Note: \u{00b0} -- the degree symbol
     println!("Error: {:.6}", solution.error);
     println!(
         "Flash location:\n  lat: {:.3}\u{00b0}\n  lon: {:.3}\u{00b0}\n  h: {:.3} km",
-        solution.flash.lat.to_degrees(),
-        solution.flash.lon.to_degrees(),
-        (solution.flash.r - EARTH_R) / 1000.
+        flash.lat.to_degrees(),
+        flash.lon.to_degrees(),
+        (flash.r - EARTH_R) / 1000.
     );
     println!(
         "Velocity: {:.3} km/s\n  x: {:.3} km/s\n  y: {:.3} km/s\n  z: {:.3} km/s",

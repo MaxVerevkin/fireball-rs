@@ -25,7 +25,7 @@ pub struct Params {
 #[derive(Debug, Clone, Copy)]
 pub struct Solution {
     pub error: f64,
-    pub flash: Spherical,
+    pub flash: Vec3,
     pub velocity: Vec3,
 }
 
@@ -199,7 +199,7 @@ impl Solver {
     }
 
     /// Calculate the flash location and the speed of the fireball
-    fn calc_flash_and_speed(&self, point: Vec3, v: Vec3) -> (Spherical, f64) {
+    fn calc_flash_and_speed(&self, point: Vec3, v: Vec3) -> (Vec3, f64) {
         let mut speed_vec = Vec::new();
         let mut l_end_vec = Vec::new();
 
@@ -231,7 +231,7 @@ impl Solver {
         //dbg!(l_end_vec.len());
         //dbg!(speed_vec.len());
 
-        ((point + v * l_end).into(), speed)
+        (point + v * l_end, speed)
     }
 
     /// Calculate the mean of squared errors (less is better)
@@ -247,24 +247,22 @@ impl Solver {
             let e_start = plane.dot(k_start).asin();
             let e_end = plane.dot(k_end).asin();
 
-            //if sample.trust_start && perpendic.dot(k_start) > 0. {
             if sample.trust_start {
                 let c = perpendic.dot(k_start);
                 if c > 0. {
                     error += e_start * e_start;
 
-                    //let angle = descent_angle(sample.global_pos, k_start, vel);
-                    //let diff = angle_diff(angle, sample.descent_angle);
-                    //error += diff * diff;
+                    let angle = descent_angle(sample.global_pos, k_start, vel);
+                    let diff = angle_diff(angle, sample.descent_angle);
+                    error += diff * diff;
                 } else {
                     //let c = c.clamp(0., 0.1) * 10.;
                     //error += c * e_start * e_start + (1. - c) * FRAC_PI_2 * FRAC_PI_2;
                     error += FRAC_PI_2 * FRAC_PI_2;
-                    //error += PI * PI;
+                    error += PI * PI;
                 }
                 //error += diff * diff;
             }
-            //if sample.trust_end && perpendic.dot(k_end) > 0. {
             if sample.trust_end {
                 let c = perpendic.dot(k_end);
                 if c > 0. {
@@ -276,9 +274,6 @@ impl Solver {
                 }
             }
         }
-
-        //dbg!(count);
-
         error
     }
 }

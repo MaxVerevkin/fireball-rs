@@ -88,6 +88,7 @@ pub fn quick_median(list: &mut [f64]) -> f64 {
 
 #[cfg(test)]
 mod tests {
+    use crate::aprox_eq::AproxEq;
     use crate::maths::*;
 
     #[test]
@@ -96,11 +97,11 @@ mod tests {
         assert_eq!(angle_diff(PI, 10. * TAU).abs(), PI);
         assert_eq!(angle_diff(PI, 0.).abs(), PI);
 
-        assert!(angle_diff(PI + 0.1, TAU) - (PI - 0.1) < 1e-10);
-        assert!(angle_diff(PI - 0.1, 0.) - (-PI + 0.1) < 1e-10);
+        assert!(angle_diff(PI + 0.1, TAU).aprox_eq(PI - 0.1));
+        assert!(angle_diff(PI - 0.1, 0.).aprox_eq(-PI + 0.1));
 
-        assert!(angle_diff(PI - 1., -0.1) - (-1.1) < 1e-10);
-        assert!(angle_diff(PI + 1., TAU - 0.1) - (PI - 1.1) < 1e-10);
+        assert!(angle_diff(PI - 1., -0.1).aprox_eq(-PI + 1. - 0.1));
+        assert!(angle_diff(PI + 1., TAU - 0.1).aprox_eq(PI - 1.1));
     }
 
     //#[test]
