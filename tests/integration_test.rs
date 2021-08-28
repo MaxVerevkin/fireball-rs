@@ -8,11 +8,12 @@ use fireball::solver::{Params, Solver};
 use fireball::structs::*;
 
 #[test]
-fn test() {
+fn ideal_data() {
     let tests: usize = 100;
-    let must_pass: usize = 95;
+    let must_pass: usize = 100;
     let mut passed: usize = 0;
-    for _ in 0..tests {
+
+    for test_case in 1..=tests {
         // (-pi/2, pi/2)
         let mean_lat = -FRAC_PI_2 + random::<f64>() * PI;
         // (-pi, pi)
@@ -23,54 +24,16 @@ fn test() {
         let data = gen_data(mean_lat, mean_lon, &flash, vel, 200);
         let flash = flash.to_vec3();
 
-        let params = Params {
-            initial_range: 500_000.,
-            initial_iterations: 10_000,
-            main_iterations: 10_000,
-            threads: 4,
-        };
-
+        let params = Params { threads: 4 };
         let solver = Solver::new(data, params);
         let solution = solver.solve();
 
-        // Draw a plot for generated data.
-        //let plot = || {
-        //use std::{fs::File, io::Write};
-        //let point = flash;
-        //let mut offset = Vec3::default();
-        //offset.x = -1_000_000.;
-        //let mut file = File::create("data_real.dat").unwrap();
-        //for _ in 0..2_000 {
-        //let point = point + offset;
-        //write!(
-        //file,
-        //"{} {}\n",
-        //offset.x / 1_000.,
-        //solver.evaluate_traj(point, vel.normalized())
-        //)
-        //.unwrap();
-        //offset.x += 1_000.;
-        //}
-        //// Draw a plot for solution.
-        //let point = solution.flash;
-        //let mut offset = Vec3::default();
-        //offset.x = -1_000_000.;
-        //let mut file = File::create("data_sol.dat").unwrap();
-        //for _ in 0..2_000 {
-        //let point = point + offset;
-        //write!(
-        //file,
-        //"{} {}\n",
-        //offset.x / 1_000.,
-        //solver.evaluate_traj(point, solution.velocity.normalized())
-        //)
-        //.unwrap();
-        //offset.x += 1_000.;
-        //}
-        //};
-
         let flash_distance = (flash - solution.flash).length();
-        let vel_angle = vel.normalized().dot(solution.velocity.normalized()).acos();
+        let vel_angle = vel
+            .normalized()
+            .dot(solution.velocity.normalized())
+            .min(1.0)
+            .acos();
         let vel_diff = (vel.length() - solution.velocity.length()).abs();
 
         let max_vel_diff = vel.length() * 0.1;
@@ -78,16 +41,12 @@ fn test() {
         if flash_distance < 20_000. && vel_angle < 0.17 && vel_diff < max_vel_diff {
             passed += 1;
         } else {
-            eprintln!("====FAILED TESTCASE====");
-            eprintln!("Solution error = {}", solution.error);
+            eprintln!("==== FAILED TESTCASE #{} ==== ", test_case);
+            // eprintln!("Solution error = {}", solution.error);
             eprintln!("Flash error = {}", flash_distance);
             eprintln!("Velocity angle = {}", vel_angle.to_degrees());
             eprintln!("Velocity rel error = {}", vel_diff / vel.length());
             eprintln!();
-
-            //plot();
-            //dbg!(passed);
-            //panic!();
         }
     }
     dbg!(passed);

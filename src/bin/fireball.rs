@@ -23,27 +23,6 @@ fn main() {
                 .required(true),
         )
         .arg(
-            Arg::with_name("initial_range")
-                .help("The initial range (in meters) of values used to get a rough approximation")
-                .default_value("500000.0")
-                .takes_value(true)
-                .long("initial_range"),
-        )
-        .arg(
-            Arg::with_name("initial_iterations")
-                .help("The number of iterations for initial monte carlo approximation")
-                .default_value("10000")
-                .takes_value(true)
-                .long("initial_iterations"),
-        )
-        .arg(
-            Arg::with_name("main_iterations")
-                .help("The number of iterations for main monte carlo search")
-                .default_value("10000")
-                .takes_value(true)
-                .long("main_iterations"),
-        )
-        .arg(
             Arg::with_name("threads")
                 .help("The number of threads this program will spawn")
                 .default_value("1")
@@ -54,21 +33,6 @@ fn main() {
         .get_matches();
 
     let file_name = matches.value_of("file").unwrap();
-    let initial_range: f64 = matches
-        .value_of("initial_range")
-        .unwrap()
-        .parse()
-        .expect("failed to parse `initial_range`");
-    let initial_iterations: usize = matches
-        .value_of("initial_iterations")
-        .unwrap()
-        .parse()
-        .expect("failed to parse `initial_iterations`");
-    let main_iterations: usize = matches
-        .value_of("main_iterations")
-        .unwrap()
-        .parse()
-        .expect("failed to parse `main_iterations`");
     let threads: usize = matches
         .value_of("threads")
         .unwrap()
@@ -85,21 +49,13 @@ fn main() {
     };
 
     // Solve!
-    let solver = Solver::new(
-        data,
-        Params {
-            initial_range,
-            initial_iterations,
-            main_iterations,
-            threads,
-        },
-    );
+    let solver = Solver::new(data, Params { threads });
     let solution = solver.solve();
     let flash: Spherical = solution.flash.into();
 
     // Print the answer
     // Note: \u{00b0} -- the degree symbol
-    println!("Error: {:.6}", solution.error);
+    // println!("Error: {:.6}", solution.error);
     println!(
         "Flash location:\n  lat: {:.3}\u{00b0}\n  lon: {:.3}\u{00b0}\n  h: {:.3} km",
         flash.lat.to_degrees(),

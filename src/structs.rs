@@ -2,9 +2,8 @@
 
 use rand::{random, rngs::ThreadRng, Rng};
 use rand_distr::StandardNormal;
-use std::convert::Into;
 use std::f64::consts::{FRAC_PI_2, PI, TAU};
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub};
 
 /// 3D vector
 #[derive(Debug, Default, Copy, Clone)]
@@ -15,12 +14,12 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-    /// Generate a random vector in range from (-r,-r,r) to (r,r,r)
-    pub fn rand_uniform(range: f64) -> Self {
+    /// Generate a random vector in range from (-1,-1,-1) to (1,1,1)
+    pub fn rand_uniform() -> Self {
         Self {
-            x: range * (random::<f64>() * 2. - 1.),
-            y: range * (random::<f64>() * 2. - 1.),
-            z: range * (random::<f64>() * 2. - 1.),
+            x: random::<f64>() * 2. - 1.,
+            y: random::<f64>() * 2. - 1.,
+            z: random::<f64>() * 2. - 1.,
         }
     }
 
@@ -66,28 +65,46 @@ impl Vec3 {
             z: self.x * other.y - self.y * other.x,
         }
     }
+
+    /// Same as `f64::is_normal()` but accepts zero
+    pub fn is_normal(&self) -> bool {
+        (self.x.is_normal() || self.x == 0.0)
+            && (self.y.is_normal() || self.y == 0.0)
+            && (self.z.is_normal() || self.z == 0.0)
+    }
 }
 
 /// Translate cartesian coordinates to spherical
-impl Into<Spherical> for Vec3 {
-    fn into(self) -> Spherical {
-        let xy = f64::hypot(self.x, self.y);
+impl From<Vec3> for Spherical {
+    fn from(val: Vec3) -> Self {
+        let xy = f64::hypot(val.x, val.y);
         Spherical {
-            lat: f64::atan(self.z / xy),
-            lon: f64::atan2(self.y, self.x),
-            r: self.length(),
+            lat: f64::atan(val.z / xy),
+            lon: f64::atan2(val.y, val.x),
+            r: val.length(),
         }
     }
 }
 
 /// Translate cartesian coordinates to azimuthal
-impl Into<Azimuthal> for Vec3 {
-    fn into(self) -> Azimuthal {
-        let xy = f64::hypot(self.x, self.y);
-        let z = f64::atan2(self.x, self.y);
+impl From<Vec3> for Azimuthal {
+    fn from(val: Vec3) -> Self {
+        let xy = f64::hypot(val.x, val.y);
+        let z = f64::atan2(val.x, val.y);
         Azimuthal {
             z: if z < 0. { z + TAU } else { z },
-            h: f64::atan(self.z / xy),
+            h: f64::atan(val.z / xy),
+        }
+    }
+}
+
+impl Neg for Vec3 {
+    type Output = Self;
+    fn neg(self) -> Self {
+        Self {
+            x: -self.x,
+            y: -self.y,
+            z: -self.z,
         }
     }
 }
@@ -119,6 +136,7 @@ impl Sub for Vec3 {
         }
     }
 }
+
 impl Mul<f64> for Vec3 {
     type Output = Self;
     fn mul(self, other: f64) -> Self {
@@ -129,12 +147,22 @@ impl Mul<f64> for Vec3 {
         }
     }
 }
+
+impl MulAssign<f64> for Vec3 {
+    fn mul_assign(&mut self, other: f64) {
+        self.x *= other;
+        self.y *= other;
+        self.z *= other;
+    }
+}
+
 impl Div<f64> for Vec3 {
     type Output = Self;
     fn div(self, other: f64) -> Self {
         self * (1. / other)
     }
 }
+
 impl DivAssign<f64> for Vec3 {
     fn div_assign(&mut self, other: f64) {
         let k = 1. / other;
@@ -151,6 +179,7 @@ pub struct Tunnel {
     pub mid_point: Vec3,
     pub k: Vec3,
     pub r: f64,
+    pub d: f64,
 }
 
 // TODO move to math.rs
@@ -171,7 +200,7 @@ impl Tunnel {
     pub fn random(&self) -> Self {
         let mut rng = rand::thread_rng();
         let (x1, y1) = rand_point(&mut rng, self.r);
-        let (x2, y2) = rand_point(&mut rng, 1.);
+        let (x2, y2) = rand_point(&mut rng, self.d);
 
         // Build a temporal coordinate system in which
         // - i is "x"
@@ -197,6 +226,7 @@ impl Tunnel {
             //mid_point: self.mid_point + self.k * (x * self.r) + i * x1 + j * y1,
             k: (self.k + i * x2 + j * y2).normalized(),
             r: self.r,
+            d: self.d,
         }
     }
 }

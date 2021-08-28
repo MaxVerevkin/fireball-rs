@@ -1,9 +1,10 @@
 //! The implementation itself
 
-use crate::data::Data;
+use crate::constants::EARTH_R;
+use crate::data::{Data, DataSample};
 use crate::maths::*;
 use crate::structs::*;
-use std::f64::consts::{FRAC_PI_2, PI};
+// use std::f64::consts::{FRAC_PI_2, PI};
 
 /// Contains all necessary information to solve the problem
 #[derive(Clone)]
@@ -15,18 +16,43 @@ pub struct Solver {
 /// Contains all necessary information to solve the problem
 #[derive(Debug, Clone, Copy)]
 pub struct Params {
-    pub initial_range: f64,
-    pub initial_iterations: usize,
-    pub main_iterations: usize,
     pub threads: usize,
 }
 
 /// The answer
 #[derive(Debug, Clone, Copy)]
 pub struct Solution {
-    pub error: f64,
+    // pub error: f64,
     pub flash: Vec3,
     pub velocity: Vec3,
+}
+
+fn solve_pair(s1: &DataSample, s2: &DataSample) -> Option<(Vec3, Vec3)> {
+    let n1 = s1.global_start.cross(s1.global_end).normalized();
+    let n2 = s2.global_start.cross(s2.global_end).normalized();
+
+    let mut v = n1.cross(n2).normalized();
+    if !v.is_normal() {
+        return None;
+    }
+
+    let vp1 = s1.global_end - s1.global_start;
+    let vp2 = s2.global_end - s2.global_start;
+    match (v.dot(vp1) > 0., v.dot(vp2) > 0.) {
+        (true, false) | (false, true) => return None,
+        (false, false) => v = -v,
+        _ => (),
+    }
+
+    let l = (s2.global_pos - s1.global_pos).dot(n2) / s1.global_end.dot(n2);
+    let point = s1.global_pos + s1.global_end * l;
+
+    let zz: Spherical = point.into();
+    if zz.r - EARTH_R > 100_000. {
+        return None;
+    }
+
+    Some((point, v))
 }
 
 impl Solver {
@@ -37,165 +63,53 @@ impl Solver {
 
     /// Find the solution
     pub fn solve(&self) -> Solution {
-        // Get a rough estimation
-        let (p1, p2) = self.initial_mc();
+        // TODO multithreading
 
-        // Construct a tunnel
-        let k = (p2 - p1).normalized();
-        let (l1, l2) = self.lambdas(p1, k);
-        let mut tunnel = Tunnel {
-            mid_point: p1 + k * ((l1 + l2) * 0.5),
-            k,
-            r: 200_000.,
-        };
+        let mut vec = Vec::new();
+        let mut point = Vec3::default();
+        let mut vel = Vec3::default();
 
-        // Run 10 iterations
-        // TODO make configurable
-        for _ in 0..10 {
-            let (mid_point, k) = self.mc(tunnel);
-            //let (l1, l2) = self.lambdas(mid_point, k);
-            //tunnel.mid_point = mid_point + k * ((l1 + l2) * 0.5);
-            tunnel.mid_point = mid_point;
-            tunnel.k = k;
-            tunnel.r *= 0.5;
+        for i in 0..(self.data.samples.len() - 1) {
+            let s1 = &self.data.samples[i];
+            if s1.trust_start && s1.trust_end {
+                for j in (i + 1)..self.data.samples.len() {
+                    let s2 = &self.data.samples[j];
+                    if s2.trust_start && s2.trust_end {
+                        if let Some((p, v)) = solve_pair(s1, s2) {
+                            point += p;
+                            vel += v;
+                            vec.push((p, v));
+                        }
+                    }
+                }
+            }
         }
 
-        // calculate flash location as well as speed
-        let (flash, speed) = self.calc_flash_and_speed(tunnel.mid_point, tunnel.k);
-        let velocity = tunnel.k * speed;
+        point /= vec.len() as f64;
+        vel.normalize();
 
-        //// Draw a plot for solution.
-        //use std::{fs::File, io::Write};
-        //let point = flash.to_vec3();
-        //let mut offset = Vec3::default();
-        //offset.x = -1_000_000.;
-        //let mut file = File::create("data_sol.dat").unwrap();
-        //for _ in 0..2_000 {
-        //let point = point + offset;
-        //write!(
-        //file,
-        //"{} {}\n",
-        //offset.x / 1_000.,
-        //self.evaluate_traj(point, velocity.normalized())
-        //)
-        //.unwrap();
-        //offset.x += 1_000.;
-        //}
+        dbg!(vec.len());
 
-        // return
+        let mut s_point = 0.;
+        let mut s_vel = 0.;
+        for (p, v) in &vec {
+            s_point += (point - *p).length().powi(2);
+            s_vel += vel.dot(*v).abs().min(1.).acos().powi(2);
+        }
+        s_point = (s_point / vec.len() as f64).sqrt();
+        s_vel = (s_vel / vec.len() as f64).sqrt();
+
+        dbg!(s_point);
+        dbg!(s_vel.to_degrees());
+
+        let (flash, speed) = self.calc_flash_and_speed(point, vel);
+        let velocity = vel * speed;
+
         Solution {
-            error: self.evaluate_traj(tunnel.mid_point, tunnel.k),
+            // error: self.evaluate_traj(point, vel),
             flash,
             velocity,
         }
-    }
-
-    fn initial_mc(&self) -> (Vec3, Vec3) {
-        let mid_point = self.data.mean_pos;
-        let range = self.params.initial_range;
-
-        let answers = crossbeam_utils::thread::scope(|scope| {
-            let mut threads = Vec::with_capacity(self.params.threads);
-            for _ in 0..self.params.threads {
-                threads.push(scope.spawn(|_| {
-                    let mut error = std::f64::INFINITY;
-                    let mut answer = (
-                        mid_point,
-                        mid_point
-                            + Vec3 {
-                                x: 10.,
-                                y: 10.,
-                                z: 10.,
-                            },
-                    );
-                    for _ in 0..(self.params.initial_iterations / self.params.threads) {
-                        // Generate two points
-                        let p1 = mid_point + Vec3::rand_uniform(range);
-                        let p2 = mid_point + Vec3::rand_uniform(range);
-
-                        let err = self.evaluate_traj(p1, (p2 - p1).normalized());
-                        if err < error {
-                            answer = (p1, p2);
-                            error = err;
-                        }
-                    }
-                    (error, answer)
-                }));
-            }
-            threads
-                .into_iter()
-                .map(|t| t.join().unwrap())
-                .collect::<Vec<(f64, (Vec3, Vec3))>>()
-        })
-        .unwrap();
-
-        answers
-            .iter()
-            .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
-            .unwrap()
-            .1
-    }
-
-    fn mc(&self, tunnel: Tunnel) -> (Vec3, Vec3) {
-        let answers = crossbeam_utils::thread::scope(|scope| {
-            let mut threads = Vec::with_capacity(self.params.threads);
-            for _ in 0..self.params.threads {
-                threads.push(scope.spawn(|_| {
-                    let mut error = std::f64::INFINITY;
-                    let mut answer = tunnel;
-                    for _ in 0..(self.params.main_iterations / self.params.threads) {
-                        let rand_ans = tunnel.random();
-                        let err = self.evaluate_traj(rand_ans.mid_point, rand_ans.k);
-                        if err < error {
-                            answer = rand_ans;
-                            error = err;
-                        }
-                    }
-                    (error, (answer.mid_point, answer.k))
-                }));
-            }
-            threads
-                .into_iter()
-                .map(|t| t.join().unwrap())
-                .collect::<Vec<(f64, (Vec3, Vec3))>>()
-        })
-        .unwrap();
-
-        answers
-            .iter()
-            .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
-            .unwrap()
-            .1
-    }
-
-    fn lambdas(&self, point: Vec3, vel: Vec3) -> (f64, f64) {
-        let mut l_begin_vec = Vec::with_capacity(self.data.samples.len());
-        let mut l_end_vec = Vec::with_capacity(self.data.samples.len());
-
-        for sample in &self.data.samples {
-            let pip = point - sample.global_pos;
-            let plane = pip.cross(vel).normalized();
-            let perpendic = vel.cross(plane).normalized();
-
-            let k_start = sample.global_start;
-            let k_end = sample.global_end;
-
-            let trust_start = sample.trust_start && perpendic.dot(k_start) > 0.;
-            let trust_end = sample.trust_end && perpendic.dot(k_end) > 0.;
-
-            if trust_start {
-                l_begin_vec
-                    .push(pip.dot(perpendic * (k_start.dot(vel) / k_start.dot(perpendic)) - vel));
-            }
-            if trust_end {
-                l_end_vec.push(pip.dot(perpendic * (k_end.dot(vel) / k_end.dot(perpendic)) - vel));
-            }
-        }
-
-        let l_begin = quick_median(&mut l_begin_vec);
-        let l_end = quick_median(&mut l_end_vec);
-
-        (l_begin, l_end)
     }
 
     /// Calculate the flash location and the speed of the fireball
@@ -234,46 +148,46 @@ impl Solver {
         (point + v * l_end, speed)
     }
 
-    /// Calculate the mean of squared errors (less is better)
-    pub fn evaluate_traj(&self, p: Vec3, vel: Vec3) -> f64 {
-        let mut error = 0.;
-        for sample in &self.data.samples {
-            let plane = (p - sample.global_pos).cross(vel).normalized();
-            let perpendic = vel.cross(plane);
-
-            let k_start = sample.global_start;
-            let k_end = sample.global_end;
-
-            let e_start = plane.dot(k_start).asin();
-            let e_end = plane.dot(k_end).asin();
-
-            if sample.trust_start {
-                let c = perpendic.dot(k_start);
-                if c > 0. {
-                    error += e_start * e_start;
-
-                    let angle = descent_angle(sample.global_pos, k_start, vel);
-                    let diff = angle_diff(angle, sample.descent_angle);
-                    error += diff * diff;
-                } else {
-                    //let c = c.clamp(0., 0.1) * 10.;
-                    //error += c * e_start * e_start + (1. - c) * FRAC_PI_2 * FRAC_PI_2;
-                    error += FRAC_PI_2 * FRAC_PI_2;
-                    error += PI * PI;
-                }
-                //error += diff * diff;
-            }
-            if sample.trust_end {
-                let c = perpendic.dot(k_end);
-                if c > 0. {
-                    error += e_end * e_end;
-                } else {
-                    //let c = c.clamp(0., 0.1) * 10.;
-                    //error += c * e_end * e_end + (1. - c) * FRAC_PI_2 * FRAC_PI_2;
-                    error += FRAC_PI_2 * FRAC_PI_2;
-                }
-            }
-        }
-        error
-    }
+    // /// Calculate the mean of squared errors (less is better)
+    //     pub fn evaluate_traj(&self, p: Vec3, vel: Vec3) -> f64 {
+    //         let mut error = 0.;
+    //         for sample in &self.data.samples {
+    //             let plane = (p - sample.global_pos).cross(vel).normalized();
+    //             let perpendic = vel.cross(plane);
+    //
+    //             let k_start = sample.global_start;
+    //             let k_end = sample.global_end;
+    //
+    //             let e_start = plane.dot(k_start).asin();
+    //             let e_end = plane.dot(k_end).asin();
+    //
+    //             if sample.trust_start {
+    //                 let c = perpendic.dot(k_start);
+    //                 if c > 0. {
+    //                     error += e_start * e_start;
+    //
+    //                     let angle = descent_angle(sample.global_pos, k_start, vel);
+    //                     let diff = angle_diff(angle, sample.descent_angle);
+    //                     error += diff * diff;
+    //                 } else {
+    //                     //let c = c.clamp(0., 0.1) * 10.;
+    //                     //error += c * e_start * e_start + (1. - c) * FRAC_PI_2 * FRAC_PI_2;
+    //                     error += FRAC_PI_2 * FRAC_PI_2;
+    //                     error += PI * PI;
+    //                 }
+    //                 //error += diff * diff;
+    //             }
+    //             if sample.trust_end {
+    //                 let c = perpendic.dot(k_end);
+    //                 if c > 0. {
+    //                     error += e_end * e_end;
+    //                 } else {
+    //                     //let c = c.clamp(0., 0.1) * 10.;
+    //                     //error += c * e_end * e_end + (1. - c) * FRAC_PI_2 * FRAC_PI_2;
+    //                     error += FRAC_PI_2 * FRAC_PI_2;
+    //                 }
+    //             }
+    //         }
+    //         error
+    //     }
 }

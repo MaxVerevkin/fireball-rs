@@ -99,6 +99,21 @@ impl DataSample {
             })
         }
     }
+
+    pub fn to_text(&self) -> String {
+        format!(
+            "{} {} {} {} {} {} {} {} {}",
+            self.geo_pos.lat.to_degrees(),
+            self.geo_pos.lon.to_degrees(),
+            self.geo_pos.r - EARTH_R,
+            self.descent_angle.to_degrees(),
+            self.start.z.to_degrees(),
+            self.start.h.to_degrees(),
+            self.end.z.to_degrees(),
+            self.end.h.to_degrees(),
+            self.duration
+        )
+    }
 }
 
 impl Data {
@@ -140,5 +155,13 @@ impl Data {
             data.mean_pos /= data.samples.len() as f64;
             Ok(data)
         }
+    }
+
+    pub fn to_file(&self, file: &str) -> std::io::Result<()> {
+        let mut file = File::create(file)?;
+        for sample in &self.samples {
+            writeln!(file, "{}", sample.to_text())?;
+        }
+        Ok(())
     }
 }
