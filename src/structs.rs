@@ -1,92 +1,305 @@
 //! Basic structures such as Vec3
 
-use rand::{random, rngs::ThreadRng, Rng};
-use rand_distr::StandardNormal;
-use std::f64::consts::{FRAC_PI_2, PI, TAU};
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub};
+pub type Vec3 = nalgebra::Vector3<f64>;
+
+// use std::f64::consts::{FRAC_PI_2, TAU};
+// use std::ops;
+
+/*
 
 /// 3D vector
-#[derive(Debug, Default, Copy, Clone)]
-pub struct Vec3 {
-    pub x: f64,
-    pub y: f64,
+// #[derive(Debug, Default, Copy, Clone)]
+// pub struct Vec3 {
+//     pub x: f64,
+//     pub y: f64,
+//     pub z: f64,
+// }
+//
+// impl Vec3 {
+//     /// Create new vector
+//     pub fn new(x: f64, y: f64, z: f64) -> Self {
+//         Self { x, y, z }
+//     }
+//
+//     /// Create normalied vector
+//     pub fn normalized(self) -> Self {
+//         self / self.len()
+//     }
+//
+//     /// Normalize this vector in-place
+//     pub fn normalize(&mut self) {
+//         *self /= self.len();
+//     }
+//
+//     /// Translate local cartesian coordinates (East, North, Zenith) to global (x, y, z)
+//     pub fn to_global(&self, pos: Spherical) -> Self {
+//         Matrix33::rz(FRAC_PI_2 + pos.lon)
+//             .mul_mat(&Matrix33::rx(FRAC_PI_2 - pos.lat))
+//             .mul_vec(self)
+//     }
+//
+//     /// Translate global cartesian coordinates (x, y, z) to local (East, North, Zenith)
+//     pub fn to_local(&self, pos: Spherical) -> Self {
+//         Matrix33::rx(-FRAC_PI_2 + pos.lat)
+//             .mul_mat(&Matrix33::rz(-FRAC_PI_2 - pos.lon))
+//             .mul_vec(self)
+//     }
+//
+//     /// Dot product of two vectors
+//     pub fn dot(&self, other: Vec3) -> f64 {
+//         self.x * other.x + self.y * other.y + self.z * other.z
+//     }
+//
+//     /// Cross product of two vectors
+//     pub fn cross(&self, other: Vec3) -> Self {
+//         Self {
+//             x: self.y * other.z - self.z * other.y,
+//             y: self.z * other.x - self.x * other.z,
+//             z: self.x * other.y - self.y * other.x,
+//         }
+//     }
+//
+//     /// Same as `f64::is_normal()` but accepts zero
+//     pub fn is_normal(&self) -> bool {
+//         (self.x.is_normal() || self.x == 0.0)
+//             && (self.y.is_normal() || self.y == 0.0)
+//             && (self.z.is_normal() || self.z == 0.0)
+//     }
+// }
+//
+// impl rand::distributions::Distribution<Vec3> for rand::distributions::Standard {
+//     fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> Vec3 {
+//         Vec3 {
+//             x: rng.gen_range(-1.0..=1.0),
+//             y: rng.gen_range(-1.0..=1.0),
+//             z: rng.gen_range(-1.0..=1.0),
+//         }
+//     }
+// }
+//
+// impl ops::Neg for Vec3 {
+//     type Output = Self;
+//     fn neg(self) -> Self {
+//         Self {
+//             x: -self.x,
+//             y: -self.y,
+//             z: -self.z,
+//         }
+//     }
+// }
+//
+// impl ops::Add for Vec3 {
+//     type Output = Self;
+//     fn add(self, other: Self) -> Self {
+//         Self {
+//             x: self.x + other.x,
+//             y: self.y + other.y,
+//             z: self.z + other.z,
+//         }
+//     }
+// }
+//
+// impl ops::AddAssign for Vec3 {
+//     fn add_assign(&mut self, other: Self) {
+//         self.x += other.x;
+//         self.y += other.y;
+//         self.z += other.z;
+//     }
+// }
+//
+// impl ops::Sub for Vec3 {
+//     type Output = Self;
+//     fn sub(self, other: Self) -> Self {
+//         Self {
+//             x: self.x - other.x,
+//             y: self.y - other.y,
+//             z: self.z - other.z,
+//         }
+//     }
+// }
+//
+// impl ops::SubAssign for Vec3 {
+//     fn sub_assign(&mut self, other: Self) {
+//         self.x -= other.x;
+//         self.y -= other.y;
+//         self.z -= other.z;
+//     }
+// }
+//
+// impl ops::Mul<f64> for Vec3 {
+//     type Output = Self;
+//     fn mul(self, other: f64) -> Self {
+//         Self {
+//             x: self.x * other,
+//             y: self.y * other,
+//             z: self.z * other,
+//         }
+//     }
+// }
+//
+// impl ops::MulAssign<f64> for Vec3 {
+//     fn mul_assign(&mut self, other: f64) {
+//         self.x *= other;
+//         self.y *= other;
+//         self.z *= other;
+//     }
+// }
+//
+// impl ops::Div<f64> for Vec3 {
+//     type Output = Self;
+//     fn div(self, other: f64) -> Self {
+//         self * (1. / other)
+//     }
+// }
+//
+// impl ops::DivAssign<f64> for Vec3 {
+//     fn div_assign(&mut self, other: f64) {
+//         let k = 1. / other;
+//         self.x *= k;
+//         self.y *= k;
+//         self.z *= k;
+//     }
+// }
+
+/// Rotate a vector about any axis
+#[derive(Debug, Clone, Copy)]
+pub struct UnitQuaternion {
+    s: f64,
+    v: Vec3,
+}
+
+impl UnitQuaternion {
+    /// Create a new unit quaternion
+    pub fn new(axis: Vec3, angle: f64) -> Self {
+        Self {
+            s: f64::cos(angle / 2.),
+            v: axis * f64::sin(angle / 2.),
+        }
+    }
+
+    /// Compute `q^-1`
+    pub fn inverse(&self) -> Self {
+        Self {
+            s: self.s,
+            v: -self.v,
+        }
+    }
+
+    /// Aplly rotation to a vector
+    pub fn apply_rotation(self, v: Vec3) -> Vec3 {
+        let p = Self { s: 0., v };
+        let q = self * p * self.inverse();
+        q.v
+    }
+}
+
+impl ops::Mul for UnitQuaternion {
+    type Output = Self;
+
+    fn mul(self, rhs: Self) -> Self {
+        Self {
+            s: self.s * rhs.s - self.v.dot(&rhs.v),
+            v: self.v * rhs.s + rhs.v * self.s + self.v.cross(&rhs.v),
+        }
+    }
+}
+
+/// Spherical coordinates triple
+#[derive(Debug, Clone, Copy)]
+pub struct Spherical {
+    pub lat: f64,
+    pub lon: f64,
+    pub r: f64,
+}
+
+/// Azimuthal coordinates tuple
+#[derive(Debug, Clone, Copy)]
+pub struct Azimuthal {
     pub z: f64,
+    pub h: f64,
 }
 
-impl Vec3 {
-    /// Generate a random vector in range from (-1,-1,-1) to (1,1,1)
-    pub fn rand_uniform() -> Self {
-        Self {
-            x: random::<f64>() * 2. - 1.,
-            y: random::<f64>() * 2. - 1.,
-            z: random::<f64>() * 2. - 1.,
+/// 3x3 Matirix (column-major)
+#[derive(Debug, Clone, Copy)]
+pub struct Matrix33([f64; 9]);
+
+impl Matrix33 {
+    /// Generate x-rotation matrix
+    ///
+    /// ```text
+    /// | 1  0       0       |
+    /// | 0  cos(a)  -sin(a) |
+    /// | 0  sin(a)  cos(a)  |
+    /// ```
+    pub fn rx(angle: f64) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self([1., 0., 0., 0., cos, sin, 0., -sin, cos])
+    }
+
+    /// Generate z-rotation matrix
+    ///
+    /// ```text
+    /// | cos(a)  -sin(a)  0 |
+    /// | sin(a)  cos(a)   0 |
+    /// | 0       0        1 |
+    /// ```
+    pub fn rz(angle: f64) -> Self {
+        let (sin, cos) = angle.sin_cos();
+        Self([cos, sin, 0., -sin, cos, 0., 0., 0., 1.])
+    }
+
+    /// Compute `Matrix33`*`Vec3`
+    pub fn mul_vec(&self, v: &Vec3) -> Vec3 {
+        Vec3 {
+            x: v.x * self.0[0] + v.y * self.0[3] + v.z * self.0[6],
+            y: v.x * self.0[1] + v.y * self.0[4] + v.z * self.0[7],
+            z: v.x * self.0[2] + v.y * self.0[5] + v.z * self.0[8],
         }
     }
 
-    /// Compute the magnitude of the vector
-    pub fn length(&self) -> f64 {
-        (self.x * self.x + self.y * self.y + self.z * self.z).sqrt()
-    }
-
-    /// Return a unit vector (i.e. with the magnitude of one) with the same direction
-    pub fn normalized(self) -> Self {
-        self / self.length()
-    }
-
-    /// Normalize a vercor
-    pub fn normalize(&mut self) {
-        *self /= self.length();
-    }
-
-    /// Translate local cartesian coordinates (East, North, Zenith) to global (x, y, z)
-    pub fn to_global(&self, pos: Spherical) -> Self {
-        Matrix33::rz(FRAC_PI_2 + pos.lon)
-            .mul_mat(&Matrix33::rx(FRAC_PI_2 - pos.lat))
-            .mul_vec(self)
-    }
-
-    /// Translate global cartesian coordinates (x, y, z) to local (East, North, Zenith)
-    pub fn to_local(&self, pos: Spherical) -> Self {
-        Matrix33::rx(-FRAC_PI_2 + pos.lat)
-            .mul_mat(&Matrix33::rz(-FRAC_PI_2 - pos.lon))
-            .mul_vec(self)
-    }
-
-    /// Compute the `dot` product of two vectors
-    pub fn dot(&self, other: Vec3) -> f64 {
-        self.x * other.x + self.y * other.y + self.z * other.z
-    }
-
-    /// Compute the `cross` product of two vectors
-    pub fn cross(&self, other: Vec3) -> Self {
-        Self {
-            x: self.y * other.z - self.z * other.y,
-            y: self.z * other.x - self.x * other.z,
-            z: self.x * other.y - self.y * other.x,
-        }
-    }
-
-    /// Same as `f64::is_normal()` but accepts zero
-    pub fn is_normal(&self) -> bool {
-        (self.x.is_normal() || self.x == 0.0)
-            && (self.y.is_normal() || self.y == 0.0)
-            && (self.z.is_normal() || self.z == 0.0)
+    /// Compute `Matrix33`*`Matrix33`
+    pub fn mul_mat(&self, other: &Self) -> Self {
+        let s = &self.0;
+        let o = &other.0;
+        Self([
+            o[0] * s[0] + o[1] * s[3] + o[2] * s[6],
+            o[0] * s[1] + o[1] * s[4] + o[2] * s[7],
+            o[0] * s[2] + o[1] * s[5] + o[2] * s[8],
+            o[3] * s[0] + o[4] * s[3] + o[5] * s[6],
+            o[3] * s[1] + o[4] * s[4] + o[5] * s[7],
+            o[3] * s[2] + o[4] * s[5] + o[5] * s[8],
+            o[6] * s[0] + o[7] * s[3] + o[8] * s[6],
+            o[6] * s[1] + o[7] * s[4] + o[8] * s[7],
+            o[6] * s[2] + o[7] * s[5] + o[8] * s[8],
+        ])
     }
 }
 
-/// Translate cartesian coordinates to spherical
+//
+// Convertations
+//
+
 impl From<Vec3> for Spherical {
     fn from(val: Vec3) -> Self {
         let xy = f64::hypot(val.x, val.y);
         Spherical {
             lat: f64::atan(val.z / xy),
             lon: f64::atan2(val.y, val.x),
-            r: val.length(),
+            r: val.len(),
         }
     }
 }
 
-/// Translate cartesian coordinates to azimuthal
+impl From<Spherical> for Vec3 {
+    fn from(s: Spherical) -> Self {
+        Self {
+            x: s.lat.cos() * s.lon.cos(),
+            y: s.lat.cos() * s.lon.sin(),
+            z: s.lat.sin(),
+        } * s.r
+    }
+}
+
 impl From<Vec3> for Azimuthal {
     fn from(val: Vec3) -> Self {
         let xy = f64::hypot(val.x, val.y);
@@ -98,263 +311,59 @@ impl From<Vec3> for Azimuthal {
     }
 }
 
-impl Neg for Vec3 {
-    type Output = Self;
-    fn neg(self) -> Self {
+impl From<Azimuthal> for Vec3 {
+    fn from(a: Azimuthal) -> Self {
         Self {
-            x: -self.x,
-            y: -self.y,
-            z: -self.z,
+            x: a.h.cos() * a.z.sin(),
+            y: a.h.cos() * a.z.cos(),
+            z: a.h.sin(),
         }
     }
 }
 
-impl Add for Vec3 {
-    type Output = Self;
-    fn add(self, other: Self) -> Self {
-        Self {
-            x: self.x + other.x,
-            y: self.y + other.y,
-            z: self.z + other.z,
-        }
-    }
-}
-impl AddAssign for Vec3 {
-    fn add_assign(&mut self, other: Self) {
-        self.x += other.x;
-        self.y += other.y;
-        self.z += other.z;
-    }
-}
-impl Sub for Vec3 {
-    type Output = Self;
-    fn sub(self, other: Self) -> Self {
-        Self {
-            x: self.x - other.x,
-            y: self.y - other.y,
-            z: self.z - other.z,
-        }
-    }
-}
+//
+// Unit
+//
 
-impl Mul<f64> for Vec3 {
-    type Output = Self;
-    fn mul(self, other: f64) -> Self {
-        Self {
-            x: self.x * other,
-            y: self.y * other,
-            z: self.z * other,
-        }
-    }
-}
+// pub trait Norm {
+//     fn len(&self) -> f64;
+// }
+//
+// impl Length for Vec3 {
+//     fn len(&self) -> f64 {
+//         f64::sqrt(self.x * self.x + self.y * self.y + self.z * self.z)
+//     }
+// }
+//
+// pub struct Unit<T: Length>(T);
+//
+// impl<T: Length + ops::DivAssign<f64>> Unit<T> {
+//     pub fn new(mut elem: T) -> Self {
+//         let len = elem.len();
+//         elem /= len;
+//         Self(elem)
+//     }
+//
+//     pub fn new_unchecked(elem: T) -> Self {
+//         Self(elem)
+//     }
+//
+//     pub fn to_inner(self) -> T {
+//         self.0
+//     }
+// }
+//
+// impl<T: Length> ops::Deref for Unit<T> {
+//     type Target = T;
+//
+//     fn deref(&self) -> &Self::Target {
+//         &self.0
+//     }
+// }
 
-impl MulAssign<f64> for Vec3 {
-    fn mul_assign(&mut self, other: f64) {
-        self.x *= other;
-        self.y *= other;
-        self.z *= other;
-    }
-}
-
-impl Div<f64> for Vec3 {
-    type Output = Self;
-    fn div(self, other: f64) -> Self {
-        self * (1. / other)
-    }
-}
-
-impl DivAssign<f64> for Vec3 {
-    fn div_assign(&mut self, other: f64) {
-        let k = 1. / other;
-        self.x *= k;
-        self.y *= k;
-        self.z *= k;
-    }
-}
-
-// FIXME write docs
-// TODO rename
-#[derive(Debug, Copy, Clone)]
-pub struct Tunnel {
-    pub mid_point: Vec3,
-    pub k: Vec3,
-    pub r: f64,
-    pub d: f64,
-}
-
-// TODO move to math.rs
-fn rand_point(rng: &mut ThreadRng, r_sigma: f64) -> (f64, f64) {
-    // Generate a point in polar system with coordinates being
-    // r = N(0, r)
-    // phi = U(-pi, pi)
-    let r: f64 = rng.sample(StandardNormal);
-    let r = r * r_sigma;
-    let phi = rng.gen::<f64>() * PI;
-
-    // Polar to cartesian
-    let (sin, cos) = phi.sin_cos();
-    (r * sin, r * cos)
-}
-
-impl Tunnel {
-    pub fn random(&self) -> Self {
-        let mut rng = rand::thread_rng();
-        let (x1, y1) = rand_point(&mut rng, self.r);
-        let (x2, y2) = rand_point(&mut rng, self.d);
-
-        // Build a temporal coordinate system in which
-        // - i is "x"
-        // - j is "y"
-        // - `self.k` is "z"
-        let i = Vec3 {
-            x: 0.,
-            y: self.k.z,
-            z: -self.k.y,
-        }
-        .normalized();
-        let j = self.k.cross(i).normalized();
-
-        // Sanity check
-        debug_assert!(i.dot(j) < 1e-5);
-        debug_assert!(self.k.dot(i) < 1e-5);
-        debug_assert!(self.k.dot(j) < 1e-5);
-
-        //let x: f64 = rng.sample(StandardNormal);
-
-        Self {
-            mid_point: self.mid_point + i * x1 + j * y1,
-            //mid_point: self.mid_point + self.k * (x * self.r) + i * x1 + j * y1,
-            k: (self.k + i * x2 + j * y2).normalized(),
-            r: self.r,
-            d: self.d,
-        }
-    }
-}
-
-/// Spherical coordinates triple
-#[derive(Debug, Copy, Clone)]
-pub struct Spherical {
-    /// Positive latitude means North, negative means South
-    pub lat: f64,
-    /// Positive longitude means East, negative means West
-    pub lon: f64,
-    /// Distance to the center of the Earth
-    pub r: f64,
-}
-
-/// Azimuthal coordinates tuple
-#[derive(Debug, Copy, Clone)]
-pub struct Azimuthal {
-    /// Azimuth is equal to zero when points to North,
-    /// 90 degrees when points to West, and so on
-    pub z: f64,
-    pub h: f64,
-}
-
-/// 3x3 Matirix
-#[derive(Debug, Clone)]
-pub struct Matrix33 {
-    val: [f64; 9],
-}
-
-impl Spherical {
-    /// Translate spherical coordinates to cartesian
-    pub fn to_vec3(&self) -> Vec3 {
-        let xy = self.r * self.lat.cos();
-        Vec3 {
-            x: xy * self.lon.cos(),
-            y: xy * self.lon.sin(),
-            z: self.r * self.lat.sin(),
-        }
-    }
-}
-
-impl Azimuthal {
-    /// Translate azimuthal coordinates to an unit cartesian vector
-    pub fn to_vec3(&self) -> Vec3 {
-        Vec3 {
-            x: self.h.cos() * self.z.sin(),
-            y: self.h.cos() * self.z.cos(),
-            z: self.h.sin(),
-        }
-    }
-}
-
-impl Matrix33 {
-    /// Generate Rx matrix
-    ///
-    /// Rx matrix represents rotation about X-axis
-    ///
-    /// | 1  0       0       |
-    /// | 0  cos(a)  -sin(a) |
-    /// | 0  sin(a)  cos(a)  |
-    ///
-    pub fn rx(angle: f64) -> Self {
-        let (sin, cos) = angle.sin_cos();
-        Self {
-            val: [1., 0., 0., 0., cos, sin, 0., -sin, cos],
-        }
-    }
-
-    /// Generate Rz matrix
-    ///
-    /// Rz matrix represents rotation about Z-axis
-    ///
-    /// | cos(a)  -sin(a)  0 |
-    /// | sin(a)  cos(a)   0 |
-    /// | 0       0        1 |
-    ///
-    pub fn rz(angle: f64) -> Self {
-        let (sin, cos) = angle.sin_cos();
-        Self {
-            val: [cos, sin, 0., -sin, cos, 0., 0., 0., 1.],
-        }
-    }
-
-    /// Compute M*v
-    pub fn mul_vec(&self, v: &Vec3) -> Vec3 {
-        Vec3 {
-            x: v.x * self.val[0] + v.y * self.val[3] + v.z * self.val[6],
-            y: v.x * self.val[1] + v.y * self.val[4] + v.z * self.val[7],
-            z: v.x * self.val[2] + v.y * self.val[5] + v.z * self.val[8],
-        }
-    }
-
-    /// Compute M1*M2
-    pub fn mul_mat(&self, other: &Self) -> Self {
-        Self {
-            val: [
-                other.val[0] * self.val[0]
-                    + other.val[1] * self.val[3]
-                    + other.val[2] * self.val[6],
-                other.val[0] * self.val[1]
-                    + other.val[1] * self.val[4]
-                    + other.val[2] * self.val[7],
-                other.val[0] * self.val[2]
-                    + other.val[1] * self.val[5]
-                    + other.val[2] * self.val[8],
-                other.val[3] * self.val[0]
-                    + other.val[4] * self.val[3]
-                    + other.val[5] * self.val[6],
-                other.val[3] * self.val[1]
-                    + other.val[4] * self.val[4]
-                    + other.val[5] * self.val[7],
-                other.val[3] * self.val[2]
-                    + other.val[4] * self.val[5]
-                    + other.val[5] * self.val[8],
-                other.val[6] * self.val[0]
-                    + other.val[7] * self.val[3]
-                    + other.val[8] * self.val[6],
-                other.val[6] * self.val[1]
-                    + other.val[7] * self.val[4]
-                    + other.val[8] * self.val[7],
-                other.val[6] * self.val[2]
-                    + other.val[7] * self.val[5]
-                    + other.val[8] * self.val[8],
-            ],
-        }
-    }
-}
+//
+// Tests
+//
 
 #[cfg(test)]
 mod tests {
@@ -395,3 +404,5 @@ mod tests {
         assert!((z.z - FRAC_PI_6.sin()).abs() < 1e-10);
     }
 }
+
+*/

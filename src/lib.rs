@@ -12,5 +12,7 @@ pub mod aprox_eq;
 pub mod constants;
 pub mod data;
 pub mod maths;
+pub mod scad;
 pub mod solver;
 pub mod structs;
+pub mod util;

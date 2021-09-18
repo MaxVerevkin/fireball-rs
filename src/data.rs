@@ -19,18 +19,16 @@
 
 use std::fs::File;
 use std::io::prelude::*;
-use std::io::BufReader;
-use std::io::{Error, ErrorKind};
+use std::io::{self, BufReader};
 
-use crate::aprox_eq::AproxEq;
 use crate::constants::*;
 use crate::structs::*;
 
 /// Represents data given by a witness
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct DataSample {
+    pub pos: Vec3,
     pub geo_pos: Spherical,
-    pub global_pos: Vec3,
 
     pub descent_angle: f64,
     pub start: Azimuthal,
@@ -39,129 +37,104 @@ pub struct DataSample {
 
     pub global_start: Vec3,
     pub global_end: Vec3,
+}
 
-    pub trust_da: bool,
-    pub trust_start: bool,
-    pub trust_end: bool,
+impl DataSample {
+    /// Create new instance of `DataSample` from text
+    pub fn from_text(line: &str) -> Option<Self> {
+        // Get exactly 9 numbers
+        let mut nums = [0f64; 9];
+        let mut words = line.split_ascii_whitespace();
+        for n in &mut nums {
+            *n = words.next()?.parse::<f64>().ok()?;
+        }
+        if words.next().is_some() {
+            return None;
+        }
+
+        let geo_pos = Spherical {
+            lat: nums[0].to_radians(),
+            lon: nums[1].to_radians(),
+            r: EARTH_R + nums[2],
+        };
+        let descent_angle = nums[3].to_radians();
+        let start = Azimuthal {
+            z: nums[4].to_radians(),
+            h: nums[5].to_radians(),
+        };
+        let end = Azimuthal {
+            z: nums[6].to_radians(),
+            h: nums[7].to_radians(),
+        };
+        let duration = nums[8];
+
+        Some(Self {
+            geo_pos,
+            pos: geo_pos.into(),
+
+            descent_angle,
+            start,
+            end,
+            duration,
+
+            global_start: Vec3::from(start).to_global(geo_pos),
+            global_end: Vec3::from(end).to_global(geo_pos),
+        })
+    }
+
+    // pub fn to_text(&self) -> String {
+    //     format!(
+    //         "{} {} {} {} {} {} {} {} {}",
+    //         self.geo_pos.lat.to_degrees(),
+    //         self.geo_pos.lon.to_degrees(),
+    //         self.geo_pos.r - EARTH_R,
+    //         self.descent_angle.to_degrees(),
+    //         self.start.z.to_degrees(),
+    //         self.start.h.to_degrees(),
+    //         self.end.z.to_degrees(),
+    //         self.end.h.to_degrees(),
+    //         self.duration
+    //     )
+    // }
 }
 
 /// A collenction of observations
 #[derive(Debug, Clone)]
 pub struct Data {
     pub samples: Vec<DataSample>,
-    pub mean_pos: Vec3,
-}
-
-impl DataSample {
-    /// Create new instance of `DataSample` from text
-    pub fn from_text(line: &str) -> Option<Self> {
-        // parse the line into a list of f64
-        let mut nums = line
-            .split_whitespace()
-            .filter_map(|x| x.parse::<f64>().ok());
-
-        let geo_pos = Spherical {
-            lat: nums.next()?.to_radians(),
-            lon: nums.next()?.to_radians(),
-            r: EARTH_R + nums.next()?,
-        };
-        let descent_angle = nums.next()?.to_radians();
-        let start = Azimuthal {
-            z: nums.next()?.to_radians(),
-            h: nums.next()?.to_radians(),
-        };
-        let end = Azimuthal {
-            z: nums.next()?.to_radians(),
-            h: nums.next()?.to_radians(),
-        };
-        let duration = nums.next()?;
-
-        // do not trust witness if he claims that start == end
-        // and check if line is too long
-        if nums.next().is_some() || (start.z.aprox_eq(end.z) && start.h.aprox_eq(end.h)) {
-            None
-        } else {
-            Some(Self {
-                geo_pos,
-                global_pos: geo_pos.to_vec3(),
-
-                descent_angle,
-                start,
-                end,
-                duration,
-
-                global_start: start.to_vec3().to_global(geo_pos),
-                global_end: end.to_vec3().to_global(geo_pos),
-
-                trust_da: descent_angle >= 0.,
-                trust_start: start.z >= 0. && start.h >= 0.,
-                trust_end: end.z >= 0. && end.h >= 0.,
-            })
-        }
-    }
-
-    pub fn to_text(&self) -> String {
-        format!(
-            "{} {} {} {} {} {} {} {} {}",
-            self.geo_pos.lat.to_degrees(),
-            self.geo_pos.lon.to_degrees(),
-            self.geo_pos.r - EARTH_R,
-            self.descent_angle.to_degrees(),
-            self.start.z.to_degrees(),
-            self.start.h.to_degrees(),
-            self.end.z.to_degrees(),
-            self.end.h.to_degrees(),
-            self.duration
-        )
-    }
 }
 
 impl Data {
     /// Initialize from file
-    pub fn from_file(file_name: &str) -> Result<Self, Error> {
-        let mut data = Data {
-            samples: Vec::new(),
-            mean_pos: Vec3::default(),
-        };
-
-        // Open data file
+    pub fn from_file(file_name: &str) -> Result<Self, io::Error> {
         let mut file = BufReader::new(File::open(file_name)?);
-        let mut buffer = String::new();
+        let mut samples = Vec::with_capacity(400);
+        let mut buf = String::new();
+        let mut skipped = 0usize;
 
-        // Read data file
-        while file.read_line(&mut buffer)? != 0 {
-            // Fill the data in
-            match DataSample::from_text(&buffer) {
-                Some(sample) => {
-                    data.mean_pos += sample.global_pos;
-                    data.samples.push(sample);
-                }
-                None => {
-                    eprintln!("warning: Skip witness {}", data.samples.len());
-                }
-            };
-
-            // Clear buffer
-            buffer.clear();
+        while {
+            buf.clear();
+            file.read_line(&mut buf)?
+        } != 0
+        {
+            match DataSample::from_text(&buf) {
+                Some(s) => samples.push(s),
+                None => skipped += 1,
+            }
         }
 
-        // Two or more witnesses are required
-        if data.samples.len() < 2 {
-            Err(Error::new(
-                ErrorKind::InvalidData,
-                "File must contain at least 2 lines",
-            ))
-        } else {
-            data.mean_pos /= data.samples.len() as f64;
-            Ok(data)
+        if skipped > 0 {
+            eprintln!("warning: {} lines skipped", skipped);
         }
+
+        Ok(Self { samples })
     }
 
-    pub fn to_file(&self, file: &str) -> std::io::Result<()> {
-        let mut file = File::create(file)?;
-        for sample in &self.samples {
-            writeln!(file, "{}", sample.to_text())?;
-        }
-        Ok(())
-    }
+    // pub fn to_file(&self, file: &str) -> std::io::Result<()> {
+    //     let mut file = File::create(file)?;
+    //     for sample in &self.samples {
+    //         writeln!(file, "{}", sample.to_text())?;
+    //     }
+    //     Ok(())
+    // }
 }

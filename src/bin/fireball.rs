@@ -12,7 +12,7 @@ use clap::*;
 use fireball::constants::EARTH_R;
 use fireball::data::Data;
 use fireball::solver::{Params, Solver};
-use fireball::structs::Spherical;
+use fireball::structs::*;
 
 fn main() {
     let matches = app_from_crate!()
@@ -49,7 +49,7 @@ fn main() {
     };
 
     // Solve!
-    let solver = Solver::new(data, Params { threads });
+    let mut solver = Solver::new(data, Params { threads });
     let solution = solver.solve();
     let flash: Spherical = solution.flash.into();
 
@@ -64,9 +64,20 @@ fn main() {
     );
     println!(
         "Velocity: {:.3} km/s\n  x: {:.3} km/s\n  y: {:.3} km/s\n  z: {:.3} km/s",
-        solution.velocity.length().abs() / 1000.,
+        solution.velocity.len().abs() / 1000.,
         solution.velocity.x / 1000.,
         solution.velocity.y / 1000.,
         solution.velocity.z / 1000.,
     );
+
+    // use fireball::structs::*;
+    // let v = Vec3::new(1., 1., 2.);
+    // let axis = Vec3::new(0., 1., 0.);
+    // let angle = 180f64;
+    // dbg!(v);
+    // dbg!(axis);
+    // dbg!(angle);
+    // let q = RotationQuaternion::new(axis, angle.to_radians());
+    // dbg!(q);
+    // dbg!(q.apply_rotation(v));
 }

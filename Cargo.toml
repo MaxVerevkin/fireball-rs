@@ -8,7 +8,9 @@ edition = "2018"
 [dependencies]
 rand = "0.8"
 rand_distr = "0.4"
-crossbeam-utils = "0.8.3"
+crossbeam-utils = "0.8"
+nalgebra = "0.29"
+# scad_gen = { path = "scad-gen" }
 
 [dependencies.clap]
 version = "2.33.3"

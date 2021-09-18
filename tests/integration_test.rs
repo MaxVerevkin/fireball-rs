@@ -21,11 +21,11 @@ fn ideal_data() {
 
         // gnenerate trajectory
         let (flash, vel) = gen_traj(mean_lat, mean_lon);
-        let data = gen_data(mean_lat, mean_lon, &flash, vel, 200);
-        let flash = flash.to_vec3();
+        let data = gen_data(mean_lat, mean_lon, flash, vel, 200);
+        let flash: Vec3 = flash.into();
 
         let params = Params { threads: 4 };
-        let solver = Solver::new(data, params);
+        let mut solver = Solver::new(data, params);
         let solution = solver.solve();
 
         let flash_distance = (flash - solution.flash).length();
@@ -54,16 +54,10 @@ fn ideal_data() {
 }
 
 // generate some random data
-fn gen_data(mean_lat: f64, mean_lon: f64, flash: &Spherical, vel: Vec3, n: u32) -> Data {
-    let p2 = flash.to_vec3();
+fn gen_data(mean_lat: f64, mean_lon: f64, flash: Spherical, vel: Vec3, n: u32) -> Data {
+    let p2: Vec3 = flash.into();
     let mut data = Data {
         samples: Vec::new(),
-        mean_pos: Spherical {
-            lat: mean_lat,
-            lon: mean_lon,
-            r: EARTH_R,
-        }
-        .to_vec3(),
     };
 
     for _ in 0..n {
@@ -73,7 +67,7 @@ fn gen_data(mean_lat: f64, mean_lon: f64, flash: &Spherical, vel: Vec3, n: u32) 
             lon: mean_lon - (3f64).to_radians() + random::<f64>() * (6f64).to_radians(),
             r: EARTH_R + random::<f64>() * 2_000.,
         };
-        let global_pos = geo_pos.to_vec3();
+        let global_pos: Vec3 = geo_pos.into();
 
         let p1 = p2 - vel * duration;
 
@@ -90,10 +84,10 @@ fn gen_data(mean_lat: f64, mean_lon: f64, flash: &Spherical, vel: Vec3, n: u32) 
                 geo_pos.lon.to_degrees(),
                 geo_pos.r - EARTH_R,
                 descent_angle(global_pos, k_start_golbal, vel).to_degrees(),
-                k_start.z.to_degrees(),
-                k_start.h.to_degrees(),
-                k_end.z.to_degrees(),
-                k_end.h.to_degrees(),
+                dbg!(k_start.z.to_degrees()),
+                dbg!(k_start.h.to_degrees()),
+                dbg!(k_end.z.to_degrees()),
+                dbg!(k_end.h.to_degrees()),
                 duration
             ))
             .unwrap(),
@@ -118,6 +112,6 @@ fn gen_traj(mean_lat: f64, mean_lon: f64) -> (Spherical, Vec3) {
 
     (
         p2,
-        (p2.to_vec3() - p1.to_vec3()).normalized() * (5_000. + random::<f64>() * 20_000.),
+        (Vec3::from(p2) - Vec3::from(p1)).normalized() * (5_000. + random::<f64>() * 20_000.),
     )
 }
