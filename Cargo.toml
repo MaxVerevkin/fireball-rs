@@ -15,8 +15,8 @@ serde = { version = "1", features = ["derive"] }
 
 clap = { version = "2", default-features = false }
 
-scad-gen = { path = "../scad-gen" }
-histogram = { path = "../histogram" }
+scad-gen = { path = "./scad-gen" }
+histogram = { path = "./histogram" }
 
 [dev-dependencies]
 proptest = "1.0"
