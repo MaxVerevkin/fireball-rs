@@ -1,140 +1,195 @@
-//! The data structures
-//!
-//! The data is given in a form:
-//! ```text
-//!     lat lon h A z_start h_start z_end h_end t
-//! ```
-//! where:
-//! * `lat` - geographical latitude of observer's location,
-//! * `lon` - geographical longitude of observer's location,
-//! * `h` - the observer's altitude above the sea,
-//! * `A` - observed descent angle,
-//! * `z_start` - azimuth of the begining of the observation,
-//! * `h_start` - altitude of the begining of the observation,
-//! * `z_end` - azimuth of the end of the observation,
-//! * `h_end` - altitude of the end of the observation,
-//! * `t` - the duration of the observation.
-//!
-//! The file with data should contain one observation per line.
-
-use std::fs::File;
-use std::io::prelude::*;
-use std::io::{self, BufReader};
+use std::f64::consts::{FRAC_PI_2, PI, TAU};
+use std::ops::{Deref, DerefMut};
 
 use crate::constants::*;
+use crate::maths::*;
 use crate::structs::*;
 
-/// Represents data given by a witness
-#[derive(Debug, Clone, Copy)]
+use serde::Deserialize;
+
+#[derive(Deserialize, Debug)]
+struct RawSample {
+    lat: f64,
+    lon: f64,
+    h: f64,
+    a: Option<f64>,
+    zb: Option<f64>,
+    hb: Option<f64>,
+    z0: Option<f64>,
+    h0: Option<f64>,
+    t: Option<f64>,
+    name: Option<String>,
+    exp: Option<f64>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+#[serde(from = "RawSample")]
 pub struct DataSample {
-    pub pos: Vec3,
-    pub geo_pos: Spherical,
-
-    pub descent_angle: f64,
-    pub start: Azimuthal,
-    pub end: Azimuthal,
-    pub duration: f64,
-
-    pub global_start: Vec3,
-    pub global_end: Vec3,
+    pub geo_location: Spherical,
+    pub location: Vec3,
+    pub da: Option<f64>,
+    pub k_start: Option<Vec3>,
+    pub k_end: Option<Vec3>,
+    pub axis: Option<Vec3>,
+    pub plane: Option<Vec3>,
+    pub dur: Option<f64>,
+    pub name: Option<String>,
+    pub exp: Option<f64>,
 }
 
-impl DataSample {
-    /// Create new instance of `DataSample` from text
-    pub fn from_text(line: &str) -> Option<Self> {
-        // Get exactly 9 numbers
-        let mut nums = [0f64; 9];
-        let mut words = line.split_ascii_whitespace();
-        for n in &mut nums {
-            *n = words.next()?.parse::<f64>().ok()?;
-        }
-        if words.next().is_some() {
-            return None;
-        }
-
-        let geo_pos = Spherical {
-            lat: nums[0].to_radians(),
-            lon: nums[1].to_radians(),
-            r: EARTH_R + nums[2],
+impl From<RawSample> for DataSample {
+    fn from(raw: RawSample) -> Self {
+        let geo_location = Spherical {
+            lat: raw.lat.to_radians(),
+            lon: raw.lon.to_radians(),
+            r: EARTH_R + raw.h,
         };
-        let descent_angle = nums[3].to_radians();
-        let start = Azimuthal {
-            z: nums[4].to_radians(),
-            h: nums[5].to_radians(),
-        };
-        let end = Azimuthal {
-            z: nums[6].to_radians(),
-            h: nums[7].to_radians(),
-        };
-        let duration = nums[8];
+        let location: Vec3 = geo_location.into();
 
-        Some(Self {
-            geo_pos,
-            pos: geo_pos.into(),
+        let da = raw.a.map(f64::to_radians);
 
-            descent_angle,
-            start,
-            end,
-            duration,
+        let mut k_start = raw.zb.zip(raw.hb).map(|(z, h)| {
+            Vec3::from(Azimuthal {
+                z: z.to_radians(),
+                h: h.to_radians(),
+            })
+            .to_global(geo_location)
+        });
+        let k_end = raw.z0.zip(raw.h0).map(|(z, h)| {
+            Vec3::from(Azimuthal {
+                z: z.to_radians(),
+                h: h.to_radians(),
+            })
+            .to_global(geo_location)
+        });
 
-            global_start: Vec3::from(start).to_global(geo_pos),
-            global_end: Vec3::from(end).to_global(geo_pos),
-        })
-    }
-
-    // pub fn to_text(&self) -> String {
-    //     format!(
-    //         "{} {} {} {} {} {} {} {} {}",
-    //         self.geo_pos.lat.to_degrees(),
-    //         self.geo_pos.lon.to_degrees(),
-    //         self.geo_pos.r - EARTH_R,
-    //         self.descent_angle.to_degrees(),
-    //         self.start.z.to_degrees(),
-    //         self.start.h.to_degrees(),
-    //         self.end.z.to_degrees(),
-    //         self.end.h.to_degrees(),
-    //         self.duration
-    //     )
-    // }
-}
-
-/// A collenction of observations
-#[derive(Debug, Clone)]
-pub struct Data {
-    pub samples: Vec<DataSample>,
-}
-
-impl Data {
-    /// Initialize from file
-    pub fn from_file(file_name: &str) -> Result<Self, io::Error> {
-        let mut file = BufReader::new(File::open(file_name)?);
-        let mut samples = Vec::with_capacity(400);
-        let mut buf = String::new();
-        let mut skipped = 0usize;
-
-        while {
-            buf.clear();
-            file.read_line(&mut buf)?
-        } != 0
-        {
-            match DataSample::from_text(&buf) {
-                Some(s) => samples.push(s),
-                None => skipped += 1,
+        if let Some((ks, ke)) = k_start.zip(k_end) {
+            if ks.dot(ke).abs() > 0.999 {
+                k_start = None;
             }
         }
 
-        if skipped > 0 {
-            eprintln!("warning: {} lines skipped", skipped);
+        let axis = match (k_start, k_end) {
+            (Some(a), Some(b)) => Some((a + b).normalized()),
+            (Some(k), None) | (None, Some(k)) => Some(k),
+            (None, None) => None,
+        };
+
+        let plane = if let (Some(v1), Some(v2)) = (k_start, k_end) {
+            Some(v2.cross(v1).normalized())
+        } else if let (Some(axis), Some(da)) = (axis, da) {
+            // TODO mention
+            if axis.normalized().dot(location.normalized()) > 0.999 {
+                None
+            } else {
+                let plane = axis.cross(location).normalized();
+                let q = UnitQuaternion::new(axis, da + PI);
+                Some(q * plane)
+            }
+        } else {
+            None
+        };
+
+        Self {
+            geo_location,
+            location,
+            da,
+            k_start,
+            k_end,
+            axis,
+            plane,
+            dur: raw.t,
+            name: raw.name,
+            exp: raw.exp,
+        }
+    }
+}
+
+impl DataSample {
+    /// Compute the descent angle given `k_start` and `k_end`
+    pub fn calculated_da(&self) -> Option<f64> {
+        let (axis, plane) = self.axis.zip(self.plane)?;
+
+        // if (axis^location) < 5 degrees
+        if self.location.normalized().dot(axis) > 0.996 {
+            return None;
         }
 
-        Ok(Self { samples })
+        let i = axis.cross(self.location).normalized();
+        let j = i.cross(axis);
+
+        let x = plane.dot(i);
+        let y = plane.dot(j);
+
+        let da = f64::atan2(x, y) + FRAC_PI_2;
+        Some(if da < 0. { da + TAU } else { da })
     }
 
-    // pub fn to_file(&self, file: &str) -> std::io::Result<()> {
-    //     let mut file = File::create(file)?;
-    //     for sample in &self.samples {
-    //         writeln!(file, "{}", sample.to_text())?;
-    //     }
-    //     Ok(())
-    // }
+    /// Check whether a direction matches the observation
+    pub fn direction_matches(&self, direction: Vec3) -> bool {
+        let dir = self.axis.and_then(|axis| Some(axis.cross(self.plane?)));
+        dir.map_or(false, |dir| dir.dot(direction) > 0.0)
+    }
+
+    /// Returns `false` if this observation conflicts with the proposed trajectory
+    pub fn observation_matches(&self, point: Vec3, direction: Vec3) -> bool {
+        // W/o the axis we really cannot do anything.
+        let axis = match self.axis {
+            Some(axis) => axis,
+            None => return false,
+        };
+
+        // A normal to a plane passing through the observer and proposed trajectory
+        let norm = direction.cross(point - self.location).normalized();
+
+        // A vertor that describes the hemispace of "allowed" observations
+        let perp = norm.cross(direction).normalized();
+
+        if let Some((k_start, k_end)) = self.k_start.zip(self.k_end) {
+            // When we have both k_start and k_end, we must ensure that they both lie in the
+            // correct hemispace
+            if k_start.dot(perp) <= 0.0 || k_end.dot(perp) <= 0.0 {
+                return false;
+            }
+            let l_start = lambda(self.location, k_start, point, direction);
+            let l_end = lambda(self.location, k_end, point, direction);
+            if l_end < l_start {
+                return false;
+            }
+        } else {
+            // The best we have is the axis, so let's check it
+            if axis.dot(perp) <= 0.0 {
+                return false;
+            }
+            if let Some(observation_norm) = self.plane {
+                let dir = axis.cross(observation_norm);
+                if dir.dot(direction) <= 0.0 {
+                    return false;
+                }
+            }
+        }
+
+        true
+    }
+}
+
+/// A collenction of observations
+#[derive(Deserialize, Debug, Clone)]
+pub struct Data {
+    #[serde(rename = "sample")]
+    pub samples: Vec<DataSample>,
+}
+
+impl Deref for Data {
+    type Target = Vec<DataSample>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.samples
+    }
+}
+
+impl DerefMut for Data {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.samples
+    }
 }

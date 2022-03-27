@@ -1,22 +1,22 @@
 [package]
 name = "fireball"
 version = "0.1.0"
-authors = ["Max Verevkin <me@maxverevkin.tk>"]
+authors = ["Max Verevkin"]
 description = "This program aims to reconstruct the trajectory of a fireball given only data collected from witnesses"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-rand = "0.8"
 rand_distr = "0.4"
-crossbeam-utils = "0.8"
-nalgebra = "0.29"
-# scad_gen = { path = "scad-gen" }
+rand = { version = "0.8", features = ["nightly", "small_rng"] }
+assert_approx_eq = "1.1"
 
-[dependencies.clap]
-version = "2.33.3"
-default-features = false
+toml = "0.5"
+serde = { version = "1", features = ["derive"] }
 
-[profile.release]
-panic = 'abort'
-lto = 'fat'
-debug = true
+clap = { version = "2", default-features = false }
+
+scad-gen = { path = "../scad-gen" }
+histogram = { path = "../histogram" }
+
+[dev-dependencies]
+proptest = "1.0"

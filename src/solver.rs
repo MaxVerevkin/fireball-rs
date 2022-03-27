@@ -1,9 +1,16 @@
 //! The implementation
 
+use rand::{Rng, SeedableRng};
+use std::f64::consts::FRAC_PI_2;
+
 // use crate::constants::EARTH_R;
 use crate::data::{Data, DataSample};
 use crate::maths::*;
+use crate::quick_median::quick_median;
 use crate::structs::*;
+
+pub mod pair;
+use pair::PairTrajectory;
 
 /// Contains all necessary information to solve the problem
 #[derive(Clone)]
@@ -12,10 +19,11 @@ pub struct Solver {
     params: Params,
 }
 
-/// Contains all necessary information to solve the problem
+/// Parameters to tweak the solution algorithm
 #[derive(Debug, Clone, Copy)]
 pub struct Params {
-    pub threads: usize,
+    /// Whether to tilt the observation to better match given descent angle
+    pub da_correction: f64,
 }
 
 /// The answer
@@ -23,49 +31,6 @@ pub struct Params {
 pub struct Solution {
     pub flash: Vec3,
     pub velocity: Vec3,
-}
-
-fn solve_pair(s1: &DataSample, s2: &DataSample) -> Option<(Vec3, Vec3)> {
-    let n1 = s1.global_start.cross(s1.global_end).normalized();
-    let n2 = s2.global_start.cross(s2.global_end).normalized();
-
-    let v = n1.cross(n2).normalized();
-    if !v.is_normal() {
-        // Something went wrong
-        return None;
-    }
-
-    // Check velocity direction
-    let vp1 = s1.global_end - s1.global_start;
-    let vp2 = s2.global_end - s2.global_start;
-    let v = match (v.dot(vp1) > 0., v.dot(vp2) > 0.) {
-        // Observers are giving opposite directions
-        (true, false) | (false, true) => return None,
-        // Both observers argee that velocity should be negated
-        (false, false) => -v,
-        // Both observers argee that velocity should not be changed
-        _ => v,
-    };
-
-    if s1.pos.dot(v) > 0. {
-        return None;
-    }
-
-    let l1_end = (s2.pos - s1.pos).dot(n2) / s1.global_end.dot(n2);
-    let l2_end = (s1.pos - s2.pos).dot(n1) / s2.global_end.dot(n1);
-    let l1_begin = (s2.pos - s1.pos).dot(n2) / s1.global_start.dot(n2);
-    let l2_begin = (s1.pos - s2.pos).dot(n1) / s2.global_start.dot(n1);
-
-    if l1_end < 0. || l2_end < 0. || l1_begin < 0. || l2_begin < 0. {
-        // Trajectory is below the ground
-        return None;
-    }
-
-    let p1 = s1.pos + s1.global_end * l1_end;
-    let p2 = s2.pos + s2.global_end * l2_end;
-    let p = (p1 + p2) * 0.5;
-
-    Some((p, v))
 }
 
 impl Solver {
@@ -76,133 +41,268 @@ impl Solver {
 
     /// Find the solution
     pub fn solve(&mut self) -> Solution {
-        // let set = [
-        //     1, 21, 61, 76, 91, 112, 118, 133, 136, 139, 173, 174, 195, 202,
-        // ];
-
-        // let mut new_samples = Vec::with_capacity(set.len());
-        // for &i in &set {
-        // new_samples.push(self.data.samples[i].clone());
-        // }
-
-        let mut vec = Vec::new();
-        let mut point = Vec3::default();
-        let mut vel = Vec3::default();
-
-        for i in 0..(self.data.samples.len() - 1) {
-            // for i in 0..(set.len() - 1) {
-            let s1 = &self.data.samples[i];
-            // let s1 = &new_samples[i];
-            for j in (i + 1)..self.data.samples.len() {
-                // for j in (i + 1)..set.len() {
-                let s2 = &self.data.samples[j];
-                // let s2 = &new_samples[j];
-                if let Some((p, v)) = solve_pair(s1, s2) {
-                    // println!("{} {}", i, j);
-                    point += p;
-                    vel += v;
-                    vec.push((p, v));
+        // TODO explain what's going on here
+        if self.params.da_correction > 0.0 {
+            for s in &mut self.data.samples {
+                if let Some(((da, axis), comp_da)) = s.da.zip(s.axis).zip(s.calculated_da()) {
+                    let angle = angle_diff(comp_da, da) * self.params.da_correction;
+                    let q = UnitQuaternion::new(axis, angle);
+                    s.plane.as_mut().map(|k| *k = q * *k);
+                    s.k_start.as_mut().map(|k| *k = q * *k);
+                    s.k_end.as_mut().map(|k| *k = q * *k);
                 }
             }
         }
 
-        if false {
-            //             use crate::scad;
-            //
-            //             impl scad::ScadValue for Vec3 {
-            //                 fn scad_str(&self) -> String {
-            //                     format!("[{},{},{}]", self.x, self.y, self.z)
-            //                 }
-            //             }
-            //
-            //             let mut doc = scad::Document::default();
-            //             doc.var("scale", 1e5);
-            //             doc.var("data", &*vec);
-            //             doc.for_loop("line = data", |ctx| {
-            //                 ctx.hull(|ctx| {
-            //                     ctx.translate("line[0] / scale", |ctx| {
-            //                         ctx.var("hello", 1);
-            //                     });
-            //                     ctx.var("bye", 3);
-            //                 })
-            //             });
-            //
-            //             dbg!(&doc);
-            //             eprintln!("\n# DOC START");
-            //             eprint!("{}", doc);
-            //             eprintln!("# DOC END\n");
+        // The initial guess is the weighted sum of pairwise plane crossings
+        let traj = {
+            let mut traj = Line::default();
+            let mut sum = 0.0;
+            for (i, s1) in self.data.iter().enumerate() {
+                for s2 in self.data.iter().skip(i + 1) {
+                    if let Some(line) = PairTrajectory::calculate(s1, s2) {
+                        traj += line.line * line.weight;
+                        sum += line.weight;
+                    }
+                }
+            }
+            traj.point /= sum;
+            traj.direction.normalize();
+            traj
+        };
+
+        // TODO remove (use traj instead)
+        let mut point = traj.point;
+        let mut vel = traj.direction;
+
+        let mut buf = Vec::new();
+        let mut eval_lms = |vel: Vec3, point: Vec3| -> f64 {
+            buf.clear();
+            for s in &self.data.samples {
+                let (eb, ee, eda) = Solver::evaluate_traj(s, point, vel);
+                eb.map(|e| buf.push(e));
+                ee.map(|e| buf.push(e));
+                eda.map(|e| buf.push(e));
+            }
+            quick_median(&mut buf)
+        };
+
+        const ITER_CNT: usize = 500;
+        const ITER_INNER_CNT: usize = 100;
+
+        let mut rng = rand::rngs::SmallRng::from_entropy();
+        let mut best_err = eval_lms(vel, point);
+        let mut dif = 5000.0;
+        for _ in 0..ITER_CNT {
+            let distr = rand_distr::Normal::new(0.0, dif).unwrap();
+            for _ in 0..ITER_INNER_CNT {
+                let mut p = point;
+                p.x += rng.sample(distr);
+                p.y += rng.sample(distr);
+                p.z += rng.sample(distr);
+                let e = eval_lms(vel, p);
+                if e < best_err {
+                    // dbg!(e);
+                    best_err = e;
+                    point = p;
+                }
+            }
+            dif *= 0.995;
+
+            for _ in 0..ITER_INNER_CNT {
+                let v = vel.tilt_random(4f64.to_radians(), &mut rng);
+                let e = eval_lms(v, point);
+                if e < best_err {
+                    // dbg!(e);
+                    best_err = e;
+                    vel = v;
+                }
+            }
+        }
+
+        let best_err = best_err.sqrt() * 1.483 * (1. + 5. / (self.data.samples.len() - 6) as f64);
+
+        // dbg!(best_err);
+
+        let get_weight = |err: f64| -> f64 {
+            // Smooth transition from 1 to 0
+            // Visualization: https://www.desmos.com/calculator/qxgcyxc3dc
+            const F: f64 = 0.7;
+            const O: f64 = 2.0;
+            0.5 * (1.0 - (((err / best_err) - O) / F).tanh())
+        };
+
+        let mut weights: Vec<(f64, f64, f64)> = Vec::with_capacity(self.data.samples.len());
+        let mut sw = Vec::new();
+        let mut ew = Vec::new();
+        let mut daw = Vec::new();
+        for s in &self.data.samples {
+            let (eb, ee, eda) = Solver::evaluate_traj(s, point, vel);
+            let b1 = eb.map(f64::sqrt).map_or(0.0, get_weight);
+            let b2 = ee.map(f64::sqrt).map_or(0.0, get_weight);
+            let b3 = eda.map(f64::sqrt).map_or(0.0, get_weight);
+            weights.push((b1, b2, b3));
+            eb.map(|_| sw.push(b1));
+            ee.map(|_| ew.push(b2));
+            eda.map(|_| daw.push(b3));
+        }
+
+        if !sw.is_empty() {
+            println!("Start ({}):", sw.len());
+            histogram::draw_hitogram(&sw, 5);
+        }
+        if !ew.is_empty() {
+            println!("End ({}):", ew.len());
+            histogram::draw_hitogram(&ew, 5);
+        }
+        if !daw.is_empty() {
+            println!("DA ({}):", daw.len());
+            histogram::draw_hitogram(&daw, 5);
+        }
+
+        let eval_ls = |vel: Vec3, point: Vec3| -> f64 {
+            let mut sum = 0.0;
+            let mut cnt = 0.0;
+            let mut push = |x, w| {
+                sum += x * w;
+                cnt += w;
+            };
+            for (s, &(w1, w2, w3)) in self.data.iter().zip(&weights) {
+                let (eb, ee, eda) = Solver::evaluate_traj(s, point, vel);
+                eb.map(|x| push(x, w1));
+                ee.map(|x| push(x, w2));
+                eda.map(|x| push(x, w3));
+            }
+            sum / cnt
+        };
+
+        let mut best_err = eval_ls(vel, point);
+        let mut dif = 5000.0;
+        for _ in 0..ITER_CNT {
+            let distr = rand_distr::Normal::new(0.0, dif).unwrap();
+            for _ in 0..ITER_INNER_CNT {
+                let mut p = point;
+                p.x += rng.sample(distr);
+                p.y += rng.sample(distr);
+                p.z += rng.sample(distr);
+                let e = eval_ls(vel, p);
+                if e < best_err {
+                    // dbg!(e);
+                    best_err = e;
+                    point = p;
+                }
+            }
+            dif *= 0.999;
+
+            for _ in 0..ITER_INNER_CNT {
+                let v = vel.tilt_random(5f64.to_radians(), &mut rng);
+                let e = eval_ls(v, point);
+                if e < best_err {
+                    // dbg!(e);
+                    best_err = e;
+                    vel = v;
+                }
+            }
+        }
+
+        // Florida
+        // let true_ans: Vec3 = Spherical {
+        //     lat: 26.8f64.to_radians(),
+        //     lon: -79.1f64.to_radians(),
+        //     r: crate::constants::EARTH_R + 44_400.,
+        // }
+        // .into();
+        // let true_ans = true_ans;
+        // let true_vel = Vec3::new(-2.8, 12.6, 5.6);
+
+        // Cyprus
+        let true_ans: Vec3 = Spherical {
+            lat: 33.1f64.to_radians(),
+            lon: 34.3f64.to_radians(),
+            r: crate::constants::EARTH_R + 43_300.,
+        }
+        .into();
+        let true_vel = Vec3::new(-7.5, -23.5, -11.9);
+
+        eprintln!(
+            "Vel angle diff: {}\n Dist: {}km",
+            traj.direction
+                .normalized()
+                .dot(true_vel.normalized())
+                .acos()
+                .to_degrees(),
+            (true_ans - traj.point).cross(vel.normalized()).len() / 1e3
+        );
+        eprintln!(
+            "Vel angle diff: {}\n Dist: {}km",
+            vel.normalized()
+                .dot(true_vel.normalized())
+                .acos()
+                .to_degrees(),
+            (true_ans - point).cross(vel.normalized()).len() / 1e3
+        );
+
+        if true {
+            use scad_gen::constructors::*;
+            use scad_gen::scope;
+            let mut doc = scad_gen::Document::default();
+
+            let scale = 1e5;
+            macro_rules! cube {
+                () => {
+                    cube(Vec3::new(1., 1., 1.) / 2.0)
+                };
+            }
+            let ans = point;
+            let real_vel = vel;
+            let vel = vel * 30.;
+
+            doc.color(
+                "red",
+                Some(0.5),
+                scope!(ctx, {
+                    ctx.hull(|ctx| {
+                        ctx.translate(ans / scale - vel * 10.0, cube!());
+                        ctx.translate(ans / scale, cube!());
+                    })
+                }),
+            );
+
+            doc.color(
+                "green",
+                None,
+                scope!(ctx, {
+                    ctx.hull(|ctx| {
+                        ctx.translate(true_ans / scale - true_vel * 10.0, cube!());
+                        ctx.translate(true_ans / scale, cube!());
+                    })
+                }),
+            );
+
+            doc.color(
+                "blue",
+                Some(0.25),
+                sphere((crate::constants::EARTH_R / scale) as f32),
+            );
+
+            {
+                for s in &self.data.samples {
+                    if !s.observation_matches(point, real_vel) {
+                        continue;
+                    }
+                    if let Some(k_end) = s.k_end {
+                        let l_end = lambda(s.location, k_end, point, real_vel);
+                        let p = point + real_vel * l_end;
+                        doc.translate(p / scale, cube!());
+                    }
+                }
+            }
 
             use std::fs::File;
             use std::io::prelude::*;
             let mut file = File::create("visual.scad").unwrap();
-
-            let scale = 1e5;
-            writeln!(file, "scale = {};", scale).unwrap();
-            writeln!(file, "data = [").unwrap();
-            for (p, v) in &vec {
-                writeln!(
-                    file,
-                    "  [[{},{},{}],[{},{},{}]],",
-                    p.x, p.y, p.z, v.x, v.y, v.z
-                )
-                .unwrap();
-            }
-            writeln!(file, "];").unwrap();
-
-            writeln!(file, "CUBE = [0.1, 0.1, 0.1];").unwrap();
-            writeln!(file, "for (line = data) {{").unwrap();
-            writeln!(file, "    hull() {{").unwrap();
-            writeln!(
-                file,
-                "        translate(line[0] / scale - line[1] * 10) cube(CUBE / 2);"
-            )
-            .unwrap();
-            writeln!(
-                file,
-                "        translate(line[0] / scale + line[1] * 0) cube(CUBE / 2);"
-            )
-            .unwrap();
-            writeln!(file, "    }}").unwrap();
-            writeln!(file, "}}").unwrap();
-
-            let true_ans: Vec3 = Spherical {
-                lat: 33.1f64.to_radians(),
-                lon: 34.3f64.to_radians(),
-                r: crate::constants::EARTH_R + 43_300.,
-            }
-            .into();
-            writeln!(
-                file,
-                "ANS = [{},{},{}]; VEL = [-7.5,-23.5,-11.9];",
-                true_ans.x, true_ans.y, true_ans.z
-            )
-            .unwrap();
-            writeln!(file, "color(\"red\") hull() {{").unwrap();
-            writeln!(
-                file,
-                "        translate(ANS / scale - VEL * 10) cube(CUBE / 2);"
-            )
-            .unwrap();
-            writeln!(
-                file,
-                "        translate(ANS / scale - VEL * 0) cube(CUBE / 2);"
-            )
-            .unwrap();
-            writeln!(file, "}}").unwrap();
-
-            writeln!(
-                file,
-                "color(\"blue\", 0.25) sphere(r = {} / scale);",
-                crate::constants::EARTH_R
-            )
-            .unwrap();
-
-            writeln!(file, "$vpt = data[0][0] / scale;").unwrap();
-            writeln!(file, "$vpd = 150;").unwrap();
+            write!(file, "{doc}").unwrap();
         }
-
-        point /= vec.len() as f64;
-        vel.normalize();
 
         //         vec.sort_unstable_by(|a, b| a.0.x.partial_cmp(&b.0.x).unwrap());
         //         let x = vec[vec.len() / 2].0.x;
@@ -220,19 +320,19 @@ impl Solver {
         //         let z = vec[vec.len() / 2].1.z;
         //         let vel = Vec3 { x, y, z }.normalized();
 
-        dbg!(vec.len());
+        // dbg!(vec.len());
 
-        let mut s_point = 0.;
-        let mut s_vel = 0.;
-        for (p, v) in &vec {
-            s_point += (point - *p).len().powi(2);
-            s_vel += vel.dot(*v).abs().min(1.).acos().powi(2);
-        }
-        s_point = (s_point / vec.len() as f64).sqrt();
-        s_vel = (s_vel / vec.len() as f64).sqrt();
+        // let mut s_point = 0.;
+        // let mut s_vel = 0.;
+        // for (p, v) in &vec {
+        //     s_point += (point - *p).len().powi(2);
+        //     s_vel += vel.dot(*v).abs().min(1.).acos().powi(2);
+        // }
+        // s_point = (s_point / vec.len() as f64).sqrt();
+        // s_vel = (s_vel / vec.len() as f64).sqrt();
 
-        dbg!(s_point);
-        dbg!(s_vel.to_degrees());
+        // dbg!(s_point);
+        // dbg!(s_vel.to_degrees());
 
         let (flash, speed) = self.calc_flash_and_speed(point, vel);
         let velocity = vel * speed;
@@ -246,80 +346,72 @@ impl Solver {
 
     /// Calculate the flash location and the speed of the fireball
     fn calc_flash_and_speed(&self, point: Vec3, v: Vec3) -> (Vec3, f64) {
-        let mut speed_vec = Vec::new();
-        let mut l_end_vec = Vec::new();
+        let mut lambdas = Vec::new();
+        let mut speeds = Vec::new();
 
-        for sample in &self.data.samples {
-            let pip = point - sample.pos;
-            let plane = pip.cross(v).normalized();
-            let perpendic = v.cross(plane).normalized();
+        for s in &self.data.samples {
+            if !s.observation_matches(point, v) {
+                continue;
+            }
 
-            let k_start = sample.global_start;
-            let k_end = sample.global_end;
+            if let Some(k_end) = s.k_end {
+                let l_end = lambda(s.location, k_end, point, v);
+                // let l_end = lambda_corssing(s.location, k_end, point, v);
+                lambdas.push(l_end);
 
-            let trust_start = perpendic.dot(k_start) > 0.;
-            let trust_end = perpendic.dot(k_end) > 0.;
-
-            if trust_end {
-                let l_end = pip.dot(perpendic * (k_end.dot(v) / k_end.dot(perpendic)) - v);
-                l_end_vec.push(l_end);
-                if trust_start && sample.duration > 0. {
-                    let l_start =
-                        pip.dot(perpendic * (k_start.dot(v) / k_start.dot(perpendic)) - v);
-                    speed_vec.push((l_end - l_start) / sample.duration);
+                if let Some((duration, k_start)) = s.dur.zip(s.k_start) {
+                    let l_start = lambda(s.location, k_start, point, v);
+                    // let l_start = lambda_corssing(s.location, k_start, point, v);
+                    let dist = l_end - l_start;
+                    debug_assert!(dist > 0.0);
+                    speeds.push(dist / duration);
                 }
             }
         }
 
-        let l_end = quick_median(&mut l_end_vec);
-        let speed = quick_median(&mut speed_vec);
-
-        //dbg!(l_end_vec.len());
-        //dbg!(speed_vec.len());
-
+        let l_end = quick_median(&mut lambdas);
+        let speed = quick_median(&mut speeds);
         (point + v * l_end, speed)
     }
 
-    // /// Calculate the mean of squared errors (less is better)
-    //     pub fn evaluate_traj(&self, p: Vec3, vel: Vec3) -> f64 {
-    //         let mut error = 0.;
-    //         for sample in &self.data.samples {
-    //             let plane = (p - sample.global_pos).cross(vel).normalized();
-    //             let perpendic = vel.cross(plane);
-    //
-    //             let k_start = sample.global_start;
-    //             let k_end = sample.global_end;
-    //
-    //             let e_start = plane.dot(k_start).asin();
-    //             let e_end = plane.dot(k_end).asin();
-    //
-    //             if sample.trust_start {
-    //                 let c = perpendic.dot(k_start);
-    //                 if c > 0. {
-    //                     error += e_start * e_start;
-    //
-    //                     let angle = descent_angle(sample.global_pos, k_start, vel);
-    //                     let diff = angle_diff(angle, sample.descent_angle);
-    //                     error += diff * diff;
-    //                 } else {
-    //                     //let c = c.clamp(0., 0.1) * 10.;
-    //                     //error += c * e_start * e_start + (1. - c) * FRAC_PI_2 * FRAC_PI_2;
-    //                     error += FRAC_PI_2 * FRAC_PI_2;
-    //                     error += PI * PI;
-    //                 }
-    //                 //error += diff * diff;
-    //             }
-    //             if sample.trust_end {
-    //                 let c = perpendic.dot(k_end);
-    //                 if c > 0. {
-    //                     error += e_end * e_end;
-    //                 } else {
-    //                     //let c = c.clamp(0., 0.1) * 10.;
-    //                     //error += c * e_end * e_end + (1. - c) * FRAC_PI_2 * FRAC_PI_2;
-    //                     error += FRAC_PI_2 * FRAC_PI_2;
-    //                 }
-    //             }
-    //         }
-    //         error
-    //     }
+    /// Calculate the mean of squared errors (less is better)
+    pub fn evaluate_traj(
+        sample: &DataSample,
+        p: Vec3,
+        vel: Vec3,
+    ) -> (Option<f64>, Option<f64>, Option<f64>) {
+        let plane = (p - sample.location).cross(vel).normalized();
+        let perpendic = vel.cross(plane);
+
+        let mut es = None;
+        let mut ee = None;
+        let mut eda = None;
+
+        if let Some(k) = sample.k_start {
+            es = if perpendic.dot(k) > 0. {
+                Some(plane.dot(k).asin().powi(2))
+            } else {
+                Some(FRAC_PI_2 * FRAC_PI_2)
+            };
+        }
+
+        if let Some(k) = sample.k_end {
+            ee = if perpendic.dot(k) > 0. {
+                Some(plane.dot(k).asin().powi(2))
+            } else {
+                Some(FRAC_PI_2 * FRAC_PI_2)
+            };
+        }
+
+        if let Some(da) = sample.da {
+            let k = (p - sample.location).normalized();
+            let err = angle_diff(descent_angle(sample.location, k, vel), da);
+            eda = Some(err * err);
+        }
+
+        let scale_err = |e| e * 4.0;
+        (es.map(scale_err), ee.map(scale_err), eda)
+
+        // (None, None, eda)
+    }
 }

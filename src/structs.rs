@@ -1,165 +1,16 @@
 //! Basic structures such as Vec3
 
-pub type Vec3 = nalgebra::Vector3<f64>;
+use std::f64::consts::{PI, TAU};
+use std::fmt::{self, Display};
+use std::ops;
 
-// use std::f64::consts::{FRAC_PI_2, TAU};
-// use std::ops;
+use crate::constants::{DEGREE, EARTH_R};
 
-/*
+mod vec3;
+pub use vec3::Vec3;
 
-/// 3D vector
-// #[derive(Debug, Default, Copy, Clone)]
-// pub struct Vec3 {
-//     pub x: f64,
-//     pub y: f64,
-//     pub z: f64,
-// }
-//
-// impl Vec3 {
-//     /// Create new vector
-//     pub fn new(x: f64, y: f64, z: f64) -> Self {
-//         Self { x, y, z }
-//     }
-//
-//     /// Create normalied vector
-//     pub fn normalized(self) -> Self {
-//         self / self.len()
-//     }
-//
-//     /// Normalize this vector in-place
-//     pub fn normalize(&mut self) {
-//         *self /= self.len();
-//     }
-//
-//     /// Translate local cartesian coordinates (East, North, Zenith) to global (x, y, z)
-//     pub fn to_global(&self, pos: Spherical) -> Self {
-//         Matrix33::rz(FRAC_PI_2 + pos.lon)
-//             .mul_mat(&Matrix33::rx(FRAC_PI_2 - pos.lat))
-//             .mul_vec(self)
-//     }
-//
-//     /// Translate global cartesian coordinates (x, y, z) to local (East, North, Zenith)
-//     pub fn to_local(&self, pos: Spherical) -> Self {
-//         Matrix33::rx(-FRAC_PI_2 + pos.lat)
-//             .mul_mat(&Matrix33::rz(-FRAC_PI_2 - pos.lon))
-//             .mul_vec(self)
-//     }
-//
-//     /// Dot product of two vectors
-//     pub fn dot(&self, other: Vec3) -> f64 {
-//         self.x * other.x + self.y * other.y + self.z * other.z
-//     }
-//
-//     /// Cross product of two vectors
-//     pub fn cross(&self, other: Vec3) -> Self {
-//         Self {
-//             x: self.y * other.z - self.z * other.y,
-//             y: self.z * other.x - self.x * other.z,
-//             z: self.x * other.y - self.y * other.x,
-//         }
-//     }
-//
-//     /// Same as `f64::is_normal()` but accepts zero
-//     pub fn is_normal(&self) -> bool {
-//         (self.x.is_normal() || self.x == 0.0)
-//             && (self.y.is_normal() || self.y == 0.0)
-//             && (self.z.is_normal() || self.z == 0.0)
-//     }
-// }
-//
-// impl rand::distributions::Distribution<Vec3> for rand::distributions::Standard {
-//     fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> Vec3 {
-//         Vec3 {
-//             x: rng.gen_range(-1.0..=1.0),
-//             y: rng.gen_range(-1.0..=1.0),
-//             z: rng.gen_range(-1.0..=1.0),
-//         }
-//     }
-// }
-//
-// impl ops::Neg for Vec3 {
-//     type Output = Self;
-//     fn neg(self) -> Self {
-//         Self {
-//             x: -self.x,
-//             y: -self.y,
-//             z: -self.z,
-//         }
-//     }
-// }
-//
-// impl ops::Add for Vec3 {
-//     type Output = Self;
-//     fn add(self, other: Self) -> Self {
-//         Self {
-//             x: self.x + other.x,
-//             y: self.y + other.y,
-//             z: self.z + other.z,
-//         }
-//     }
-// }
-//
-// impl ops::AddAssign for Vec3 {
-//     fn add_assign(&mut self, other: Self) {
-//         self.x += other.x;
-//         self.y += other.y;
-//         self.z += other.z;
-//     }
-// }
-//
-// impl ops::Sub for Vec3 {
-//     type Output = Self;
-//     fn sub(self, other: Self) -> Self {
-//         Self {
-//             x: self.x - other.x,
-//             y: self.y - other.y,
-//             z: self.z - other.z,
-//         }
-//     }
-// }
-//
-// impl ops::SubAssign for Vec3 {
-//     fn sub_assign(&mut self, other: Self) {
-//         self.x -= other.x;
-//         self.y -= other.y;
-//         self.z -= other.z;
-//     }
-// }
-//
-// impl ops::Mul<f64> for Vec3 {
-//     type Output = Self;
-//     fn mul(self, other: f64) -> Self {
-//         Self {
-//             x: self.x * other,
-//             y: self.y * other,
-//             z: self.z * other,
-//         }
-//     }
-// }
-//
-// impl ops::MulAssign<f64> for Vec3 {
-//     fn mul_assign(&mut self, other: f64) {
-//         self.x *= other;
-//         self.y *= other;
-//         self.z *= other;
-//     }
-// }
-//
-// impl ops::Div<f64> for Vec3 {
-//     type Output = Self;
-//     fn div(self, other: f64) -> Self {
-//         self * (1. / other)
-//     }
-// }
-//
-// impl ops::DivAssign<f64> for Vec3 {
-//     fn div_assign(&mut self, other: f64) {
-//         let k = 1. / other;
-//         self.x *= k;
-//         self.y *= k;
-//         self.z *= k;
-//     }
-// }
+mod line;
+pub use line::Line;
 
 /// Rotate a vector about any axis
 #[derive(Debug, Clone, Copy)]
@@ -184,23 +35,55 @@ impl UnitQuaternion {
             v: -self.v,
         }
     }
-
-    /// Aplly rotation to a vector
-    pub fn apply_rotation(self, v: Vec3) -> Vec3 {
-        let p = Self { s: 0., v };
-        let q = self * p * self.inverse();
-        q.v
-    }
 }
 
 impl ops::Mul for UnitQuaternion {
     type Output = Self;
 
     fn mul(self, rhs: Self) -> Self {
+        let a = self.s;
+        let b = self.v.x;
+        let c = self.v.y;
+        let d = self.v.z;
+
+        let ap = rhs.s;
+        let bp = rhs.v.x;
+        let cp = rhs.v.y;
+        let dp = rhs.v.z;
+
         Self {
-            s: self.s * rhs.s - self.v.dot(&rhs.v),
-            v: self.v * rhs.s + rhs.v * self.s + self.v.cross(&rhs.v),
+            s: a * ap - b * bp - c * cp - d * dp, // 1
+            v: Vec3 {
+                x: a * bp - d * cp + b * ap + c * dp, // i
+                y: a * cp - b * dp + c * ap + d * bp, // j
+                z: a * dp - c * bp + b * cp + d * ap, // k
+            },
         }
+
+        // Self {
+        //     s: self.s * rhs.s - self.v.dot(rhs.v),
+        //     v: self.v * rhs.s + rhs.v * self.s + self.v.cross(rhs.v),
+        // }
+    }
+}
+
+impl ops::Mul<Vec3> for UnitQuaternion {
+    type Output = Vec3;
+
+    fn mul(self, rhs: Vec3) -> Vec3 {
+        let p = Self { s: 0., v: rhs };
+        let q = self * p * self.inverse();
+        q.v
+    }
+}
+
+impl ops::Mul<&Vec3> for UnitQuaternion {
+    type Output = Vec3;
+
+    fn mul(self, rhs: &Vec3) -> Vec3 {
+        let p = Self { s: 0., v: *rhs };
+        let q = self * p * self.inverse();
+        q.v
     }
 }
 
@@ -212,11 +95,45 @@ pub struct Spherical {
     pub r: f64,
 }
 
+impl Display for Spherical {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut lon = self.lon;
+        if lon > PI {
+            lon -= TAU;
+        }
+
+        let lat_dir = if self.lat >= 0. { 'N' } else { 'S' };
+        let lon_dir = if lon >= 0. { 'E' } else { 'W' };
+        write!(
+            f,
+            "({:.3}{}{}, {:.3}{}{}, {:.3} KM)",
+            self.lat.to_degrees(),
+            DEGREE,
+            lat_dir,
+            self.lon.to_degrees().abs(),
+            DEGREE,
+            lon_dir,
+            (self.r - EARTH_R) * 1e-3,
+        )
+    }
+}
+
 /// Azimuthal coordinates tuple
 #[derive(Debug, Clone, Copy)]
 pub struct Azimuthal {
     pub z: f64,
     pub h: f64,
+}
+
+impl Display for Azimuthal {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "({:.3}{DEGREE}, {:.3}{DEGREE})",
+            self.z.to_degrees(),
+            self.h.to_degrees()
+        )
+    }
 }
 
 /// 3x3 Matirix (column-major)
@@ -325,9 +242,6 @@ impl From<Azimuthal> for Vec3 {
 // Unit
 //
 
-// pub trait Norm {
-//     fn len(&self) -> f64;
-// }
 //
 // impl Length for Vec3 {
 //     fn len(&self) -> f64 {
@@ -367,42 +281,21 @@ impl From<Azimuthal> for Vec3 {
 
 #[cfg(test)]
 mod tests {
-    use super::{Matrix33, Vec3};
+    use super::*;
     use crate::aprox_eq::AproxEq;
-    use std::f64::consts::{FRAC_PI_2, FRAC_PI_3, FRAC_PI_6};
+    use std::f64::consts::*;
 
     #[test]
-    fn rz_multiply_rx_test() {
-        let m1 = Matrix33::rz(FRAC_PI_2 + FRAC_PI_3);
-        let m2 = Matrix33::rx(FRAC_PI_2 - FRAC_PI_6);
-        let m3 = m1.mul_mat(&m2);
+    fn quaternion_rotate() {
+        let x = Vec3::x_axis();
+        let y = Vec3::y_axis();
+        let z = Vec3::z_axis();
 
-        let x = m3.mul_vec(&Vec3 {
-            x: 1.,
-            y: 0.,
-            z: 0.,
-        });
-        let y = m3.mul_vec(&Vec3 {
-            x: 0.,
-            y: 1.,
-            z: 0.,
-        });
-        let z = m3.mul_vec(&Vec3 {
-            x: 0.,
-            y: 0.,
-            z: 1.,
-        });
+        let q = UnitQuaternion::new(z, FRAC_PI_2);
+        let x_rot = q * x;
 
-        assert!(x.x.aprox_eq(-FRAC_PI_3.sin()));
-        assert!(x.y.aprox_eq(FRAC_PI_3.cos()));
-        assert!(x.z.aprox_eq(0.0));
-        assert!((y.x + FRAC_PI_6.sin() * FRAC_PI_3.cos()).abs() < 1e-10);
-        assert!((y.y + FRAC_PI_6.sin() * FRAC_PI_3.sin()).abs() < 1e-10);
-        assert!((y.z - FRAC_PI_6.cos()).abs() < 1e-10);
-        assert!((z.x - FRAC_PI_6.cos() * FRAC_PI_3.cos()).abs() < 1e-10);
-        assert!((z.y - FRAC_PI_6.cos() * FRAC_PI_3.sin()).abs() < 1e-10);
-        assert!((z.z - FRAC_PI_6.sin()).abs() < 1e-10);
+        assert!(x_rot.x.aprox_eq(y.x));
+        assert!(x_rot.y.aprox_eq(y.y));
+        assert!(x_rot.z.aprox_eq(y.z));
     }
 }
-
-*/
