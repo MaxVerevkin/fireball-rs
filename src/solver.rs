@@ -71,6 +71,8 @@ impl Solver {
             traj
         };
 
+        self.data.answer.map(|a| a.compare(traj, "Initial guess"));
+
         // TODO remove (use traj instead)
         let mut point = traj.point;
         let mut vel = traj.direction;
@@ -205,44 +207,17 @@ impl Solver {
             }
         }
 
-        // Florida
-        // let true_ans: Vec3 = Spherical {
-        //     lat: 26.8f64.to_radians(),
-        //     lon: -79.1f64.to_radians(),
-        //     r: crate::constants::EARTH_R + 44_400.,
-        // }
-        // .into();
-        // let true_ans = true_ans;
-        // let true_vel = Vec3::new(-2.8, 12.6, 5.6);
+        self.data.answer.map(|a| {
+            a.compare(
+                Line {
+                    point,
+                    direction: vel,
+                },
+                "Final answer",
+            )
+        });
 
-        // Cyprus
-        let true_ans: Vec3 = Spherical {
-            lat: 33.1f64.to_radians(),
-            lon: 34.3f64.to_radians(),
-            r: crate::constants::EARTH_R + 43_300.,
-        }
-        .into();
-        let true_vel = Vec3::new(-7.5, -23.5, -11.9);
-
-        eprintln!(
-            "Vel angle diff: {}\n Dist: {}km",
-            traj.direction
-                .normalized()
-                .dot(true_vel.normalized())
-                .acos()
-                .to_degrees(),
-            (true_ans - traj.point).cross(vel.normalized()).len() / 1e3
-        );
-        eprintln!(
-            "Vel angle diff: {}\n Dist: {}km",
-            vel.normalized()
-                .dot(true_vel.normalized())
-                .acos()
-                .to_degrees(),
-            (true_ans - point).cross(vel.normalized()).len() / 1e3
-        );
-
-        if true {
+        if let Some(answer) = self.data.answer {
             use scad_gen::constructors::*;
             use scad_gen::scope;
             let mut doc = scad_gen::Document::default();
@@ -273,8 +248,8 @@ impl Solver {
                 None,
                 scope!(ctx, {
                     ctx.hull(|ctx| {
-                        ctx.translate(true_ans / scale - true_vel * 10.0, cube!());
-                        ctx.translate(true_ans / scale, cube!());
+                        ctx.translate(answer.0.point / scale - answer.0.direction * 10.0, cube!());
+                        ctx.translate(answer.0.point / scale, cube!());
                     })
                 }),
             );

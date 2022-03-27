@@ -7,7 +7,7 @@ use crate::structs::*;
 
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 struct RawSample {
     lat: f64,
     lon: f64,
@@ -173,11 +173,58 @@ impl DataSample {
     }
 }
 
+#[derive(Deserialize)]
+pub struct RawAnswer {
+    lat: f64,
+    lon: f64,
+    h: f64,
+    vx: f64,
+    vy: f64,
+    vz: f64,
+}
+
+#[derive(Deserialize, Debug, Clone, Copy, PartialEq)]
+#[serde(from = "RawAnswer")]
+pub struct Answer(pub Line);
+
+impl From<RawAnswer> for Answer {
+    fn from(raw: RawAnswer) -> Self {
+        let geo_location = Spherical {
+            lat: raw.lat.to_radians(),
+            lon: raw.lon.to_radians(),
+            r: EARTH_R + raw.h,
+        };
+        Self(Line {
+            point: geo_location.into(),
+            direction: Vec3::new(raw.vx, raw.vy, raw.vz) * 1e6,
+        })
+    }
+}
+
+impl Answer {
+    pub fn compare(self, other: Line, message: &str) {
+        eprintln!(
+            "--- {message} ---\nVelocity angular error: {:.1}{DEGREE}\nDistance: {:.1}km\n",
+            self.0
+                .direction
+                .normalized()
+                .dot(other.direction.normalized())
+                .acos()
+                .to_degrees(),
+            (self.0.point - other.point)
+                .cross(other.direction.normalized())
+                .len()
+                / 1e3
+        );
+    }
+}
+
 /// A collenction of observations
 #[derive(Deserialize, Debug, Clone)]
 pub struct Data {
     #[serde(rename = "sample")]
     pub samples: Vec<DataSample>,
+    pub answer: Option<Answer>,
 }
 
 impl Deref for Data {
