@@ -18,16 +18,16 @@ pub fn angle_diff(a1: f64, a2: f64) -> f64 {
     (a2 - a1 + PI).rem_euclid(TAU) - PI
 }
 
-pub fn lambda_corssing(p2: Vec3, k2: Vec3, p: Vec3, k: Vec3) -> f64 {
-    let k1k2 = k.dot(k2);
-    ((p2 - p).dot(k - k2 * k1k2)) / (1.0 - k1k2 * k1k2)
-}
+// pub fn lambda_corssing(p2: Vec3, k2: Vec3, p: Vec3, k: Vec3) -> f64 {
+//     let k1k2 = k.dot(k2);
+//     ((p2 - p).dot(k - k2 * k1k2)) / (1.0 - k1k2 * k1k2)
+// }
 
 pub fn lambda(observer: Vec3, observation: Vec3, point: Vec3, vel: Vec3) -> f64 {
     let p1p0 = point - observer;
     let n = vel.cross(p1p0);
     let p = n.cross(observation);
-    p1p0.dot(p) / vel.dot(p)
+    p1p0.dot(p) / vel.dot(-p)
 }
 
 #[cfg(test)]
@@ -38,19 +38,18 @@ mod tests {
 
     #[test]
     fn lambda_test() {
-        for _ in 0..100 {
-            let p = random::<Vec3>() * 10.;
-            let k = random::<Vec3>().normalized();
-            let p2 = random::<Vec3>() * 10.;
-            let k2 = random::<Vec3>().normalized();
-            let l = lambda_corssing(p, k, p2, k2);
+        for _ in 0..1000 {
+            let point = random::<Vec3>() * 100.;
+            let dir = random::<Vec3>().normalized();
+            if !dir.is_normal() {
+                continue;
+            }
 
-            let dist = (p + k * l).dist_to_line_sq(p2, k2);
-            let dist_1 = (p + k * (l + 1.)).dist_to_line_sq(p2, k2);
-            let dist_2 = (p + k * (l - 1.)).dist_to_line_sq(p2, k2);
-
-            assert!(dist <= dist_1);
-            assert!(dist <= dist_2);
+            let point_on_line1 = point + dir * (random::<f64>() * 10.0);
+            let point_on_line2 = point_on_line1 + dir * (random::<f64>() * 10.0 + 10.0);
+            let l1 = lambda(Vec3::default(), point_on_line1, point, dir);
+            let l2 = lambda(Vec3::default(), point_on_line2, point, dir);
+            assert!(l2 > l1);
         }
     }
 }

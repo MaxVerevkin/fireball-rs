@@ -119,7 +119,7 @@ impl Display for Spherical {
 }
 
 /// Azimuthal coordinates tuple
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Azimuthal {
     pub z: f64,
     pub h: f64,

@@ -153,7 +153,8 @@ impl DataSample {
             }
             let l_start = lambda(self.location, k_start, point, direction);
             let l_end = lambda(self.location, k_end, point, direction);
-            if l_end < l_start {
+            // Using !(..>..) instead of (..<=..) to catch NaNs
+            if !(l_end > l_start) {
                 return false;
             }
         } else {
@@ -201,30 +202,31 @@ impl From<RawAnswer> for Answer {
     }
 }
 
-impl Answer {
-    pub fn compare(self, other: Line, message: &str) {
-        eprintln!(
-            "--- {message} ---\nVelocity angular error: {:.1}{DEGREE}\nDistance: {:.1}km\n",
-            self.0
-                .direction
-                .normalized()
-                .dot(other.direction.normalized())
-                .acos()
-                .to_degrees(),
-            (self.0.point - other.point)
-                .cross(other.direction.normalized())
-                .len()
-                / 1e3
-        );
-    }
-}
-
 /// A collenction of observations
 #[derive(Deserialize, Debug, Clone)]
 pub struct Data {
     #[serde(rename = "sample")]
     pub samples: Vec<DataSample>,
     pub answer: Option<Answer>,
+}
+
+impl Data {
+    pub fn compare(&self, other: Line, message: &str) {
+        if let Some(Answer(Line { point, direction })) = self.answer {
+            eprintln!(
+                "--- {message} ---\nVelocity angular error: {:.1}{DEGREE}\nDistance: {:.1}km\n",
+                direction
+                    .normalized()
+                    .dot(other.direction.normalized())
+                    .acos()
+                    .to_degrees(),
+                (point - other.point)
+                    .cross(other.direction.normalized())
+                    .len()
+                    / 1e3
+            );
+        }
+    }
 }
 
 impl Deref for Data {

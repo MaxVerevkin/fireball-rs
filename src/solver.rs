@@ -71,7 +71,7 @@ impl Solver {
             traj
         };
 
-        self.data.answer.map(|a| a.compare(traj, "Initial guess"));
+        self.data.compare(traj, "Initial guess");
 
         // TODO remove (use traj instead)
         let mut point = traj.point;
@@ -104,7 +104,6 @@ impl Solver {
                 p.z += rng.sample(distr);
                 let e = eval_lms(vel, p);
                 if e < best_err {
-                    // dbg!(e);
                     best_err = e;
                     point = p;
                 }
@@ -115,22 +114,28 @@ impl Solver {
                 let v = vel.tilt_random(4f64.to_radians(), &mut rng);
                 let e = eval_lms(v, point);
                 if e < best_err {
-                    // dbg!(e);
                     best_err = e;
                     vel = v;
                 }
             }
         }
 
-        let best_err = best_err.sqrt() * 1.483 * (1. + 5. / (self.data.samples.len() - 6) as f64);
+        self.data.compare(
+            Line {
+                point,
+                direction: vel,
+            },
+            "After LMS",
+        );
 
-        // dbg!(best_err);
+        let best_err = best_err.sqrt() * 1.483 * (1. + 5. / (self.data.samples.len() - 6) as f64);
+        dbg!(best_err);
 
         let get_weight = |err: f64| -> f64 {
             // Smooth transition from 1 to 0
             // Visualization: https://www.desmos.com/calculator/qxgcyxc3dc
-            const F: f64 = 0.7;
-            const O: f64 = 2.0;
+            const O: f64 = 1.5;
+            const F: f64 = 0.6;
             0.5 * (1.0 - (((err / best_err) - O) / F).tanh())
         };
 
@@ -189,7 +194,6 @@ impl Solver {
                 p.z += rng.sample(distr);
                 let e = eval_ls(vel, p);
                 if e < best_err {
-                    // dbg!(e);
                     best_err = e;
                     point = p;
                 }
@@ -200,22 +204,19 @@ impl Solver {
                 let v = vel.tilt_random(5f64.to_radians(), &mut rng);
                 let e = eval_ls(v, point);
                 if e < best_err {
-                    // dbg!(e);
                     best_err = e;
                     vel = v;
                 }
             }
         }
 
-        self.data.answer.map(|a| {
-            a.compare(
-                Line {
-                    point,
-                    direction: vel,
-                },
-                "Final answer",
-            )
-        });
+        self.data.compare(
+            Line {
+                point,
+                direction: vel,
+            },
+            "Final answer",
+        );
 
         if let Some(answer) = self.data.answer {
             use scad_gen::constructors::*;
