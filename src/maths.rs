@@ -38,18 +38,18 @@ mod tests {
 
     #[test]
     fn lambda_test() {
+        let mut rng = thread_rng();
         for _ in 0..1000 {
-            let point = random::<Vec3>() * 100.;
-            let dir = random::<Vec3>().normalized();
+            let point = rng.gen::<Vec3>() * 100.;
+            let dir = rng.gen::<Vec3>().normalized();
             if !dir.is_normal() {
                 continue;
             }
 
-            let point_on_line1 = point + dir * (random::<f64>() * 10.0);
-            let point_on_line2 = point_on_line1 + dir * (random::<f64>() * 10.0 + 10.0);
-            let l1 = lambda(Vec3::default(), point_on_line1, point, dir);
-            let l2 = lambda(Vec3::default(), point_on_line2, point, dir);
-            assert!(l2 > l1);
+            let dist = rng.gen_range(0.0..100.0);
+            let point_on_line = point + (dir * dist);
+            let calc_dist = lambda(Vec3::default(), point_on_line, point, dir);
+            assert_approx_eq!(dist, calc_dist);
         }
     }
 }
