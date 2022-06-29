@@ -6,6 +6,7 @@ description = "This program aims to reconstruct the trajectory of a fireball giv
 edition = "2021"
 
 [dependencies]
+plotters = "0.3"
 rand_distr = "0.4"
 rand = { version = "0.8", features = ["nightly", "small_rng"] }
 assert_approx_eq = "1.1"

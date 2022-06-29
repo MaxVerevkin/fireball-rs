@@ -1,8 +1,9 @@
 //! Some useful mathematical functions
 
 use crate::structs::*;
-use std::f64::consts::{PI, TAU};
+use std::f64::consts::*;
 
+/// TODO: figure out why this function is less precice than others
 pub fn descent_angle(observer: Vec3, k: Vec3, vel: Vec3) -> f64 {
     let x = k.cross(observer).normalized();
     let y = x.cross(k).normalized();
@@ -51,5 +52,21 @@ mod tests {
             let calc_dist = lambda(Vec3::default(), point_on_line, point, dir);
             assert_approx_eq!(dist, calc_dist);
         }
+    }
+
+    #[test]
+    fn da_test() {
+        let ob = Spherical {
+            lat: 30f64.to_radians(),
+            lon: 90f64.to_radians(),
+            r: 1.0,
+        };
+        let ob: Vec3 = ob.into();
+
+        let v = Vec3::x_axis();
+        let k = Vec3::y_axis();
+
+        let comp = descent_angle(ob, k, v);
+        assert_approx_eq!(comp, FRAC_PI_2);
     }
 }

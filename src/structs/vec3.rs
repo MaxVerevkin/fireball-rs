@@ -1,5 +1,8 @@
 use super::{Matrix33, Spherical, UnitQuaternion};
+
+use rand::distributions::Distribution;
 use rand::Rng;
+
 use std::f64::consts::{FRAC_PI_2, TAU};
 use std::intrinsics::unlikely;
 use std::ops;
@@ -115,12 +118,22 @@ impl From<Vec3> for scad_gen::Vec3 {
     }
 }
 
-impl rand::distributions::Distribution<Vec3> for rand::distributions::Standard {
+impl Distribution<Vec3> for rand::distributions::Standard {
     fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> Vec3 {
         Vec3 {
             x: rng.gen_range(-1.0..=1.0),
             y: rng.gen_range(-1.0..=1.0),
             z: rng.gen_range(-1.0..=1.0),
+        }
+    }
+}
+
+impl Distribution<Vec3> for rand_distr::StandardNormal {
+    fn sample<R: rand::Rng + ?Sized>(&self, rng: &mut R) -> Vec3 {
+        Vec3 {
+            x: self.sample(rng),
+            y: self.sample(rng),
+            z: self.sample(rng),
         }
     }
 }

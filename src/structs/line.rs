@@ -8,6 +8,22 @@ pub struct Line {
     pub direction: Vec3,
 }
 
+impl Line {
+    pub fn with_point(self, point: Vec3) -> Self {
+        Self { point, ..self }
+    }
+
+    pub fn with_direction(self, direction: Vec3) -> Self {
+        Self { direction, ..self }
+    }
+}
+
+// /// A line in space with unit vector as direction
+// #[derive(Debug, Default, Copy, Clone, PartialEq)]
+// pub struct NormalLine {
+//     line: Line,
+// }
+
 impl ops::Add for Line {
     type Output = Self;
 

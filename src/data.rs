@@ -64,7 +64,7 @@ impl From<RawSample> for DataSample {
         });
 
         if let Some((ks, ke)) = k_start.zip(k_end) {
-            if ks.dot(ke).abs() > 0.999 {
+            if ks.dot(ke).abs() > 0.9999 {
                 k_start = None;
             }
         }

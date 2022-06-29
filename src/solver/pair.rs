@@ -3,7 +3,9 @@ use crate::structs::Line;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PairTrajectory {
+    /// The calculated trajectory
     pub line: Line,
+    /// How trustworthy this trajectory is
     pub weight: f64,
 }
 
@@ -52,7 +54,11 @@ impl PairTrajectory {
         assert_approx_eq!(plane1.dot((point - s1.location).normalized()), 0.0);
         assert_approx_eq!(plane2.dot((point - s2.location).normalized()), 0.0);
 
-        (s1.observation_matches(point, dir) && s2.observation_matches(point, dir)).then(|| Self {
+        if !s1.observation_matches(point, dir) || !s2.observation_matches(point, dir) {
+            return None;
+        }
+
+        Some(Self {
             line: Line {
                 point,
                 direction: dir,
@@ -61,3 +67,16 @@ impl PairTrajectory {
         })
     }
 }
+
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use proptest::prelude::*;
+//
+//     proptest! {
+//         #[test]
+//         fn it_works(s in "\\PC*") {
+//             parse_date(&s);
+//         }
+//     }
+// }
