@@ -343,19 +343,15 @@ impl Solver {
         let before = diff(traj);
         dbg!(before);
 
-        // loop {
-        // for _ in 0..10_000 {
-        //     let (_, x, y, z, vx, vy, vz) = diff(traj);
-        //     traj.point.x -= x * 2e6;
-        //     traj.point.y -= y * 2e6;
-        //     traj.point.z -= z * 2e6;
-        //     traj.direction.x -= vx * 2e6;
-        //     traj.direction.y -= vy * 2e6;
-        //     traj.direction.z -= vz * 2e6;
-        //     // if x.abs() < 5e-8 && y.abs() < 5e-8 && z.abs() < 5e-8 {
-        //     //     break;
-        //     // }
-        // }
+        for _ in 0..10_000 {
+            let (_, x, y, z, vx, vy, vz) = diff(traj);
+            traj.point.x -= x * 2e6;
+            traj.point.y -= y * 2e6;
+            traj.point.z -= z * 2e6;
+            traj.direction.x -= vx * 2e6;
+            traj.direction.y -= vy * 2e6;
+            traj.direction.z -= vz * 2e6;
+        }
 
         self.data.compare(traj, "After gradient descent");
 

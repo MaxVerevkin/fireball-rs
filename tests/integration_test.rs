@@ -140,11 +140,11 @@ fn ten_percent_random() {
             TEN_PERCENT_RANDOM_SAMPLES * 10 / 100, // 20 out of 20
             // TEN_PERCENT_RANDOM_SAMPLES * 20 / 100, // 20 out of 20
             // TEN_PERCENT_RANDOM_SAMPLES * 30 / 100, // 20 out of 20
-            // TEN_PERCENT_RANDOM_SAMPLES * 40 / 100, // 18 out of 20
-            // TEN_PERCENT_RANDOM_SAMPLES * 45 / 100, // 15 out of 20
-            // TEN_PERCENT_RANDOM_SAMPLES * 49 / 100, // 13 out of 20
-            // TEN_PERCENT_RANDOM_SAMPLES * 50 / 100, // 9 out of 20
-            // TEN_PERCENT_RANDOM_SAMPLES * 51 / 100, // 9 out of 20
+            // TEN_PERCENT_RANDOM_SAMPLES * 40 / 100, // 20 out of 20
+            // TEN_PERCENT_RANDOM_SAMPLES * 45 / 100, // 18 out of 20
+            // TEN_PERCENT_RANDOM_SAMPLES * 49 / 100, // 14 out of 20
+            // TEN_PERCENT_RANDOM_SAMPLES * 50 / 100, // 13 out of 20
+            // TEN_PERCENT_RANDOM_SAMPLES * 51 / 100, // 5 out of 20
             // TEN_PERCENT_RANDOM_SAMPLES * 55 / 100, // 0 out of 20
             Some(K_SIGMA.to_radians()),
             Some(DA_SIGMA.to_radians()),
