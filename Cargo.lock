@@ -21,6 +21,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
 
 [[package]]
+name = "autodiff"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "edd252ada7dbd212919c419a0cb1870265f4fcf2c7fd8958dfeef81dff955689"
+dependencies = [
+ "num-traits",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -239,6 +248,7 @@ name = "fireball"
 version = "0.1.0"
 dependencies = [
  "assert_approx_eq",
+ "autodiff",
  "clap",
  "histogram",
  "plotters",

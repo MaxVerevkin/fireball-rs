@@ -197,7 +197,7 @@ impl From<RawAnswer> for Answer {
         };
         Self(Line {
             point: geo_location.into(),
-            direction: Vec3::new(raw.vx, raw.vy, raw.vz) * 1e6,
+            direction: Vec3::new(raw.vx, raw.vy, raw.vz) * 1_000.0,
         })
     }
 }
@@ -214,12 +214,13 @@ impl Data {
     pub fn compare(&self, other: Line, message: &str) {
         if let Some(Answer(Line { point, direction })) = self.answer {
             eprintln!(
-                "--- {message} ---\nVelocity angular error: {:.1}{DEGREE}\nDistance: {:.1}km\n",
+                "--- {message} ---\nVelocity angular error: {:.1}{DEGREE}\nVelocity error: {:.1}%\nDistance: {:.1}km\n",
                 direction
                     .normalized()
                     .dot(other.direction.normalized())
                     .acos()
                     .to_degrees(),
+                (dbg!(other.direction.len()) - dbg!(direction.len())).abs() / direction.len() * 100.0,
                 (point - other.point)
                     .cross(other.direction.normalized())
                     .len()

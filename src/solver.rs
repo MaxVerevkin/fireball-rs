@@ -355,15 +355,17 @@ impl Solver {
 
         self.data.compare(traj, "After gradient descent");
 
-        // let after = diff(traj);
-        // dbg!(after);
+        let after = diff(traj);
+        dbg!(after);
 
-        // eprintln!("delta_x = {} km", after.0 / 6.0 / after.1 * 1e-3);
-        // eprintln!("delta_y = {} km", after.0 / 6.0 / after.2 * 1e-3);
-        // eprintln!("delta_z = {} km", after.0 / 6.0 / after.3 * 1e-3);
-        // eprintln!("delta_v_x = {} km/s", after.0 / 6.0 / after.4 * 1e-3);
-        // eprintln!("delta_v_y = {} km/s", after.0 / 6.0 / after.5 * 1e-3);
-        // eprintln!("delta_v_z = {} km/s", after.0 / 6.0 / after.6 * 1e-3);
+        let sum_of_weights: f64 = weights.iter().copied().map(|(a, b, c)| a + b + c).sum();
+        let e = after.0 / (6_f64 * sum_of_weights).sqrt();
+        eprintln!("delta_x = {} km", e / after.1 * 1e-3);
+        eprintln!("delta_y = {} km", e / after.2 * 1e-3);
+        eprintln!("delta_z = {} km", e / after.3 * 1e-3);
+        eprintln!("delta_v_x = {} km/s", e / after.4 * 1e-3);
+        eprintln!("delta_v_y = {} km/s", e / after.5 * 1e-3);
+        eprintln!("delta_v_z = {} km/s", e / after.6 * 1e-3);
 
         let (flash, _speed) = self.calc_flash_and_speed(traj);
 
