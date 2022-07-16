@@ -17,4 +17,3 @@ pub mod maths;
 pub mod quick_median;
 pub mod solver;
 pub mod structs;
-pub mod util;
