@@ -1,3 +1,5 @@
 /target
 /plots
+/generated_data
 visual.scad
+/failed_tests

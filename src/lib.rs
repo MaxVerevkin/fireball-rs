@@ -5,15 +5,16 @@
 //! in the space that represents the trajectory of a fireball. The binary search
 //! itself minimizes the mean-square-error of observations given trajectory.
 
-#![feature(core_intrinsics)]
+#![feature(core_intrinsics, let_chains)]
 #![allow(clippy::option_map_unit_fn)]
 
 #[macro_use]
 extern crate assert_approx_eq;
 
-pub mod constants;
-pub mod data;
-pub mod maths;
-pub mod quick_median;
+pub mod approx_eq;
+// pub mod constants;
+// pub mod data;
+// pub mod maths;
+// pub mod quick_median;
 pub mod solver;
-pub mod structs;
+// pub mod structs;

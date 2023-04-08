@@ -2208,6 +2208,167 @@ h0 = 16.000000
 t = 3.500000
 name = "George T"
 exp = 5
+[[sample]]
+lat = 34.966
+lon = 33.8476
+h = 74.6947
+a = 140
+zb = 140
+hb = 65
+z0 = 190
+h0 = 65
+t = 3.5
+name = "CHRYSO P"
+exp = 1
+[[sample]]
+lat = 34.5784
+lon = 32.9961
+h = 41.9045
+a = 114
+zb = 100
+hb = 35
+z0 = 170
+h0 = 5
+t = 1.5
+name = "Wendy S"
+exp = 1
+[[sample]]
+lat = 35.0064
+lon = 33.7332
+h = 76.0591
+a = 107
+zb = 208.15
+t = 3.5
+name = "M C"
+exp = 2
+[[sample]]
+lat = 34.6536
+lon = 32.9573
+h = 20.3757
+a = 116
+zb = 215.15
+hb = 45
+z0 = 217.95
+h0 = 45
+t = 1.5
+name = "Valentina C"
+exp = 1
+[[sample]]
+lat = 34.9254
+lon = 33.6156
+h = 16.9735
+a = 125
+zb = 160
+hb = 35
+z0 = 160
+h0 = 20
+t = 1.5
+name = "Kyriaki A"
+exp = 1
+[[sample]]
+lat = 34.7003
+lon = 32.9408
+h = 179.96
+a = 91
+zb = 157.17
+hb = 57
+z0 = 193.62
+h0 = 63
+t = 3.5
+name = "Andreas P"
+exp = 2
+[[sample]]
+lat = 34.6883
+lon = 33.0603
+h = 14.5181
+a = 180
+hb = 32
+h0 = 20
+t = 1.5
+name = "Eleonora O"
+exp = 2
+[[sample]]
+lat = 35.1464
+lon = 33.2486
+h = 199.872
+a = 45
+zb = 180
+hb = 55
+z0 = 180
+h0 = 60
+t = 1.5
+name = "Efi K"
+exp = 2
+[[sample]]
+lat = 34.98
+lon = 33.8295
+h = 58.2876
+a = 121
+zb = 200
+hb = 25
+z0 = 200
+h0 = 27
+t = 1
+name = "Haris A"
+exp = 2
+[[sample]]
+lat = 35.139
+lon = 33.2757
+h = 222.035
+a = 212
+zb = 10.01
+hb = 16
+z0 = 9.52
+h0 = 14
+t = 3.5
+name = "ELENA P"
+exp = 1
+[[sample]]
+lat = 34.722
+lon = 33.0807
+h = 70.5072
+a = 314
+hb = 27
+z0 = 3.37
+h0 = 34
+t = 1.5
+name = "Georgia C"
+exp = 1
+[[sample]]
+lat = 34.6932
+lon = 33.0239
+h = 46.4183
+a = 129
+zb = 6.19
+hb = 24
+z0 = 297.98
+t = 1.5
+name = "Maria P"
+exp = 1
+[[sample]]
+lat = 35.0033
+lon = 34.0035
+h = 113.357
+a = 98
+zb = 165.72
+hb = 41
+z0 = 174.66
+h0 = 31
+t = 1
+name = "Georgia H"
+exp = 1
+[[sample]]
+lat = 32.8218
+lon = 35.1901
+h = 127.315
+a = 194
+zb = 30.43
+hb = 90
+z0 = 337.92
+h0 = 27
+t = 3.5
+name = "Irena H"
+exp = 3
 
 [answer]
 lat = 33.1
