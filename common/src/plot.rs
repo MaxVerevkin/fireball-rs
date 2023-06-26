@@ -8,6 +8,26 @@ pub fn draw_plot_svg(
     horizontal_lines: &[(f64, RGBColor)],
     fns: &[(&dyn Fn(f64) -> f64, RGBColor)],
 ) -> Result<(), Box<dyn std::error::Error>> {
+    draw_plot_svg_with_named_axes(
+        file_name,
+        points,
+        vertical_lines,
+        horizontal_lines,
+        fns,
+        "",
+        "",
+    )
+}
+
+pub fn draw_plot_svg_with_named_axes(
+    file_name: &str,
+    points: &[(f64, f64, RGBColor, f64)],
+    vertical_lines: &[(f64, RGBColor)],
+    horizontal_lines: &[(f64, RGBColor)],
+    fns: &[(&dyn Fn(f64) -> f64, RGBColor)],
+    x_name: &str,
+    y_name: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     use plotters::prelude::*;
 
     let x_min = points
@@ -35,8 +55,8 @@ pub fn draw_plot_svg(
     root.fill(&WHITE)?;
 
     let mut scatter_ctx = ChartBuilder::on(&root)
-        .x_label_area_size(40)
-        .y_label_area_size(40)
+        .x_label_area_size(35)
+        .y_label_area_size(35)
         .build_cartesian_2d(x_min..x_max, y_min..y_max)?;
     for &(x, color) in vertical_lines {
         scatter_ctx.draw_series(LineSeries::new([(x, y_min), (x, y_max)], color))?;
@@ -57,11 +77,14 @@ pub fn draw_plot_svg(
         .configure_mesh()
         .disable_x_mesh()
         .disable_y_mesh()
+        .x_desc(x_name)
+        .y_desc(y_name)
         .draw()?;
     scatter_ctx.draw_series(
         points
             .iter()
-            .map(|(x, y, color, size)| Circle::new((*x, *y), *size, color)),
+            .map(|(x, y, color, size)| Cross::new((*x, *y), *size, color)),
+        // .map(|(x, y, color, size)| Circle::new((*x, *y), *size, color)),
     )?;
 
     // To avoid the IO failure being ignored silently, we manually call the present function

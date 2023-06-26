@@ -1,4 +1,4 @@
-use super::{UnitVec3, UnitVec3Ext, Vec3};
+use super::{UnitVec3, Vec3};
 use rand::Rng;
 use rand_distr::StandardNormal;
 
@@ -62,6 +62,13 @@ impl Line {
         if new_value < *current_value {
             *self = copy;
             *current_value = new_value;
+        }
+    }
+
+    pub fn offset_point(self, offset: Vec3) -> Self {
+        Self {
+            point: self.point + offset,
+            direction: self.direction,
         }
     }
 }

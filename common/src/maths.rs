@@ -3,11 +3,15 @@
 use crate::structs::*;
 use std::f64::consts::*;
 
+pub const fn radians(degrees: f64) -> f64 {
+    degrees * (PI / 180.0)
+}
+
 /// TODO: figure out why this function is less precice than others (is this still true?)
 pub fn descent_angle(observer: Vec3, k: Vec3, vel: Vec3) -> f64 {
-    let x = k.cross(&observer).normalize();
-    let y = x.cross(&k).normalize();
-    let angle = f64::atan2(vel.dot(&x), vel.dot(&y));
+    let x = k.cross(observer).normalize();
+    let y = x.cross(k).normalize();
+    let angle = f64::atan2(vel.dot(x), vel.dot(y));
     if angle < 0. {
         angle + TAU
     } else {
@@ -27,9 +31,9 @@ pub fn angle_diff(a1: f64, a2: f64) -> f64 {
 pub fn lambda(observer: Vec3, k: UnitVec3, point: Vec3, v: UnitVec3) -> f64 {
     let p1p0 = point - observer;
 
-    let a = k.dot(&v);
-    let b = p1p0.dot(&v);
-    let c = k.dot(&p1p0);
+    let a = k.dot(*v);
+    let b = p1p0.dot(*v);
+    let c = k.dot(p1p0);
 
     (b * c - a * p1p0.norm_squared()) / (a * b - c)
 }
@@ -37,9 +41,9 @@ pub fn lambda(observer: Vec3, k: UnitVec3, point: Vec3, v: UnitVec3) -> f64 {
 pub fn lambda_old(observer: Vec3, k: UnitVec3, point: Vec3, v: UnitVec3) -> f64 {
     let p1p0 = point - observer;
 
-    let n = v.cross(&p1p0);
-    let p = n.cross(&k);
-    p1p0.dot(&p) / v.dot(&-p)
+    let n = v.cross(p1p0);
+    let p = n.cross(*k);
+    p1p0.dot(p) / v.dot(-p)
 }
 
 // #[cfg(test)]

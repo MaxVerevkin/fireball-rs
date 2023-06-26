@@ -7,69 +7,55 @@
 //! ```
 //! to see which parameters of the implementation can be tweaked.
 
-use clap::*;
+use std::path::PathBuf;
 
-use common::obs_data::Data;
-use common::structs::*;
+use clap::Parser;
+use common::obs_data::RawData;
 use fireball::solver::{Params, Solver};
 
-fn main() {
-    let matches = app_from_crate!()
-        .arg(
-            Arg::with_name("file")
-                .help("The file with data")
-                .takes_value(true)
-                .required(true)
-        )
-        .arg(
-            Arg::with_name("dac")
-                .help("Whether to tilt the observation to better match given descent angle (0 means no, 1 means yes")
-                .default_value("0.5")
-                .takes_value(true)
-                .long("dac")
-        )
-        .arg(
-            Arg::with_name("dac-max")
-                .help("Max correction (in degrees) that DAC is allowed to apply")
-                .default_value("20")
-                .takes_value(true)
-                .long("dac-max")
-        )
-        .arg(
-            Arg::with_name("da-only")
-                .required(false)
-                .long("da-only")
-        )
-        .get_matches();
+#[derive(Debug, Parser)]
+struct CliArgs {
+    /// The file with data
+    file: PathBuf,
 
-    let file_name = matches.value_of("file").unwrap();
-    let da_correction: f64 = matches.value_of("dac").unwrap().parse().unwrap();
-    let dac_max = matches
-        .value_of("dac-max")
-        .unwrap()
-        .parse::<f64>()
-        .unwrap()
-        .to_radians();
-    let da_only = matches.is_present("da-only");
+    /// Use only descent angles in the trajectory evaluation
+    #[arg(long)]
+    da_only: bool,
+
+    /// Do not 'flip' the decent angles
+    #[arg(long)]
+    no_da_flip: bool,
+
+    /// Parameter of descent angle correction function da_corrected = da - k * sin(da * 2.0)
+    #[arg(long, default_value_t = 0.0)]
+    da_k: f64,
+
+    /// Parameter of azimuth correction function az_corrected = az + k * sin(az)
+    #[arg(long, default_value_t = 0.0)]
+    az_k: f64,
+}
+
+fn main() {
+    let args = CliArgs::parse();
 
     // Read data
-    let mut data = Data::read_from_toml(file_name);
-    data.apply_da_correction(0.064); // ../../da-corrector/log.txt : 265
+    let data = RawData::read_from_toml_file(&args.file)
+        .da_correction(args.da_k)
+        .az_correction(args.az_k)
+        .finalize();
 
     // Solve!
     let mut solver = Solver::new(
         data,
         Params {
-            da_correction,
-            dac_max,
-            da_only,
+            da_only: args.da_only,
+            no_da_flip: args.no_da_flip,
         },
     );
     let solution = solver.solve();
-    let flash: Spherical = solution.flash.into();
 
     // Print the answer
-    println!("Flash location: {}", flash);
+    println!("Flash location: {}", solution.flash);
     println!(
         "Velocity: {:.3} km/s\n  x: {:.3} km/s\n  y: {:.3} km/s\n  z: {:.3} km/s",
         solution.velocity.norm() / 1000.,

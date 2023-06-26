@@ -1,8 +1,7 @@
 use crate::approx_eq::ApproxEq;
 
-use common::nalgebra::Unit;
 use common::obs_data::DataSample;
-use common::structs::Line;
+use common::structs::{Line, UnitVec3};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PairTrajectory {
@@ -30,7 +29,7 @@ impl PairTrajectory {
         //
         // Note: Perpendicular planes are expected to give more reliable results, while almost
         // parallel planes should be ignored.
-        let (direction, mut weight) = Unit::new_and_get(plane1.cross(&plane2));
+        let (direction, mut weight) = UnitVec3::new_and_get(plane1.cross(*plane2));
         weight *= weight;
 
         if weight.approx_eq(0.0) {
@@ -51,12 +50,12 @@ impl PairTrajectory {
             (true, true) => direction,
         };
 
-        let l1 = (s2.location - s1.location).dot(&plane2) / axis1.dot(&plane2);
+        let l1 = (s2.location - s1.location).dot(*plane2) / axis1.dot(*plane2);
         let point = s1.location + axis1.into_inner() * l1;
 
         // Ensure that the point actually belongs to both planes
-        assert_approx_eq!(plane1.dot(&(point - s1.location).normalize()), 0.0);
-        assert_approx_eq!(plane2.dot(&(point - s2.location).normalize()), 0.0);
+        assert_approx_eq!(plane1.dot((point - s1.location).normalize()), 0.0);
+        assert_approx_eq!(plane2.dot((point - s2.location).normalize()), 0.0);
 
         if !s1.observation_matches(Line { point, direction })
             || !s2.observation_matches(Line { point, direction })

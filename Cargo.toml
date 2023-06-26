@@ -7,28 +7,23 @@ edition = "2021"
 
 [workspace]
 members = [
-    "da-corrector",
-	"coomon",
-	"scad-gen",
-	"fetch-imo",
+	"common",
+  "da-corrector",
+	"azimuth-corrector",
+	"altitudes",
 ]
 
 [dependencies]
 common = { path = "./common" }
-
 assert_approx_eq = "1.1"
-
-toml = "0.5"
+toml = "0.7"
 serde = { version = "1", features = ["derive"] }
-
-clap = { version = "2", default-features = false }
-
-scad-gen = { path = "./scad-gen" }
+clap = { version = "4", features = ["derive"] }
 image = { version = "0.24.5", default-features = false, features = ["png"] }
 
 [dev-dependencies]
 proptest = "1.0"
-criterion = "0.3"
+criterion = "0.4"
 
 [[bench]]
 name = "lambda"

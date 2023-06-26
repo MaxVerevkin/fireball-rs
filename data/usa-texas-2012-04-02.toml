@@ -1,0 +1,262 @@
+[[sample]]
+lat = 29.5914
+lon = -97.9973
+h = 0
+a = 135
+zb = 85.2105
+hb = 45
+z0 = 229.783
+h0 = 15
+t = 7.5
+name = "Jeff"
+exp = 1
+
+[[sample]]
+lat = 29.7291
+lon = -98.1175
+h = 0
+a = 180
+zb = 152.281
+z0 = 148.632
+h0 = 45
+t = 1
+name = "Doell T"
+exp = 1
+
+[[sample]]
+lat = 29.3155
+lon = -98.4074
+h = 0
+a = 180
+zb = 146.976
+hb = 45
+z0 = 135.658
+h0 = 45
+t = 1.5
+name = "Jason B"
+exp = 1
+
+[[sample]]
+lat = 30.5767
+lon = -97.8723
+h = 0
+a = 180
+zb = 141.486
+hb = 90
+z0 = 135.448
+h0 = 23
+t = 1.5
+name = "Marisol"
+exp = 1
+
+[[sample]]
+lat = 27.2799
+lon = -98.7249
+h = 0
+a = 135
+t = 3.5
+name = "valerie"
+exp = 1
+
+[[sample]]
+lat = 28.9677
+lon = -95.3502
+h = 0
+a = 180
+zb = 212.445
+hb = 35
+z0 = 211.676
+h0 = 20
+t = 1.5
+name = "Lee B"
+exp = 1
+
+[[sample]]
+lat = 28.9941
+lon = -95.4125
+h = 0
+a = 180
+zb = 216.158
+hb = 45
+z0 = 212.229
+h0 = 20
+t = 1.5
+name = "Lee B"
+exp = 1
+
+[[sample]]
+lat = 29.5784
+lon = -98.2447
+h = 0
+zb = 150.958
+hb = 90
+h0 = 90
+t = 1.5
+name = "Toni H"
+exp = 1
+
+[[sample]]
+lat = 30.4494
+lon = -97.7466
+h = 0
+a = 135
+zb = 201.801
+hb = 45
+z0 = 225.771
+h0 = 10
+t = 3.5
+name = "M"
+exp = 1
+
+[[sample]]
+lat = 30.5149
+lon = -97.8139
+h = 0
+a = 180
+zb = 158.853
+hb = 80
+z0 = 158.419
+t = 1.5
+name = "Mark H"
+exp = 1
+
+[[sample]]
+lat = 30.4369
+lon = -97.7803
+h = 0
+a = 180
+zb = 160.473
+hb = 30
+z0 = 160.538
+h0 = 25
+t = 1
+name = "David"
+exp = 2
+
+[[sample]]
+lat = 29.5758
+lon = -98.2568
+h = 0
+a = 135
+zb = 61.2185
+hb = 45
+z0 = 131.605
+h0 = 35
+t = 1.5
+name = "Michael"
+exp = 2
+
+[[sample]]
+lat = 29.9005
+lon = -97.9173
+h = 0
+a = 135
+zb = 208.374
+hb = 45
+z0 = 224.79
+h0 = 35
+t = 1.5
+name = "Egge S"
+exp = 2
+
+[[sample]]
+lat = 29.7354
+lon = -98.683
+h = 0
+a = 135
+hb = 14
+h0 = 19
+t = 10
+name = "Monique"
+exp = 2
+
+[[sample]]
+lat = 29.3488
+lon = -98.4324
+h = 0
+a = 135
+zb = 88.5653
+hb = 40
+z0 = 94.5899
+h0 = 26
+t = 1.5
+name = "MICHAEL C"
+exp = 2
+
+[[sample]]
+lat = 30.3053
+lon = -97.8786
+h = 0
+a = 180
+zb = 177.054
+hb = 55
+z0 = 176.706
+h0 = 10
+t = 3.5
+name = "Paul S"
+exp = 2
+
+[[sample]]
+lat = 30.3352
+lon = -97.7019
+h = 0
+a = 180
+zb = 188.746
+hb = 40
+z0 = 183.901
+h0 = 25
+t = 1
+name = "Brent"
+exp = 3
+
+[[sample]]
+lat = 30.3355
+lon = -97.9692
+h = 0
+a = 135
+zb = 152.078
+hb = 70
+z0 = 148.391
+h0 = 70
+t = 3.5
+name = "Jacob"
+exp = 3
+
+[[sample]]
+lat = 27.5326
+lon = -97.9565
+h = 0
+zb = 75.6261
+hb = 51
+h0 = 26
+t = 3.5
+name = "Janelle R"
+exp = 3
+
+[[sample]]
+lat = 29.3726
+lon = -98.3952
+h = 0
+a = 180
+hb = 30
+h0 = 10
+t = 1.5
+name = "Jason"
+exp = 3
+
+[[sample]]
+lat = 30.2381
+lon = -97.8239
+h = 0
+a = 180
+zb = 144.162
+hb = 46
+z0 = 144.389
+h0 = 18
+t = 1
+name = "Matt"
+exp = 3
+
+[answer]
+lat = 28.1
+lon = -95.2

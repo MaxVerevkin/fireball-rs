@@ -1,41 +1,76 @@
 use std::cmp::Ordering;
 use std::f64::consts::{FRAC_PI_2, PI, TAU};
-use std::fs::File;
-use std::io::Read;
 use std::ops::{Deref, DerefMut};
 use std::path::Path;
 
 use serde::{Deserialize, Serialize};
-
-use nalgebra::Unit;
 
 use crate::constants::*;
 use crate::maths::*;
 use crate::quick_median::SliceExt;
 use crate::structs::*;
 
-#[derive(Deserialize, Serialize)]
-struct RawSample {
-    lat: f64,
-    lon: f64,
-    h: f64,
-    a: Option<f64>,
-    zb: Option<f64>,
-    hb: Option<f64>,
-    z0: Option<f64>,
-    h0: Option<f64>,
-    t: Option<f64>,
-    name: Option<String>,
-    exp: Option<f64>,
+/// The sample as it is in the file. Angles are meausred in degrees.
+#[derive(Deserialize, Serialize, Debug, Clone)]
+pub struct RawSample {
+    pub lat: f64,
+    pub lon: f64,
+    pub h: f64,
+    pub a: Option<f64>,
+    pub zb: Option<f64>,
+    pub hb: Option<f64>,
+    pub z0: Option<f64>,
+    pub h0: Option<f64>,
+    pub t: Option<f64>,
+    pub name: Option<String>,
+    pub exp: Option<f64>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+/// `RawSample` with degrees converted to radians
+#[derive(Deserialize, Serialize, Debug, Clone)]
 #[serde(from = "RawSample")]
+#[serde(into = "RawSample")]
+pub struct NormalizedRawSample(pub RawSample);
+
+impl From<RawSample> for NormalizedRawSample {
+    fn from(value: RawSample) -> Self {
+        Self(RawSample {
+            lat: value.lat.to_radians(),
+            lon: value.lon.to_radians(),
+            a: value.a.map(f64::to_radians),
+            zb: value.zb.map(f64::to_radians),
+            hb: value.hb.map(f64::to_radians),
+            z0: value.z0.map(f64::to_radians),
+            h0: value.h0.map(f64::to_radians),
+            ..value
+        })
+    }
+}
+
+impl From<NormalizedRawSample> for RawSample {
+    fn from(value: NormalizedRawSample) -> Self {
+        Self {
+            lat: value.0.lat.to_degrees(),
+            lon: value.0.lon.to_degrees(),
+            a: value.0.a.map(f64::to_degrees),
+            zb: value.0.zb.map(f64::to_degrees),
+            hb: value.0.hb.map(f64::to_degrees),
+            z0: value.0.z0.map(f64::to_degrees),
+            h0: value.0.h0.map(f64::to_degrees),
+            ..value.0
+        }
+    }
+}
+
+/// Pre-processed sample. Angles are in radians.
+#[derive(Deserialize, Debug, Clone)]
+#[serde(from = "NormalizedRawSample")]
 pub struct DataSample {
-    pub geo_location: Spherical,
+    pub geo_location: Geodetic,
     pub location: Vec3,
     pub east_dir: UnitVec3,
     pub north_dir: UnitVec3,
+    pub zenith_dir: UnitVec3,
 
     pub da: Option<f64>,
     pub k_start: Option<UnitVec3>,
@@ -47,53 +82,48 @@ pub struct DataSample {
     pub exp: Option<f64>,
 
     pub z0: Option<f64>,
+    pub h0: Option<f64>,
 }
 
-impl From<RawSample> for DataSample {
-    fn from(raw: RawSample) -> Self {
-        let geo_location = Spherical {
-            lat: raw.lat.to_radians(),
-            lon: raw.lon.to_radians(),
-            r: EARTH_R + raw.h,
+impl From<NormalizedRawSample> for DataSample {
+    fn from(raw: NormalizedRawSample) -> Self {
+        let geo_location = Geodetic {
+            lat: raw.0.lat,
+            lon: raw.0.lon,
+            h: raw.0.h,
         };
-
-        let location: Vec3 = geo_location.into();
-
-        let da = raw.a.map(f64::to_radians);
+        let location = geo_location.into_geocentric_cartesian();
+        let (east_dir, north_dir, zenith_dir) = geo_location.local_cartesian_triple();
 
         let make_k_vec = move |z: Option<f64>, h: Option<f64>| {
-            Some(
-                UnitVec3::from(Azimuthal {
-                    z: z?.to_radians(),
-                    h: h?.to_radians(),
-                })
-                .to_global(geo_location),
-            )
+            let local = UnitVec3::from(Azimuthal { z: z?, h: h? });
+            let v = local.x * east_dir.into_inner()
+                + local.y * north_dir.into_inner()
+                + local.z * zenith_dir.into_inner();
+            Some(UnitVec3::new_unchecked(v))
         };
 
-        let mut k_start = make_k_vec(raw.zb, raw.hb);
-        let k_end = make_k_vec(raw.z0, raw.h0);
+        let mut k_start = make_k_vec(raw.0.zb, raw.0.hb);
+        let k_end = make_k_vec(raw.0.z0, raw.0.h0);
 
-        if let Some(ks) = k_start && let Some(ke) = k_end && ks.dot(&ke).abs() > 0.9999 {
+        if let Some(ks) = k_start && let Some(ke) = k_end && ks.dot(*ke).abs() > 0.9999 {
             k_start = None;
         }
 
         let axis = match (k_start, k_end) {
-            (Some(a), Some(b)) => Some(Unit::new_normalize(a.into_inner() + b.into_inner())),
+            (Some(a), Some(b)) => Some(UnitVec3::new_normalize(a.into_inner() + b.into_inner())),
             (Some(k), None) | (None, Some(k)) => Some(k),
             (None, None) => None,
         };
 
         let plane = if let (Some(v1), Some(v2)) = (k_start, k_end) {
-            Some(Unit::new_normalize(v2.cross(&v1)))
-        } else if let (Some(axis), Some(da)) = (axis, da) {
+            Some(UnitVec3::new_normalize(v2.cross(*v1)))
+        } else if let (Some(axis), Some(da)) = (axis, raw.0.a) {
             // TODO mention
-            if axis.normalize().dot(&location.normalize()) > 0.999 {
+            if axis.normalize().dot(location.normalize()) > 0.999 {
                 None
             } else {
-                let plane = Unit::new_normalize(axis.cross(&location));
-                let q = UnitQuaternion::from_axis_angle(&axis, da + PI);
-                Some(q * plane)
+                Some(UnitVec3::new_normalize(axis.cross(location)).rotate(axis, da + PI))
             }
         } else {
             None
@@ -102,29 +132,24 @@ impl From<RawSample> for DataSample {
         Self {
             geo_location,
             location,
-            east_dir: geo_location.east_direction(),
-            north_dir: geo_location.north_direction(),
-            // east_dir: Vec3::x_axis().to_local(geo_location),
-            // north_dir: Vec3::y_axis().to_local(geo_location),
-            da,
+            east_dir,
+            north_dir,
+            zenith_dir,
+
+            da: raw.0.a,
             k_start,
             k_end,
             axis,
             plane,
-            dur: raw.t,
-            name: raw.name,
-            exp: raw.exp,
+            dur: raw.0.t,
+            name: raw.0.name,
+            exp: raw.0.exp,
 
-            z0: raw.z0.map(|z| z.to_radians()),
+            z0: raw.0.z0,
+            h0: raw.0.h0,
         }
     }
 }
-
-// impl From<DataSample> for RawSample {
-//     fn from(value: DataSample) -> Self {
-//         todo!()
-//     }
-// }
 
 impl DataSample {
     /// Compute the descent angle given `k_start` and `k_end`
@@ -133,15 +158,15 @@ impl DataSample {
         let plane = self.plane?;
 
         // if (axis^location) < 5 degrees
-        if self.location.normalize().dot(&axis) > 0.996 {
+        if self.location.normalize().dot(*axis) > 0.996 {
             return None;
         }
 
-        let i = axis.cross(&self.location).normalize();
-        let j = i.cross(&axis);
+        let i = axis.cross(self.location).normalize();
+        let j = i.cross(*axis);
 
-        let x = plane.dot(&i);
-        let y = plane.dot(&j);
+        let x = plane.dot(i);
+        let y = plane.dot(j);
 
         let da = f64::atan2(x, y) + FRAC_PI_2;
         Some(if da < 0. { da + TAU } else { da })
@@ -150,7 +175,7 @@ impl DataSample {
     /// Check whether a direction matches the observation
     pub fn direction_matches(&self, direction: UnitVec3) -> bool {
         if let Some(axis) = self.axis && let Some(plane) = self.plane {
-            axis.cross(&plane).dot(&direction) > 0.0
+            axis.cross(*plane).dot(*direction) > 0.0
         } else {
             false
         }
@@ -167,12 +192,12 @@ impl DataSample {
         };
         //
         // A vertor that describes the hemispace of "allowed" observations
-        let perp = direction.cross(&(point - self.location)).cross(&direction);
+        let perp = direction.cross(point - self.location).cross(*direction);
 
         if let Some((k_start, k_end)) = self.k_start.zip(self.k_end) {
             // When we have both k_start and k_end, we must ensure that they both lie in the
             // correct hemispace
-            if k_start.dot(&perp) <= 0.0 || k_end.dot(&perp) <= 0.0 {
+            if k_start.dot(perp) <= 0.0 || k_end.dot(perp) <= 0.0 {
                 return false;
             }
             let l_start = lambda(self.location, k_start, point, direction);
@@ -183,12 +208,12 @@ impl DataSample {
             }
         } else {
             // The best we have is the axis, so let's check it
-            if axis.dot(&perp) <= 0.0 {
+            if axis.dot(perp) <= 0.0 {
                 return false;
             }
             if let Some(observation_norm) = self.plane {
-                let dir = axis.cross(&observation_norm);
-                if dir.dot(&direction) <= 0.0 {
+                let dir = axis.cross(*observation_norm);
+                if dir.dot(*direction) <= 0.0 {
                     return false;
                 }
             }
@@ -200,8 +225,8 @@ impl DataSample {
     /// Calculate azimuth in range [0, Tau)
     pub fn calc_azimuth(&self, p: Vec3) -> f64 {
         let k = p - self.location;
-        let x = k.dot(&self.east_dir);
-        let y = k.dot(&self.north_dir);
+        let x = k.dot(*self.east_dir);
+        let y = k.dot(*self.north_dir);
         let atan = f64::atan2(x, y);
         if atan < 0.0 {
             atan + TAU
@@ -215,105 +240,162 @@ impl DataSample {
 pub struct RawAnswer {
     lat: f64,
     lon: f64,
-    h: f64,
-    vx: f64,
-    vy: f64,
-    vz: f64,
+    h: Option<f64>,
+    vx: Option<f64>,
+    vy: Option<f64>,
+    vz: Option<f64>,
 }
 
 #[derive(Deserialize, Debug, Clone, Copy, PartialEq)]
 #[serde(from = "RawAnswer")]
 pub struct Answer {
-    pub traj: Line,
-    pub speed: f64,
+    pub traj: Option<Line>,
+    pub speed: Option<f64>,
+    pub point: Option<Vec3>,
+    pub point_no_h: Vec3,
 }
 
 impl From<RawAnswer> for Answer {
     fn from(raw: RawAnswer) -> Self {
-        let geo_location = Spherical {
-            lat: raw.lat.to_radians(),
-            lon: raw.lon.to_radians(),
-            r: EARTH_R + raw.h,
+        let geo_location = Geodetic::new_from_degrees_m(raw.lat, raw.lon, raw.h.unwrap_or(0.0));
+        let point_no_h = geo_location.into_geocentric_cartesian();
+        let point = raw.h.is_some().then_some(point_no_h);
+
+        let (direction, speed) = if let (Some(vx), Some(vy), Some(vz)) = (raw.vx, raw.vy, raw.vz) {
+            Some(UnitVec3::new_and_get(Vec3::new(vx, vy, vz) * 1_000.0)).unzip()
+        } else {
+            (None, None)
         };
-        let direction = Vec3::new(raw.vx, raw.vy, raw.vz) * 1_000.0;
-        let (direction, speed) = Unit::new_and_get(direction);
+
         Self {
-            traj: Line {
-                point: geo_location.into(),
-                direction,
-            },
+            traj: point
+                .zip(direction)
+                .map(|(point, direction)| Line { point, direction }),
             speed,
+            point,
+            point_no_h,
         }
     }
 }
 
 /// A collenction of observations
-#[derive(Deserialize, Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct Data {
-    #[serde(rename = "sample")]
     pub samples: Vec<DataSample>,
+    pub name: Option<String>,
     pub answer: Option<Answer>,
+    pub meta: toml::Table,
 }
 
-impl Data {
-    pub fn apply_da_correction(&mut self, a: f64) {
-        for s in &mut self.samples {
-            if let Some(da) = &mut s.da {
-                if *da >= FRAC_PI_2 && *da <= (FRAC_PI_2 * 3.0) {
-                    *da = *da - a * f64::sin(*da * 2.0);
+#[derive(Deserialize, Debug, Clone)]
+pub struct RawData {
+    pub sample: Vec<NormalizedRawSample>,
+    #[serde(default)]
+    pub name: Option<String>,
+    #[serde(default)]
+    pub answer: Option<Answer>,
+    #[serde(default)]
+    pub meta: toml::Table,
+}
+
+impl RawData {
+    pub fn read_from_toml_file(path: impl AsRef<Path>) -> Self {
+        let contents = std::fs::read(path.as_ref()).unwrap();
+        let contents = String::from_utf8_lossy(&contents);
+
+        let mut retval: Self = toml::from_str(&contents).unwrap();
+
+        if retval.name.is_none() {
+            retval.name = path
+                .as_ref()
+                .file_name()
+                .map(|file_name| file_name.to_string_lossy())
+                .and_then(|file_name| Some(file_name.split_once('.')?.0.to_owned()));
+        }
+
+        retval
+    }
+
+    pub fn da_correction(mut self, da_k: f64) -> Self {
+        if da_k != 0.0 {
+            for s in &mut self.sample {
+                if let Some(da) = &mut s.0.a {
+                    if (FRAC_PI_2..(FRAC_PI_2 * 3.0)).contains(da) {
+                        *da = *da - da_k * f64::sin(*da * 2.0)
+                    }
                 }
             }
         }
+        self
     }
 
-    // TODO: return errors instead of panicing!
-    pub fn read_from_toml(path: impl AsRef<Path>) -> Self {
-        let mut in_file = File::open(path).unwrap();
-        let mut buf = Vec::new();
-        in_file.read_to_end(&mut buf).unwrap();
-        toml::from_str(&String::from_utf8_lossy(&buf)).unwrap()
-    }
-
-    pub fn compare(&self, other: Line, message: &str) {
-        if let Some(answer) = self.answer {
-            let vel_error = answer
-                .traj
-                .direction
-                .dot(&other.direction)
-                .acos()
-                .to_degrees();
-
-            let distance = (answer.traj.point - other.point)
-                .cross(&other.direction)
-                .norm()
-                * 1e-3;
-
-            let mut med_buf = Vec::new();
-            med_buf.extend(self.samples.iter().map(|s| s.geo_location.r));
-            let med_r = med_buf.median();
-            med_buf.clear();
-            med_buf.extend(self.samples.iter().map(|s| s.geo_location.lat));
-            let med_lat = med_buf.median();
-            med_buf.clear();
-            med_buf.extend(self.samples.iter().map(|s| s.geo_location.lon));
-            let med_lon = med_buf.median();
-            let med_observer: Vec3 = Spherical {
-                lat: med_lat,
-                lon: med_lon,
-                r: med_r,
+    pub fn az_correction(mut self, az_k: f64) -> Self {
+        if az_k != 0.0 {
+            for s in &mut self.sample {
+                if let Some(az) = &mut s.0.z0 {
+                    *az = *az + az_k * f64::sin(*az)
+                }
             }
-            .into();
-            let n = answer
-                .traj
-                .direction
-                .into_inner()
-                .cross(&(med_observer - answer.traj.point).normalize());
-            let elevation_angle = n.dot(&other.direction.into_inner()).asin().to_degrees();
-
-            let spherical: Spherical = other.point.into();
-
-            eprintln!("--- {message} ---\nVelocity angular error: {vel_error:.1}{DEGREE}\nElevation angle error: {elevation_angle:.1}{DEGREE}\nDistance: {distance:.1}km\nPoint: {spherical}\n");
         }
+        self
+    }
+
+    pub fn finalize(self) -> Data {
+        Data {
+            samples: self.sample.into_iter().map(Into::into).collect(),
+            name: self.name,
+            answer: self.answer,
+            meta: self.meta,
+        }
+    }
+}
+
+impl Data {
+    pub fn compare(&self, other: Line, message: &str) {
+        let Some(answer) = self.answer else { return };
+        let Some(answer_point) = answer.point else { return };
+
+        let vel_error = answer
+            .traj
+            .map(|traj| traj.direction.dot(*other.direction).acos().to_degrees());
+
+        let distance = (answer_point - other.point).cross(*other.direction).norm() * 1e-3;
+
+        let mut med_buf = Vec::new();
+        med_buf.extend(self.samples.iter().map(|s| s.geo_location.h));
+        let med_h = med_buf.median();
+        med_buf.clear();
+        med_buf.extend(self.samples.iter().map(|s| s.geo_location.lat));
+        let med_lat = med_buf.median();
+        med_buf.clear();
+        med_buf.extend(self.samples.iter().map(|s| s.geo_location.lon));
+        let med_lon = med_buf.median();
+        let med_observer = Geodetic {
+            lat: med_lat,
+            lon: med_lon,
+            h: med_h,
+        }
+        .into_geocentric_cartesian();
+
+        let n = answer.traj.map(|traj| {
+            traj.direction
+                .into_inner()
+                .cross((med_observer - traj.point).normalize())
+        });
+        let elevation_angle = n.map(|n| n.dot(*other.direction).asin().to_degrees());
+
+        let geo = Geodetic::from_geocentric_cartesian(other.point, 10);
+
+        eprintln!("--- {message} ---");
+        eprintln!("Point: {geo}");
+        eprintln!("Distance: {distance:.1}km");
+        if let Some(vel_error) = vel_error {
+            eprintln!("Velocity angular error: {vel_error:.1}{DEGREE}");
+        }
+        if let Some(elevation_angle) = elevation_angle {
+            eprintln!("Elevation angular error: {elevation_angle:.1}{DEGREE}");
+        }
+        eprintln!();
     }
 }
 
@@ -357,8 +439,8 @@ mod tests {
             {
                 let z_north = s.calc_azimuth(
                     s.location
-                        + &*s.north_dir * (10.0 + random::<f64>() * 1_000.0)
-                        + s.location.normalize() * random::<f64>() * 1_000.0,
+                        + s.north_dir * (10.0 + random::<f64>() * 1_000.0)
+                        + s.zenith_dir * random::<f64>() * 1_000.0,
                 );
                 assert!(angle_diff(0.0, z_north).abs() < 0.001);
             }
@@ -366,24 +448,24 @@ mod tests {
             {
                 let z_east = s.calc_azimuth(
                     s.location
-                        + &*s.east_dir * (10.0 + random::<f64>() * 1_000.0)
-                        + s.location.normalize() * random::<f64>() * 1_000.0,
+                        + s.east_dir * (10.0 + random::<f64>() * 1_000.0)
+                        + s.zenith_dir * random::<f64>() * 1_000.0,
                 );
                 assert!(angle_diff(FRAC_PI_2, z_east).abs() < 0.001);
             }
 
             {
                 let z_south = s.calc_azimuth(
-                    s.location - &*s.north_dir * (10.0 + random::<f64>() * 1_000.0)
-                        + s.location.normalize() * random::<f64>() * 1_000.0,
+                    s.location - s.north_dir * (10.0 + random::<f64>() * 1_000.0)
+                        + s.zenith_dir * random::<f64>() * 1_000.0,
                 );
                 assert!(angle_diff(PI, z_south).abs() < 0.001);
             }
 
             {
                 let z_west = s.calc_azimuth(
-                    s.location - &*s.east_dir * (10.0 + random::<f64>() * 1_000.0)
-                        + s.location.normalize() * random::<f64>() * 1_000.0,
+                    s.location - s.east_dir * (10.0 + random::<f64>() * 1_000.0)
+                        + s.zenith_dir * random::<f64>() * 1_000.0,
                 );
                 assert!(angle_diff(FRAC_PI_2 * 3.0, z_west).abs() < 0.001);
             }

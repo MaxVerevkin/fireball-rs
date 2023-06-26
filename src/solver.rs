@@ -2,8 +2,9 @@
 
 use std::f64::consts::*;
 use std::intrinsics::unlikely;
+use std::ops;
 
-use common::constants::EARTH_R;
+use common::constants::*;
 use common::histogram::draw_hitogram;
 use common::maths::*;
 use common::obs_data::{Data, DataSample};
@@ -11,11 +12,10 @@ use common::plot::{draw_plot_svg, plotters, weight_to_rgb};
 use common::quick_median::SliceExt;
 use common::rand::random;
 use common::structs::*;
-use common::{nalgebra, rand, rand_distr};
+use common::{rand, rand_distr};
 
 use image::{Rgb, RgbImage};
 
-use nalgebra::Unit;
 use plotters::style::colors;
 use rand::prelude::SmallRng;
 use rand::{Rng, SeedableRng};
@@ -34,18 +34,14 @@ pub struct Solver {
 /// Parameters to tweak the algorithm
 #[derive(Debug, Clone, Copy)]
 pub struct Params {
-    /// Whether to tilt the observation to better match given descent angle
-    pub da_correction: f64,
-    /// Max correction that DAC is allowed to apply
-    pub dac_max: f64,
-    /// `evaluate_traj` uses only descent angles
     pub da_only: bool,
+    pub no_da_flip: bool,
 }
 
 /// The answer
 #[derive(Debug, Clone, Copy)]
 pub struct Solution {
-    pub flash: Vec3,
+    pub flash: Geodetic,
     pub velocity: Vec3,
 }
 
@@ -55,28 +51,10 @@ impl Solver {
         Solver { data, params }
     }
 
-    /// We assume that k_start & k_end are less accurate than descent_angle, so we tweak them to
-    /// match with descent_angle
-    pub fn enhance_data(&mut self) {
-        if self.params.da_correction > 0.0 {
-            for s in &mut self.data.samples {
-                if let Some(((da, axis), comp_da)) = s.da.zip(s.axis).zip(s.calculated_da()) {
-                    let angle = angle_diff(comp_da, da) * self.params.da_correction;
-                    if angle.abs() <= self.params.dac_max {
-                        let q = UnitQuaternion::from_axis_angle(&axis, angle);
-                        s.plane.as_mut().map(|k| *k = q * *k);
-                        s.k_start.as_mut().map(|k| *k = q * *k);
-                        s.k_end.as_mut().map(|k| *k = q * *k);
-                    }
-                }
-            }
-        }
-    }
-
     /// The weighted sum of pairwise plane crossings
     pub fn pairwise(&self) -> Line {
-        let mut point = Vec3::default();
-        let mut dir = Vec3::default();
+        let mut point = Vec3::new(0.0, 0.0, 0.0);
+        let mut dir = Vec3::new(0.0, 0.0, 0.0);
         let mut sum = 0.0;
         for (i, s1) in self.data.iter().enumerate() {
             for s2 in self.data.iter().skip(i + 1) {
@@ -89,11 +67,11 @@ impl Solver {
         }
         Line {
             point: point / sum,
-            direction: Unit::new_normalize(dir),
+            direction: UnitVec3::new_normalize(dir),
         }
     }
 
-    pub fn draw_2d_image<F: Fn(Line) -> f64>(
+    fn draw_2d_image<F: Fn(Line) -> f64>(
         &self,
         name: &str,
         traj: Line,
@@ -106,7 +84,7 @@ impl Solver {
             Rgb([(err * 255.0) as u8, ((1.0 - err) * 255.0) as u8, 0])
         }
 
-        let initial_spherical: Spherical = traj.point.into();
+        let initial_spherical = Geodetic::from_geocentric_cartesian(traj.point, 10);
         let d_lat = size_m * 0.5 / (EARTH_R * initial_spherical.lat.cos());
         let d_lon = size_m * 0.5 / EARTH_R;
         let lat = initial_spherical.lat;
@@ -125,25 +103,26 @@ impl Solver {
                 }
             }
 
-            fn get(&mut self, x: u32, y: u32) -> &mut f64 {
-                &mut self.mem[x as usize + y as usize * W]
+            fn get(&mut self, x: usize, y: usize) -> &mut f64 {
+                &mut self.mem[x + y * W]
             }
         }
 
-        let mut err_map = Flat2D::<1000, 1000>::new();
+        const DIM: usize = 4000;
+        let mut err_map = Flat2D::<DIM, DIM>::new();
 
-        for x in 0..1000 {
-            let lon = lon + lerp(-d_lon, d_lon, x as f64 / 1000.0);
-            for y in 0..1000 {
-                let lat = lat + lerp(d_lat, -d_lat, y as f64 / 1000.0);
+        for x in 0..DIM {
+            let lon = lon + lerp(-d_lon, d_lon, x as f64 / DIM as f64);
+            for y in 0..DIM {
+                let lat = lat + lerp(d_lat, -d_lat, y as f64 / DIM as f64);
 
-                let sph = Spherical {
+                let sph = Geodetic {
                     lat,
                     lon,
                     ..initial_spherical
                 };
                 let mut copy = traj;
-                copy.point = sph.into();
+                copy.point = sph.into_geocentric_cartesian();
 
                 let error = eval_fn(copy);
                 *err_map.get(x, y) = error;
@@ -153,23 +132,24 @@ impl Solver {
             }
         }
 
-        let mut img = RgbImage::new(1000, 1000);
+        let mut img = RgbImage::new(DIM as u32, DIM as u32);
 
         const WHITE: Rgb<u8> = Rgb([u8::MAX, u8::MAX, u8::MAX]);
         const BLUE: Rgb<u8> = Rgb([0, 0, u8::MAX]);
         const BLACK: Rgb<u8> = Rgb([0, 0, 0]);
 
-        for x in 0..1000 {
-            for y in 0..1000 {
+        for x in 0..DIM {
+            for y in 0..DIM {
                 let e = *err_map.get(x, y);
-                let color = if unlikely(e == min) {
+                let e_percent = (e - min) / min * 100.0;
+                let color = if e - min < 1e-6 {
                     WHITE
-                } else if unlikely(e - min < min * 0.01) {
+                } else if e_percent % 1.0 < 0.075 {
                     BLUE
                 } else {
                     error_to_color(e - min, contrast_k)
                 };
-                img.put_pixel(x, y, color);
+                img.put_pixel(x as u32, y as u32, color);
             }
         }
 
@@ -180,7 +160,7 @@ impl Solver {
             let y = ((s.geo_location.lat - initial_spherical.lat) / d_lat * -500.0 + 500.0).round()
                 as i32;
             let mut put_pixel = |x: i32, y: i32| {
-                if (0..1000).contains(&x) && (0..1000).contains(&y) {
+                if (0..DIM as i32).contains(&x) && (0..DIM as i32).contains(&y) {
                     img.put_pixel(x as u32, y as u32, BLACK);
                 }
             };
@@ -190,13 +170,18 @@ impl Solver {
             put_pixel(x + 1, y + 1);
         }
 
-        let path = format!("plots/{name}-2d-{}.png", random::<u32>());
+        let path = format!(
+            "plots/{name}-{}-2d-{}.png",
+            self.data.name.as_deref().unwrap_or("<unknown>"),
+            random::<u32>()
+        );
         eprintln!("saving to {path}");
         img.save(path).unwrap();
     }
 
     fn generic_iterative_search<F: Fn(Line) -> f64 + Send + Copy>(
-        mut best: Line,
+        name: &str,
+        mut best_traj: Line,
         dir_iters: usize,
         dir_sigma: f64,
         pos_iters: usize,
@@ -205,26 +190,24 @@ impl Solver {
     ) -> Line {
         let threads_cnt = std::thread::available_parallelism().unwrap().get();
 
-        let mut best_error = eval_fn(best);
-        let mut last_point = best.point;
-        eprintln!("Initial point: {}", Spherical::from(last_point));
-        eprintln!("initial best_error: {best_error}");
+        let mut best_error = eval_fn(best_traj);
 
         for iter_i in 1.. {
-            eprintln!("Iteration #{iter_i}");
+            eprintln!("{name} Iteration #{iter_i}");
             let prev_iter_err = best_error;
+            let last_best = best_traj;
 
             // Adjust direction
             std::thread::scope(|s| {
-                let handles: Vec<_> = (0..threads_cnt)
+                (0..threads_cnt)
                     .map(|_| {
                         s.spawn(move || {
                             let mut rng = SmallRng::from_entropy();
-                            let mut local_best = best;
+                            let mut local_best = best_traj;
                             let mut local_best_error = best_error;
 
                             for _ in 0..(dir_iters / threads_cnt) {
-                                let mut copy = best;
+                                let mut copy = best_traj;
                                 copy.direction = copy.direction.tilt_random(dir_sigma, &mut rng);
                                 let error = eval_fn(copy);
                                 if error < local_best_error {
@@ -236,43 +219,53 @@ impl Solver {
                             (local_best, local_best_error)
                         })
                     })
-                    .collect();
-
-                for handle in handles {
-                    let (t, te) = handle.join().unwrap();
-                    if te < best_error {
-                        best_error = te;
-                        best = t;
-                    }
-                }
+                    .collect::<Vec<_>>()
+                    .into_iter()
+                    .map(|handle| handle.join().unwrap())
+                    .for_each(|(traj, error)| {
+                        if error < best_error {
+                            best_error = error;
+                            best_traj = traj;
+                        }
+                    });
             });
-            eprintln!("best_error after direction adjustments: {best_error}");
+            eprintln!(
+                "  direction adjusted by {:.1}{DEGREE} ({:.1}% error)",
+                last_best
+                    .direction
+                    .dot(*best_traj.direction)
+                    .min(1.0)
+                    .acos()
+                    .to_degrees(),
+                (best_error - prev_iter_err) / prev_iter_err * 100.0,
+            );
 
-            let initial_spherical: Spherical = best.point.into();
+            let initial_spherical = Geodetic::from_geocentric_cartesian(best_traj.point, 10);
+            let prev_iter_err = best_error;
+            let last_best = best_traj;
             let d_lat = pos_sigma / (EARTH_R * initial_spherical.lat.cos());
             let d_lon = pos_sigma / EARTH_R;
 
             // Adjust position
             std::thread::scope(|s| {
-                let handles: Vec<_> = (0..threads_cnt)
+                (0..threads_cnt)
                     .map(|_| {
                         s.spawn(move || {
                             let mut rng = SmallRng::from_entropy();
-                            let mut local_best = best;
+                            let mut local_best = best_traj;
                             let mut local_best_error = best_error;
 
                             for _ in 0..(pos_iters / threads_cnt) {
-                                const R_MIN: f64 = EARTH_R + 40_000.0;
-                                let r_mid = lerp(R_MIN, initial_spherical.r, 0.4);
-                                let dr = (r_mid - R_MIN).abs() / 2.0 + 5_000.0;
+                                let h_mid = lerp(40_000.0, initial_spherical.h, 0.4);
+                                let dh = (h_mid - 40_000.0).abs() / 2.0 + 5_000.0;
 
-                                let mut spherical = initial_spherical;
-                                spherical.lat += d_lat * rng.sample::<f64, _>(StandardNormal);
-                                spherical.lon += d_lon * rng.sample::<f64, _>(StandardNormal);
-                                spherical.r = r_mid + dr * rng.sample::<f64, _>(StandardNormal);
+                                let mut geodetic = initial_spherical;
+                                geodetic.lat += d_lat * rng.sample::<f64, _>(StandardNormal);
+                                geodetic.lon += d_lon * rng.sample::<f64, _>(StandardNormal);
+                                geodetic.h = h_mid + dh * rng.sample::<f64, _>(StandardNormal);
 
-                                let mut copy = best;
-                                copy.point = spherical.into();
+                                let mut copy = best_traj;
+                                copy.point = geodetic.into_geocentric_cartesian();
 
                                 let error = eval_fn(copy);
                                 if error < local_best_error {
@@ -284,61 +277,60 @@ impl Solver {
                             (local_best, local_best_error)
                         })
                     })
-                    .collect();
-
-                for handle in handles {
-                    let (t, te) = handle.join().unwrap();
-                    if te < best_error {
-                        best_error = te;
-                        best = t;
-                    }
-                }
+                    .collect::<Vec<_>>()
+                    .into_iter()
+                    .map(|handle| handle.join().unwrap())
+                    .for_each(|(traj, error)| {
+                        if error < best_error {
+                            best_error = error;
+                            best_traj = traj;
+                        }
+                    });
             });
-
-            if last_point == best.point {
-                eprintln!("Point: N/C");
-            } else {
-                last_point = best.point;
-                eprintln!("Point: {}", Spherical::from(last_point));
-            }
-            eprintln!("best_error after position adjustments: {best_error}");
+            eprintln!(
+                "  position adjusted by {:.1}km ({:.1}% error)",
+                (last_best.point - best_traj.point).norm() * 1e-3,
+                (best_error - prev_iter_err) / prev_iter_err * 100.0,
+            );
 
             if (prev_iter_err - best_error) / best_error < 0.001 {
                 break;
             }
         }
 
-        best
+        best_traj
     }
 
     /// Perform the "least-median-of-squares"
     pub fn lms(&self, best: Line) -> Line {
-        self.draw_2d_image("lms", best, 600_000.0, 60.0, |traj| {
-            self.eval_median_of_squares(traj)
-        });
+        // self.draw_2d_image("lms", best, 600_000.0, 60.0, |traj| {
+        //     self.eval_median_of_squares(traj)
+        // });
 
         Self::generic_iterative_search(
+            "LMS",
             best,
-            1_000_000,
-            40f64.to_radians(),
-            15_000_000,
-            300_000.0,
+            3_000_000,
+            35f64.to_radians(),
+            6_000_000,
+            150_000.0,
             |traj| self.eval_median_of_squares(traj),
         )
     }
 
     /// Perform the "weidghted least-squares"
-    pub fn weighted_ls(&self, traj: Line, weights: &[(f64, f64, f64)]) -> Line {
-        self.draw_2d_image("ls", traj, 500_000.0, 100.0, |traj| {
-            self.eval_mean_of_squares(traj, weights)
-        });
+    pub fn ls(&self, traj: Line, weights: Option<&[Weight]>) -> Line {
+        // self.draw_2d_image("ls", traj, 500_000.0, 100.0, |traj| {
+        //     self.eval_mean_of_squares(traj, weights)
+        // });
 
         Self::generic_iterative_search(
+            "LS",
             traj,
-            1_000_000,
-            20f64.to_radians(),
-            15_000_000,
-            100_000.0,
+            5_000_000,
+            15f64.to_radians(),
+            6_000_000,
+            50_000.0,
             |traj| self.eval_mean_of_squares(traj, weights),
         )
     }
@@ -346,118 +338,189 @@ impl Solver {
     pub fn gradient_descent(
         &self,
         mut traj: Line,
-        weights: &[(f64, f64, f64)],
+        weights: Option<&[Weight]>,
         iterations: usize,
     ) -> Line {
-        let diff = |point: Vec3, dir: Azimuthal| {
-            let d_p: f64 = 50.0;
-            let d_v: f64 = 0.05f64.to_radians();
+        let diff_dir = |err0: f64, dir_a: Azimuthal, point: Vec3| {
+            const D_V: f64 = radians(1e-6);
 
-            let evall_ls = |dir: Azimuthal, point| {
-                self.eval_mean_of_squares(
-                    Line {
-                        point,
-                        direction: dir.into(),
-                    },
-                    weights,
-                )
+            let eval =
+                |direction: UnitVec3| self.eval_mean_of_squares(Line { point, direction }, weights);
+
+            let dir_z = UnitVec3::from(Azimuthal {
+                z: dir_a.z + D_V,
+                h: dir_a.h,
+            });
+
+            let dir_h = UnitVec3::from(Azimuthal {
+                z: dir_a.z,
+                h: dir_a.h + D_V,
+            });
+
+            let diff_vz = (eval(dir_z) - err0) / D_V;
+            let diff_vh = (eval(dir_h) - err0) / D_V;
+
+            (diff_vz, diff_vh)
+        };
+        let diff_p = |err0: f64, traj: Line| {
+            const D_P: f64 = 1e-6;
+
+            let eval = |direction: UnitVec3, point: Vec3| {
+                self.eval_mean_of_squares(Line { point, direction }, weights)
             };
+            let eval_with_offset = |offset: Vec3| eval(traj.direction, traj.point + offset);
 
-            let err0 = evall_ls(dir, point).sqrt();
+            let diff_x = (eval_with_offset(Vec3::x() * D_P) - err0) / D_P;
+            let diff_y = (eval_with_offset(Vec3::y() * D_P) - err0) / D_P;
+            let diff_z = (eval_with_offset(Vec3::z() * D_P) - err0) / D_P;
 
-            let diff_x = (evall_ls(dir, point + Vec3::x() * d_p).sqrt() - err0) / d_p;
-            let diff_y = (evall_ls(dir, point + Vec3::y() * d_p).sqrt() - err0) / d_p;
-            let diff_z = (evall_ls(dir, point + Vec3::z() * d_p).sqrt() - err0) / d_p;
-
-            let diff_vz = (evall_ls(
-                Azimuthal {
-                    z: dir.z + d_v,
-                    ..dir
-                },
-                point,
-            )
-            .sqrt()
-                - err0)
-                / d_v;
-            let diff_vh = (evall_ls(
-                Azimuthal {
-                    h: dir.h + d_v,
-                    ..dir
-                },
-                point,
-            )
-            .sqrt()
-                - err0)
-                / d_v;
-
-            (diff_x, diff_y, diff_z, diff_vz, diff_vh)
+            Vec3::new(diff_x, diff_y, diff_z)
         };
 
-        let mut point_descent_coeff: f64 = 1e6;
-        let mut direction_descent_coeff: f64 = 1.0;
+        let mut point_descent_coeff: f64 = 1e10;
+        let mut direction_descent_coeff: f64 = 1e10;
+
+        let mut cur_eval = self.eval_mean_of_squares(traj, weights);
+        let mut cur_dir_a = Azimuthal::from(traj.direction);
 
         for _ in 0..iterations {
-            let mut dir_azimuthal: Azimuthal = traj.direction.into_inner().into();
-            let (x, y, z, vz, vh) = diff(traj.point, dir_azimuthal);
+            if point_descent_coeff > 1e-100 {
+                // for dp_exp in (-10..=4).rev() {
+                //     let dp = 10f64.powi(dp_exp);
+                //     eprintln!(
+                //         "10^{dp_exp:+03} -> 10^{}",
+                //         diff_p(cur_eval, traj, dp).norm().log10()
+                //     );
+                // }
+                // eprintln!(
+                //     "2.329*10^-10 -> 10^{}",
+                //     diff_p(cur_eval, traj, 2.329e-10).norm().log10()
+                // );
+                // eprintln!();
+                // let diff = diff_p(cur_eval, traj, 0.0001);
+                let diff = diff_p(cur_eval, traj);
+                let old_eval = cur_eval;
+                let old = traj;
 
-            let old = traj;
+                traj.point -= diff * point_descent_coeff;
+                cur_eval = self.eval_mean_of_squares(traj, weights);
 
-            traj.point.x -= x * point_descent_coeff;
-            traj.point.y -= y * point_descent_coeff;
-            traj.point.z -= z * point_descent_coeff;
-
-            if self.eval_mean_of_squares(traj, weights) > self.eval_mean_of_squares(old, weights) {
-                traj = old;
-                point_descent_coeff *= 0.5;
+                if cur_eval >= old_eval {
+                    traj = old;
+                    cur_eval = old_eval;
+                    point_descent_coeff *= 0.5;
+                }
             }
 
             //----------------------------------------------------
 
-            let mut dir_azimuthal: Azimuthal = traj.direction.into_inner().into();
-            let (x, y, z, vz, vh) = diff(traj.point, dir_azimuthal);
+            if direction_descent_coeff > 1e-100 {
+                let (vz, vh) = diff_dir(cur_eval, cur_dir_a, traj.point);
+                let old_dir_a = cur_dir_a;
+                let old_eval = cur_eval;
+                let old_traj = traj;
 
-            let old = traj;
+                cur_dir_a.z -= vz * direction_descent_coeff;
+                cur_dir_a.h -= vh * direction_descent_coeff;
+                traj.direction = UnitVec3::from(cur_dir_a);
+                cur_eval = self.eval_mean_of_squares(traj, weights);
 
-            dir_azimuthal.z -= vz * direction_descent_coeff;
-            dir_azimuthal.h -= vh * direction_descent_coeff;
-            traj.direction = dir_azimuthal.into();
+                if cur_eval >= old_eval {
+                    cur_dir_a = old_dir_a;
+                    traj = old_traj;
+                    cur_eval = old_eval;
+                    direction_descent_coeff *= 0.5;
+                }
+            }
 
-            if self.eval_mean_of_squares(traj, weights) > self.eval_mean_of_squares(old, weights) {
-                traj = old;
-                direction_descent_coeff *= 0.5;
+            //----------------------------------------------------
+
+            if point_descent_coeff < 1e-100 && direction_descent_coeff < 1e-100 {
+                break;
             }
         }
 
         traj
     }
 
-    pub fn compute_weights(&self, traj: Line) -> Vec<(f64, f64, f64)> {
+    pub fn gradient_descent_complete(
+        &self,
+        mut traj: Line,
+        weights: Option<&[Weight]>,
+    ) -> (Line, usize) {
+        const ITERS: usize = 10_000;
+        const MIN_D_POINT_SQ: f64 = sq(0.0001);
+        const MIN_D_VEL_SQ: f64 = sq(radians(0.001));
+
+        for runs in 1.. {
+            let new_traj = self.gradient_descent(traj, weights, ITERS);
+            if (new_traj.point - traj.point).norm_squared() <= MIN_D_POINT_SQ
+                && (*new_traj.direction - *traj.direction).norm_squared() <= MIN_D_VEL_SQ
+            {
+                // dbg!(self.eval_mean_of_squares(traj, weights));
+                return (new_traj, runs);
+            }
+            traj = new_traj;
+        }
+
+        unreachable!()
+    }
+
+    pub fn compute_weights(&self, traj: Line) -> Vec<Weight> {
         let best_err = self.eval_median_of_squares(traj).sqrt()
             * 1.483
             * (1. + 5. / (self.data.samples.len() - 6) as f64);
         let get_weight = |err: f64| -> f64 {
             // Smooth transition from 1 to 0
             // Visualization: https://www.desmos.com/calculator/qxgcyxc3dc
-            const O: f64 = 1.5;
-            const F: f64 = 0.6;
+            const O: f64 = 0.95;
+            const F: f64 = 0.36;
             0.5 * (1.0 - ((err.abs() / best_err - O) / F).tanh())
         };
 
-        let mut weights: Vec<(f64, f64, f64)> = Vec::with_capacity(self.data.samples.len());
+        let mut weights: Vec<Weight> = Vec::with_capacity(self.data.samples.len());
         let mut sw = Vec::new();
         let mut ew = Vec::new();
         let mut daw = Vec::new();
+        let mut se = Vec::new();
+        let mut ee = Vec::new();
+        let mut dae = Vec::new();
         for s in &self.data.samples {
             let eval = self.evaluate_traj(s, traj);
             let b1 = eval.start.map_or(0.0, get_weight);
             let b2 = eval.end.map_or(0.0, get_weight);
             let b3 = eval.da.map_or(0.0, get_weight);
-            weights.push((b1, b2, b3));
+            weights.push(Weight {
+                start: b1,
+                end: b2,
+                da: b3,
+            });
+            eval.start.map(|x| se.push(x.abs() / best_err));
+            eval.end.map(|x| ee.push(x.abs() / best_err));
+            eval.da.map(|x| dae.push(x.abs() / best_err));
             eval.start.map(|_| sw.push(b1));
             eval.end.map(|_| ew.push(b2));
             eval.da.map(|_| daw.push(b3));
         }
 
+        println!("Error distribution");
+        println!();
+        if !sw.is_empty() {
+            println!("Start ({}):", se.len());
+            draw_hitogram(&se, 5);
+        }
+        if !ew.is_empty() {
+            println!("End ({}):", ee.len());
+            draw_hitogram(&ee, 5);
+        }
+        if !daw.is_empty() {
+            println!("DA ({}):", dae.len());
+            draw_hitogram(&dae, 5);
+        }
+        println!();
+
+        println!("Weight distribution");
+        println!();
         if !sw.is_empty() {
             println!("Start ({}):", sw.len());
             draw_hitogram(&sw, 5);
@@ -470,6 +533,7 @@ impl Solver {
             println!("DA ({}):", daw.len());
             draw_hitogram(&daw, 5);
         }
+        println!();
 
         weights
     }
@@ -485,26 +549,56 @@ impl Solver {
         buf.median()
     }
 
-    pub fn eval_mean_of_squares(&self, traj: Line, weights: &[(f64, f64, f64)]) -> f64 {
+    pub fn eval_mean_of_squares(&self, traj: Line, weights: Option<&[Weight]>) -> f64 {
         let mut sum = 0.0;
-        let mut cnt = 0.0;
-        let mut push = |x, w| {
-            sum += x * w;
-            cnt += w;
-        };
-        for (s, &(w1, w2, w3)) in self.data.iter().zip(weights) {
-            let eval = self.evaluate_traj(s, traj);
-            eval.start.map(|x| push(x * x, w1));
-            eval.end.map(|x| push(x * x, w2));
-            eval.da.map(|x| push(x * x, w3));
+
+        match weights {
+            Some(weights) => {
+                let mut cnt = 0.0;
+                for (s, w) in self.data.iter().zip(weights) {
+                    let eval = self.evaluate_traj(s, traj);
+                    if let Some(x) = eval.start {
+                        sum += x * x * w.start;
+                        cnt += w.start;
+                    }
+                    if let Some(x) = eval.end {
+                        sum += x * x * w.end;
+                        cnt += w.end;
+                    }
+                    if let Some(x) = eval.da {
+                        sum += x * x * w.da;
+                        cnt += w.da;
+                    }
+                }
+                sum / cnt
+            }
+            None => {
+                let mut cnt = 0usize;
+                for s in self.data.iter() {
+                    let eval = self.evaluate_traj(s, traj);
+                    if let Some(x) = eval.start {
+                        sum += x * x;
+                        cnt += 1;
+                    }
+                    if let Some(x) = eval.end {
+                        sum += x * x;
+                        cnt += 1;
+                    }
+                    if let Some(x) = eval.da {
+                        sum += x * x;
+                        cnt += 1;
+                    }
+                }
+                sum / cnt as f64
+            }
         }
-        sum / cnt
     }
 
-    fn draw_plots(&self, traj: Line, weights: &[(f64, f64, f64)], stage: &str) {
+    fn _draw_plots(&self, traj: Line, weights: Option<&[(f64, f64, f64)]>, stage: &str) {
         let mut points = Vec::new();
         let mut buf = Vec::new();
-        // let mut buf2 = Vec::new();
+
+        let get_w = |i: usize| weights.map(|w| w[i]).unwrap_or((0.0, 0.0, 0.0));
 
         points.clear();
         buf.clear();
@@ -513,7 +607,7 @@ impl Solver {
                 let x = (i + 1) as f64;
                 let y = da.to_degrees();
                 buf.push(y);
-                points.push((x, y, weight_to_rgb(weights[i].2), 2.5));
+                points.push((x, y, weight_to_rgb(get_w(i).2), 2.5));
             }
         }
         let med = buf.median();
@@ -526,247 +620,102 @@ impl Solver {
             &[],
         )
         .unwrap();
-
-        // points.clear();
-        // buf.clear();
-        // for (i, s) in self.data.samples.iter().enumerate() {
-        //     let Some(da_observed) = s.da else { continue };
-        //     let k = self.data.answer.unwrap().traj.point - s.location;
-        //     let da_comp = descent_angle(
-        //         s.location,
-        //         k,
-        //         self.data.answer.unwrap().traj.direction.into_inner(),
-        //     );
-        //     // let x = i as f64;
-        //     let x = da_observed.to_degrees();
-        //     let y = da_comp.to_degrees();
-        //     buf.push(y);
-        //     buf2.push(x);
-        //     points.push((x, y, weight_to_rgb(0.0), 2.5));
-        //     // points.push((x, y2, weight_to_rgb(0.0), 2.5));
-        // }
-        // let med_comp = buf.median();
-        // let med_observed = buf2.median();
-        // eprintln!("da_comp med = {med_comp}");
-        // eprintln!("da_observed med = {med_observed}");
-        // draw_plot_svg(
-        //     &format!("plots/da-{:.0}-{stage}.svg", traj.point.x),
-        //     &points,
-        //     &[],
-        //     &[
-        //         (0.0, colors::BLACK),
-        //         // (med_comp, colors::GREEN),
-        //         // (med_observed, colors::RED),
-        //     ],
-        // )
-        // .unwrap();
-
-        // use std::io::Write;
-        // let color = match points.len() {
-        //     203 => "Cyprus",
-        //     18 => "Denmark",
-        //     300 => "Florida",
-        //     116 => "Italy",
-        //     581 => "Netherlands",
-        //     _ => unreachable!(),
-        // };
-        // let mut file = BufWriter::new(
-        //     File::options()
-        //         .create(true)
-        //         .append(true)
-        //         .open("da-points.txt")
-        //         .unwrap(),
-        // );
-        // // writeln!(file, "x,y,color").unwrap();
-        // for (x, y, _, _) in &points {
-        //     writeln!(file, "{x},{y},{color}").unwrap();
-        // }
-        // eprintln!("Written {} points", points.len());
-
-        // points.clear();
-        // let mut buf = Vec::new();
-        // for (i, s) in self.data.samples.iter().enumerate() {
-        //     if let Some(error) = Self::evaluate_traj(s, traj).0 {
-        //         if let Some(k_start) = s.k_start {
-        //             let l_start = lambda(s.location, k_start, traj.point, traj.direction);
-        //             let x = l_start * 1e-3;
-        //             buf.push(x);
-        //             let y = error.to_degrees();
-        //             let weight = weights[i].0;
-        //             if x.abs() > 6_000.0 {
-        //                 eprintln!(
-        //                     "Warning: point skipped. Resaon: x = {x:.00}km. Weight = {weight:.03}."
-        //                 );
-        //             } else {
-        //                 points.push((x, y, weight_to_rgb(weight), 2.5));
-        //             }
-        //         }
-        //     }
-        // }
-        // let med = buf.median();
-        // draw_plot_svg(
-        //     &format!("plots/ls-{:.0}.svg", traj.point.x),
-        //     &points,
-        //     &[(med, colors::BLUE)],
-        //     &[(0.0, colors::BLACK)],
-        // )
-        // .unwrap();
-        //
-        // points.clear();
-        // buf.clear();
-        // for (i, s) in self.data.samples.iter().enumerate() {
-        //     if let Some(error) = Self::evaluate_traj(s, traj).1 {
-        //         if let Some(k_end) = s.k_end {
-        //             let l_end = lambda(s.location, k_end, traj.point, traj.direction);
-        //             let x = l_end * 1e-3;
-        //             buf.push(x);
-        //             let y = error.to_degrees();
-        //             let weight = weights[i].1;
-        //             if x.abs() > 6_000.0 {
-        //                 eprintln!(
-        //                     "Warning: point skipped. Resaon: x = {x:.00}km. Weight = {weight:.03}."
-        //                 );
-        //             } else {
-        //                 points.push((x, y, weight_to_rgb(weight), 2.5));
-        //             }
-        //         }
-        //     }
-        // }
-        // let med = buf.median();
-        // draw_plot_svg(
-        //     &format!("plots/le-{:.0}.svg", traj.point.x),
-        //     &points,
-        //     &[(med, colors::BLUE)],
-        //     &[(0.0, colors::BLACK)],
-        // )
-        // .unwrap();
     }
 
-    // pub fn altitude_correction_given_answer(&self, answer: Line) {
-    //     let mut points = Vec::new();
-    //
-    //     let new_h = |s: &DataSample, k: UnitVec3| {
-    //         let lm = lambda(s.location, k, answer.point, answer.direction);
-    //         let k_p = answer.point + answer.direction.into_inner() * lm - s.location;
-    //         let p: Azimuthal = Unit::new_normalize(k_p)
-    //             .to_local(s.geo_location)
-    //             .into_inner()
-    //             .into();
-    //         p.h
-    //
-    //         // let n = k.cross(&s.location);
-    //         // let l = (s.location - answer.point).dot(&n) / answer.direction.dot(&n);
-    //         // let p = answer.point + answer.direction.into_inner() * l;
-    //         // let k_new = (p - s.location).normalize();
-    //         // s.location.normalize().dot(&k_new).asin()
-    //     };
-    //
-    //     points.clear();
-    //     let mut buf_x = Vec::new();
-    //     let mut buf_y = Vec::new();
-    //     for s in self.data.samples.iter() {
-    //         if let Some(k) = s.k_start {
-    //             let az: Azimuthal = k.to_local(s.geo_location).into_inner().into();
-    //             let x = az.h.to_degrees();
-    //             let y = new_h(s, k).to_degrees();
-    //             if x.abs() > 6_000.0 {
-    //                 eprintln!("Warning: point skipped. Resaon: x = {x:.00}km.");
-    //             } else {
-    //                 buf_x.push(x);
-    //                 buf_y.push(y);
-    //                 points.push((x, y, weight_to_rgb(s.exp.unwrap_or(1.0) / 5.0), 2.5));
-    //             }
-    //         }
-    //     }
-    //     let med_x = buf_x.median();
-    //     let med_y = buf_y.median();
-    //
-    //     draw_plot_svg(
-    //         &format!("plots/ac-ls-{:.0}.svg", answer.point.x),
-    //         &points,
-    //         &[(med_x, colors::BLUE)],
-    //         &[(0.0, colors::BLACK), (med_y, colors::BLUE)],
-    //     )
-    //     .unwrap();
-    //
-    //     points.clear();
-    //     let mut buf_x = Vec::new();
-    //     let mut buf_y = Vec::new();
-    //     for s in self.data.samples.iter() {
-    //         if let Some(k) = s.k_end {
-    //             let az: Azimuthal = k.to_local(s.geo_location).into_inner().into();
-    //             let x = az.h.to_degrees();
-    //             let y = new_h(s, k).to_degrees();
-    //             if x.abs() > 6_000.0 {
-    //                 eprintln!("Warning: point skipped. Resaon: x = {x:.00}km.");
-    //             } else {
-    //                 buf_x.push(x);
-    //                 buf_y.push(y);
-    //                 points.push((x, y, weight_to_rgb(s.exp.unwrap_or(1.0) / 5.0), 2.5));
-    //             }
-    //         }
-    //     }
-    //     let med_x = buf_x.median();
-    //     let med_y = buf_y.median();
-    //     draw_plot_svg(
-    //         &format!("plots/ac-le-{:.0}.svg", answer.point.x),
-    //         &points,
-    //         &[(med_x, colors::BLUE)],
-    //         &[(0.0, colors::BLACK), (med_y, colors::BLUE)],
-    //     )
-    //     .unwrap();
-    //     eprintln!("{med_x:.0} -> {med_y:.0}");
-    // }
-
-    fn calc_sigmas(&mut self, traj: Line, weights: &[(f64, f64, f64)]) -> [f64; 6] {
+    fn calc_sigmas(&mut self, traj: Line, weights: Option<&[Weight]>) -> Sigmas {
         let (flash, speed) = self.calc_flash_and_speed(traj, weights);
         let dir: Azimuthal = traj.direction.into_inner().into();
 
-        dbg!(flash);
-        dbg!(dir);
+        // dbg!(flash);
+        // dbg!(dir);
 
-        let mut sum = [0.0; 6];
+        let mut sigmas = Sigmas::default();
 
-        const DA_D: f64 = 0.01;
+        const DA_D: f64 = radians(0.02);
+        const AZ_D: f64 = radians(0.02);
 
-        for i in 0..(self.data.iter().len()) {
-            if self.data.samples[i].da.is_none() {
-                continue;
+        for i in 0..(self.data.samples.len()) {
+            if i != 0 {
+                print!("{ANSI_GOTO_PREV_LINE}{ANSI_CLEAR_LINE}");
             }
 
-            if let Some(da_err) = self.evaluate_traj(&self.data.samples[i], traj).da {
+            println!(
+                "Calculating sigmas: {} ({}/{})",
+                &"##########----------"[(10 - (i + 1) * 10 / self.data.len())..][..10],
+                i + 1,
+                self.data.samples.len()
+            );
+            let eval = self.evaluate_traj(&self.data.samples[i], traj);
+
+            if let Some(da_err) = eval.da {
                 let old_da = self.data.samples[i].da;
                 *self.data.samples[i].da.as_mut().unwrap() += DA_D;
 
-                println!("{i}: flash.x = {} ", flash.x);
-                let new_traj = self.gradient_descent(traj, weights, 1_000);
-                let (new_flash, _new_speed) = self.calc_flash_and_speed(new_traj, weights);
-                println!("{i}: flash.x(1_000) = {} ", new_flash.x);
-                let new_traj = self.gradient_descent(new_traj, weights, 9_000);
-                let (new_flash, _new_speed) = self.calc_flash_and_speed(new_traj, weights);
-                println!("{i}: flash.x(10_000) = {} ", new_flash.x);
-                let new_traj = self.gradient_descent(new_traj, weights, 40_000);
-                let (new_flash, _new_speed) = self.calc_flash_and_speed(new_traj, weights);
-                println!("{i}: flash.x(50_000) = {} ", new_flash.x);
-                let new_traj = self.gradient_descent(new_traj, weights, 50_000);
+                let (new_traj, _gd_i) = self.gradient_descent_complete(traj, weights);
                 let (new_flash, new_speed) = self.calc_flash_and_speed(new_traj, weights);
-                println!("{i}: flash.x(100_000) = {} ", new_flash.x);
-                println!();
+                // println!(
+                //     "  [da] ({}K): {:.0}m/{DEGREE} * {:.0}{DEGREE} = {:.3}km\n        {:.3}{DEGREE}/{DEGREE} * {:.0}{DEGREE} = {}",
+                //     gd_i / 1000,
+                //     (new_flash - flash).norm() / DA_D.to_degrees(),
+                //     da_err.to_degrees().abs(),
+                //     (new_flash - flash).norm() / DA_D * da_err.abs() * 1e-3,
+                //     new_traj.direction.dot(*traj.direction).min(1.0).acos().to_degrees() / DA_D,
+                //     da_err.to_degrees().abs(),
+                //     new_traj.direction.dot(*traj.direction).min(1.0).acos() * da_err.abs() / DA_D,
+                // );
 
                 let new_dir: Azimuthal = new_traj.direction.into_inner().into();
                 self.data.samples[i].da = old_da;
 
-                let mul = weights[i].2 * da_err * da_err / DA_D / DA_D;
-                sum[0] += mul * f64::powi(new_flash.x - flash.x, 2);
-                sum[1] += mul * f64::powi(new_flash.y - flash.y, 2);
-                sum[2] += mul * f64::powi(new_flash.z - flash.z, 2);
-                sum[3] += mul * f64::powi(new_dir.z - dir.z, 2);
-                sum[4] += mul * f64::powi(new_dir.h - dir.h, 2);
-                sum[5] += mul * f64::powi(new_speed - speed, 2);
+                let mul = da_err * da_err / DA_D / DA_D;
+                sigmas.x += mul * f64::powi(new_flash.x - flash.x, 2);
+                sigmas.y += mul * f64::powi(new_flash.y - flash.y, 2);
+                sigmas.z += mul * f64::powi(new_flash.z - flash.z, 2);
+                sigmas.v_z += mul * f64::powi(new_dir.z - dir.z, 2);
+                sigmas.v_h += mul * f64::powi(new_dir.h - dir.h, 2);
+                sigmas.v_angle +=
+                    mul * f64::powi(new_traj.direction.dot(*traj.direction).min(1.0).acos(), 2);
+                sigmas.speed += mul * f64::powi(new_speed - speed, 2);
             }
+
+            // if let Some(z0_err) = eval.end {
+            //     let old_z0 = self.data.samples[i].z0;
+            //     *self.data.samples[i].z0.as_mut().unwrap() += AZ_D;
+
+            //     let (new_traj, _gd_i) = self.gradient_descent_complete(traj, weights);
+            //     let (new_flash, new_speed) = self.calc_flash_and_speed(new_traj, weights);
+            //     // println!(
+            //     //     "    [z0] ({}K): {:.0}m/{DEGREE} * {:.0}{DEGREE} = {:.3}km",
+            //     //     gd_i / 1000,
+            //     //     (new_flash - flash).norm() / DA_D.to_degrees(),
+            //     //     z0_err.to_degrees().abs(),
+            //     //     (new_flash - flash).norm() / DA_D * z0_err.abs() * 1e-3,
+            //     // );
+
+            //     let new_dir: Azimuthal = new_traj.direction.into_inner().into();
+            //     self.data.samples[i].z0 = old_z0;
+
+            //     let mul = z0_err * z0_err / AZ_D / AZ_D;
+            //     sigmas.x += mul * f64::powi(new_flash.x - flash.x, 2);
+            //     sigmas.y += mul * f64::powi(new_flash.y - flash.y, 2);
+            //     sigmas.z += mul * f64::powi(new_flash.z - flash.z, 2);
+            //     sigmas.v_z += mul * f64::powi(new_dir.z - dir.z, 2);
+            //     sigmas.v_h += mul * f64::powi(new_dir.h - dir.h, 2);
+            //     sigmas.v_angle +=
+            //         mul * f64::powi(new_traj.direction.dot(*traj.direction).min(1.0).acos(), 2);
+            //     sigmas.speed += mul * f64::powi(new_speed - speed, 2);
+            // }
         }
 
-        sum.map(f64::sqrt)
+        sigmas.x = sigmas.x.sqrt();
+        sigmas.y = sigmas.y.sqrt();
+        sigmas.z = sigmas.z.sqrt();
+        sigmas.v_z = sigmas.v_z.sqrt();
+        sigmas.v_h = sigmas.v_h.sqrt();
+        sigmas.v_angle = sigmas.v_angle.sqrt();
+        sigmas.speed = sigmas.speed.sqrt();
+
+        sigmas
     }
 
     fn flip_da(&mut self, traj: Line) -> usize {
@@ -776,7 +725,7 @@ impl Solver {
             let Some(dda) = self.evaluate_traj(&self.data.samples[i], traj).da
             else { continue };
 
-            if dda.abs() > FRAC_PI_2 {
+            if dda.abs() > f64::to_radians(120.0) {
                 let da = self.data.samples[i].da.as_mut().unwrap();
                 *da = (*da + PI) % TAU;
                 flipped += 1;
@@ -788,91 +737,85 @@ impl Solver {
 
     /// Find the solution
     pub fn solve(&mut self) -> Solution {
-        // self.enhance_data();
-
         let traj = self.pairwise();
         self.data.compare(traj, "Initial guess (pairwise)");
-        self.draw_plots(
-            traj,
-            &vec![(1.0, 1.0, 1.0); self.data.samples.len()],
-            "initial",
-        );
+
+        let (traj, gd_i) = self.gradient_descent_complete(traj, None);
+        self.data
+            .compare(traj, &format!("Gradient descent ({} runs)", gd_i));
 
         let traj = self.lms(traj);
         self.data.compare(traj, "After LMS");
-        self.draw_plots(
-            traj,
-            &vec![(1.0, 1.0, 1.0); self.data.samples.len()],
-            "after-lms",
-        );
 
-        let weights = self.compute_weights(traj);
-        self.draw_plots(traj, &weights, "with-weights");
+        let mut weights = self.compute_weights(traj);
 
-        let traj = self.weighted_ls(traj, &weights);
+        let mut traj = self.ls(traj, Some(&weights));
         self.data.compare(traj, "After LS");
 
-        self.draw_plots(traj, &weights, "after-ls");
+        if !self.params.no_da_flip {
+            eprintln!("flipped {} descent angles", self.flip_da(traj));
+            eprintln!();
+            weights = self.compute_weights(traj);
+            traj = self.ls(traj, Some(&weights));
+            self.data.compare(traj, "LS (after DA-flip)");
+        }
 
-        // let traj = self.gradient_descent(traj, &weights, 100_000);
-        // self.data.compare(traj, "After Gradient Descent");
-        // self.draw_plots(traj, &weights, "final");
+        let (traj, gd_i) = self.gradient_descent_complete(traj, Some(&weights));
+        self.data
+            .compare(traj, &format!("Gradient descent ({} runs)", gd_i));
 
-        dbg!(self.flip_da(traj));
+        // let sigmas = dbg!(self.calc_sigmas(traj, Some(&weights)));
+        // dbg!(Vec3::new(sigmas.x, sigmas.y, sigmas.z).norm() / 1000.0);
+        // dbg!(sigmas.v_angle.to_degrees());
 
-        let weights = self.compute_weights(traj);
-        self.draw_plots(traj, &weights, "with-weights");
+        self.draw_2d_image("ls", traj, 100_000.0, 120.0, |traj| {
+            self.eval_mean_of_squares(traj, Some(&weights))
+        });
 
-        let traj = self.weighted_ls(traj, &weights);
-        self.data.compare(traj, "After LS");
-
-        self.draw_plots(traj, &weights, "after-ls");
-
-        // let traj = self.gradient_descent(traj, &weights, 100_000);
-        // self.data.compare(traj, "After Gradient Descent");
-        // self.draw_plots(traj, &weights, "final");
-
-        // dbg!(self.calc_sigmas(traj, &weights));
-
-        let (flash, speed) = self.calc_flash_and_speed(traj, &weights);
+        let (flash, speed) = self.calc_flash_and_speed(traj, Some(&weights));
 
         Solution {
-            flash,
+            flash: Geodetic::from_geocentric_cartesian(flash, 10),
             velocity: traj.direction.into_inner() * speed,
         }
     }
 
     /// Calculate the flash location and the speed of the fireball
-    fn calc_flash_and_speed(&self, traj: Line, weights: &[(f64, f64, f64)]) -> (Vec3, f64) {
+    fn calc_flash_and_speed(&self, traj: Line, weights: Option<&[Weight]>) -> (Vec3, f64) {
         let mut lambdas = Vec::new();
-        let mut lambdas_all = Vec::new();
+        // let mut lambdas_all = Vec::new();
         let mut speeds = Vec::new();
 
-        let mut skipped_l_end_w = 0;
-        let mut skipped_l_end_dir = 0;
-        let mut total_l_end = 0;
+        // let mut skipped_l_end_w = 0;
+        // let mut skipped_l_end_dir = 0;
+        // let mut total_l_end = 0;
 
         for (i, s) in self.data.samples.iter().enumerate() {
-            if s.k_end.is_some() {
-                total_l_end += 1;
-            }
+            let Some(k_end) = s.k_end else { continue };
 
-            if !s.observation_matches(traj) {
-                skipped_l_end_dir += 1;
+            // total_l_end += 1;
+
+            // A vertor that describes the hemispace of "allowed" observations
+            let perp = traj
+                .direction
+                .cross(traj.point - s.location)
+                .cross(*traj.direction);
+            if perp.dot(*k_end) <= 0.0 {
+                // skipped_l_end_dir += 1;
                 continue;
             }
 
-            if let Some(k_end) = s.k_end {
-                let l_end = lambda(s.location, k_end, traj.point, traj.direction);
+            let l_end = lambda(s.location, k_end, traj.point, traj.direction);
 
-                if weights[i].1 > 0.5 {
-                    lambdas.push(l_end);
-                    lambdas_all.push(l_end);
-                } else {
-                    lambdas_all.push(l_end);
-                    skipped_l_end_w += 1;
-                }
+            if weights.is_some_and(|w| w[i].end > 0.5) {
+                lambdas.push(l_end);
+                // lambdas_all.push(l_end);
+            } else {
+                // lambdas_all.push(l_end);
+                // skipped_l_end_w += 1;
+            }
 
+            if s.observation_matches(traj) {
                 if let Some((duration, k_start)) = s.dur.zip(s.k_start) {
                     let l_start = lambda(s.location, k_start, traj.point, traj.direction);
                     let dist = l_end - l_start;
@@ -881,12 +824,12 @@ impl Solver {
             }
         }
 
-        eprintln!("skipped {skipped_l_end_w}(weight) + {skipped_l_end_dir}(direction) l_end out of {total_l_end}");
+        // eprintln!("skipped {skipped_l_end_w}(weight) + {skipped_l_end_dir}(direction) l_end out of {total_l_end}");
 
         let l_end = lambdas.median();
-        let l_end_all = lambdas_all.median();
+        // let l_end_all = lambdas_all.median();
 
-        dbg!(l_end - l_end_all);
+        // dbg!(l_end - l_end_all);
 
         let speed = speeds.median();
         (traj.point + traj.direction.into_inner() * l_end, speed)
@@ -896,16 +839,9 @@ impl Solver {
         Evaluation {
             start: None,
             end: if !self.params.da_only {
-                sample.z0.map(|z0| {
-                    let zf = sample.calc_azimuth(traj.point);
-                    // TODO: what when wrong?
-                    // let Azimuthal { z: zf, h: _ } =
-                    //     UnitVec3::new_normalize(traj.point - sample.location)
-                    //         .to_local(sample.geo_location)
-                    //         .into_inner()
-                    //         .into();
-                    angle_diff(z0, zf)
-                })
+                sample
+                    .z0
+                    .map(|z0| angle_diff(z0, sample.calc_azimuth(traj.point)))
             } else {
                 None
             },
@@ -923,10 +859,35 @@ impl Solver {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 pub struct Evaluation {
     pub start: Option<f64>,
     pub end: Option<f64>,
     pub da: Option<f64>,
+}
+
+impl ops::Sub for Evaluation {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        Self {
+            start: self.start.zip(rhs.start).map(|(x, y)| x - y),
+            end: self.end.zip(rhs.end).map(|(x, y)| x - y),
+            da: self.da.zip(rhs.da).map(|(x, y)| x - y),
+        }
+    }
+}
+
+impl ops::Div<f64> for Evaluation {
+    type Output = Self;
+
+    fn div(self, rhs: f64) -> Self {
+        Self {
+            start: self.start.map(|x| x / rhs),
+            end: self.end.map(|x| x / rhs),
+            da: self.da.map(|x| x / rhs),
+        }
+    }
 }
 
 impl Evaluation {
@@ -940,6 +901,34 @@ impl Evaluation {
     }
 }
 
+pub struct Weight {
+    pub start: f64,
+    pub end: f64,
+    pub da: f64,
+}
+
 fn lerp(a: f64, b: f64, w: f64) -> f64 {
     a + (b - a) * w
+}
+
+#[derive(Debug, Default)]
+pub struct Sigmas {
+    /// Meters
+    pub x: f64,
+    /// Meters
+    pub y: f64,
+    /// Meters
+    pub z: f64,
+    /// Radians
+    pub v_z: f64,
+    /// Radians
+    pub v_h: f64,
+    /// Radians
+    pub v_angle: f64,
+    /// Meters/Seconds
+    pub speed: f64,
+}
+
+const fn sq(x: f64) -> f64 {
+    x * x
 }

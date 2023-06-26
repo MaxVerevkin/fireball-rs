@@ -1,0 +1,64 @@
+[[sample]]
+lat = 48.6914
+lon = -79.3824
+h = 273
+a = 135
+zb = 276.275
+hb = 60
+z0 = 314.229
+h0 = 20
+t = 3.5
+name = "Caroline C"
+exp = 1
+
+[[sample]]
+lat = 46.1502
+lon = -77.5555
+h = 120
+hb = 50
+z0 = 337.113
+t = 7.5
+name = "Chris I"
+exp = 2
+
+[[sample]]
+lat = 47.5136
+lon = -79.6702
+h = 184.12
+zb = 1.00709
+z0 = 355.995
+t = 10
+name = "Adam I"
+exp = 3
+
+[[sample]]
+lat = 48.4978
+lon = -81.2004
+h = 295
+a = 135
+zb = 290.842
+hb = 65
+z0 = 340.568
+t = 7.5
+name = "Sean L"
+exp = 3
+
+[[sample]]
+lat = 44.5196
+lon = -80.7225
+h = 278.48
+a = 135
+zb = 301.866
+hb = 23
+z0 = 352.504
+t = 3.5
+name = "howard s"
+exp = 4
+
+[answer]
+lat = 51.2
+lon = -84.6
+h = 27800
+vx = 3.4
+vy = 12.0
+vz = 5.1
