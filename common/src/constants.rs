@@ -9,6 +9,9 @@ pub const EARTH_R: f64 = 6_371_000.;
 /// Unicode's degree symbol
 pub const DEGREE: char = '\u{00b0}';
 
+/// Unicode's sigma symbol
+pub const SIGMA: char = '\u{03c3}';
+
 /// Unicode's plus-minus symbol
 pub const PLUS_MINUS: char = '\u{00b1}';
 

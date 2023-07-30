@@ -222,17 +222,12 @@ impl DataSample {
         true
     }
 
-    /// Calculate azimuth in range [0, Tau)
+    /// Calculate azimuth in range (-pi, pi]
     pub fn calc_azimuth(&self, p: Vec3) -> f64 {
         let k = p - self.location;
         let x = k.dot(*self.east_dir);
         let y = k.dot(*self.north_dir);
-        let atan = f64::atan2(x, y);
-        if atan < 0.0 {
-            atan + TAU
-        } else {
-            atan
-        }
+        f64::atan2(x, y)
     }
 }
 
@@ -353,7 +348,9 @@ impl RawData {
 impl Data {
     pub fn compare(&self, other: Line, message: &str) {
         let Some(answer) = self.answer else { return };
-        let Some(answer_point) = answer.point else { return };
+        let Some(answer_point) = answer.point else {
+            return;
+        };
 
         let vel_error = answer
             .traj

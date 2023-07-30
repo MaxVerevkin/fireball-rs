@@ -199,7 +199,7 @@ fn calc_sigmas(points: &[Sample], weights: &[f64], orig_a: f64) -> f64 {
         .get()
         .min(points.len());
 
-    const D_REPORTED: f64 = radians(0.1);
+    const D_REPORTED: f64 = to_radians(0.1);
 
     std::thread::scope(|s| {
         (0..thread_cnt)
@@ -225,8 +225,11 @@ fn calc_sigmas(points: &[Sample], weights: &[f64], orig_a: f64) -> f64 {
                         };
 
                         samples[i].reported += D_REPORTED;
-                        let new_a =
-                            one_dim_gradint_descent(|a| eval_a(a, &samples), orig_a, radians(0.01));
+                        let new_a = one_dim_gradint_descent(
+                            |a| eval_a(a, &samples),
+                            orig_a,
+                            to_radians(0.01),
+                        );
                         samples[i].reported = sample.reported;
 
                         let da_dr = (orig_a - new_a) / D_REPORTED;
@@ -256,7 +259,7 @@ fn parse_file(in_file: impl AsRef<Path>) -> Option<impl Iterator<Item = Sample>>
 
     Some(data.samples.into_iter().flat_map(move |s| {
         let reported = s.z0?.rem_euclid(TAU);
-        let actual = s.calc_azimuth(point);
+        let actual = s.calc_azimuth(point).rem_euclid(TAU);
         Some(Sample { reported, actual })
     }))
 }

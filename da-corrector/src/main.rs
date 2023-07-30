@@ -8,6 +8,7 @@ use common::obs_data::RawData;
 use common::plot::plotters::style::BLACK;
 use common::plot::{draw_plot_svg_with_named_axes, weight_to_rgb, RGBColor};
 use common::quick_median::SliceExt;
+use common::structs::UnitVec3;
 use common::utils::DisplayWithSigmaPercents;
 use common::{maths::*, one_dim_search::*};
 
@@ -29,20 +30,20 @@ fn main() {
         .collect();
     println!("#samples = {}", samples.len());
 
-    // let mut flipped_cnt = 0;
-    // for s in &mut samples {
-    //     let flipped_reported = (s.reported + PI) % TAU;
-    //     if (flipped_reported - s.actual).abs() < FRAC_PI_2 {
-    //         s.reported = flipped_reported;
-    //         flipped_cnt += 1;
-    //     }
-    // }
-    // println!();
-    // println!(
-    //     "flipped {flipped_cnt} ({:.0}%)",
-    //     flipped_cnt as f64 / samples.len() as f64 * 100.0
-    // );
-    // println!();
+    let mut flipped_cnt = 0;
+    for s in &mut samples {
+        let flipped_reported = (s.reported + PI) % TAU;
+        if (flipped_reported - s.actual).abs() < FRAC_PI_2 {
+            s.reported = flipped_reported;
+            flipped_cnt += 1;
+        }
+    }
+    println!();
+    println!(
+        "flipped {flipped_cnt} ({:.0}%)",
+        flipped_cnt as f64 / samples.len() as f64 * 100.0
+    );
+    println!();
 
     let (a, sigma) = lms(&samples);
     let weights = get_weights(&samples, a, sigma);
@@ -228,7 +229,7 @@ fn calc_sigmas(points: &[Sample], weights: &[f64], orig_a: f64) -> f64 {
         .get()
         .min(points.len());
 
-    const D_REPORTED: f64 = radians(2.0);
+    const D_REPORTED: f64 = to_radians(2.0);
 
     std::thread::scope(|s| {
         (0..thread_cnt)
@@ -254,8 +255,11 @@ fn calc_sigmas(points: &[Sample], weights: &[f64], orig_a: f64) -> f64 {
                         };
 
                         samples[i].reported += D_REPORTED;
-                        let new_a =
-                            one_dim_gradint_descent(|a| eval_a(a, &samples), orig_a, radians(0.01));
+                        let new_a = one_dim_gradint_descent(
+                            |a| eval_a(a, &samples),
+                            orig_a,
+                            to_radians(0.01),
+                        );
                         samples[i].reported = sample.reported;
 
                         let da_dr = (orig_a - new_a) / D_REPORTED;
@@ -285,9 +289,9 @@ fn parse_file(in_file: impl AsRef<Path>) -> Option<impl Iterator<Item = Sample>>
 
     Some(data.samples.into_iter().flat_map(move |s| {
         let reported = s.da?;
-        let k = traj.point - s.location;
+        let k = UnitVec3::new_normalize(traj.point - s.location);
         // let k = traj.point - (traj.direction * 35_000.0) - s.location;
-        let actual = descent_angle(s.location, k, traj.direction.into_inner());
+        let actual = descent_angle(s.zenith_dir, k, traj.direction.into_inner()).rem_euclid(TAU);
         Some(Sample { reported, actual })
     }))
 }

@@ -9,7 +9,7 @@ mod vec3;
 pub use vec3::*;
 
 mod line;
-pub use line::Line;
+pub use line::{Line, LineGrad};
 
 mod geodetic;
 pub use geodetic::*;

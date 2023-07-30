@@ -5,8 +5,8 @@
 //! in the space that represents the trajectory of a fireball. The binary search
 //! itself minimizes the mean-square-error of observations given trajectory.
 
-#![feature(core_intrinsics, let_chains, const_fn_floating_point_arithmetic)]
-#![allow(clippy::option_map_unit_fn)]
+#![feature(const_fn_floating_point_arithmetic)]
+// #![allow(clippy::option_map_unit_fn)]
 
 #[macro_use]
 extern crate assert_approx_eq;

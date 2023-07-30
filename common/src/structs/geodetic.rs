@@ -84,7 +84,7 @@ impl fmt::Display for Geodetic {
         write!(
             f,
             "({:.3}{}{}, {:.3}{}{}, {:.3} KM)",
-            self.lat.to_degrees(),
+            self.lat.to_degrees().abs(),
             DEGREE,
             lat_dir,
             self.lon.to_degrees().abs(),
