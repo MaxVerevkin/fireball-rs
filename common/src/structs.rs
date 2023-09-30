@@ -3,7 +3,7 @@
 use std::f64::consts::TAU;
 use std::fmt::{self, Display};
 
-use crate::constants::DEGREE;
+use crate::constants::DEGREE_SYM;
 
 mod vec3;
 pub use vec3::*;
@@ -25,7 +25,7 @@ impl Display for Azimuthal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "({:.3}{DEGREE}, {:.3}{DEGREE})",
+            "({:.3}{DEGREE_SYM}, {:.3}{DEGREE_SYM})",
             self.z.to_degrees(),
             self.h.to_degrees()
         )

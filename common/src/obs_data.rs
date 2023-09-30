@@ -387,12 +387,11 @@ impl Data {
         eprintln!("Point: {geo}");
         eprintln!("Distance: {distance:.1}km");
         if let Some(vel_error) = vel_error {
-            eprintln!("Velocity angular error: {vel_error:.1}{DEGREE}");
+            eprintln!("Velocity angular error: {vel_error:.1}{DEGREE_SYM}");
         }
         if let Some(elevation_angle) = elevation_angle {
-            eprintln!("Elevation angular error: {elevation_angle:.1}{DEGREE}");
+            eprintln!("Elevation angular error: {elevation_angle:.1}{DEGREE_SYM}");
         }
-        eprintln!();
     }
 }
 

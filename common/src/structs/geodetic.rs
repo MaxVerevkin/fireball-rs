@@ -2,7 +2,7 @@ use std::f64::consts::{PI, TAU};
 use std::fmt;
 
 use super::{UnitVec3, Vec3};
-use crate::constants::DEGREE;
+use crate::constants::DEGREE_SYM;
 
 // As per GRS80
 // https://en.wikipedia.org//wiki/Geodetic_Reference_System_1980
@@ -85,10 +85,10 @@ impl fmt::Display for Geodetic {
             f,
             "({:.3}{}{}, {:.3}{}{}, {:.3} KM)",
             self.lat.to_degrees().abs(),
-            DEGREE,
+            DEGREE_SYM,
             lat_dir,
             self.lon.to_degrees().abs(),
-            DEGREE,
+            DEGREE_SYM,
             lon_dir,
             self.h * 1e-3,
         )
