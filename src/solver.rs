@@ -1,17 +1,18 @@
 //! The implementation
 
+use std::collections::HashMap;
 use std::f64::consts::*;
 use std::ops;
 use std::time::Instant;
 
-use common::constants::*;
 use common::histogram::draw_hitogram;
 use common::maths::*;
-use common::obs_data::{Data, DataSample};
+use common::obs_data::{Data, DataSample, PartDiff};
 use common::plot::{draw_plot_svg, plotters, weight_to_rgb};
-use common::quick_median::{SliceExt, SliceExt2};
+use common::quick_median::SliceExt;
 use common::rand::random;
 use common::structs::*;
+use common::{constants::*, Sigmas};
 use common::{rand, rand_distr};
 
 use image::{Rgb, RgbImage};
@@ -21,12 +22,38 @@ use rand::prelude::SmallRng;
 use rand::{Rng, SeedableRng};
 use rand_distr::StandardNormal;
 use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
 
 pub mod pair;
 use pair::PairTrajectory;
 
-const GD_FIRST_ERR_DIFF: f64 = 1e-8;
-const GD_TARGET_ERR_DIFF: f64 = 1e-11;
+const ERR_INCR_COLOR: yansi::Color = yansi::Color::Red;
+const ERR_DECR_COLOR: yansi::Color = yansi::Color::Unset;
+fn eval_err_colored(err: f64) -> yansi::Paint<f64> {
+    yansi::Paint::new(err).fg(if err > f64::EPSILON * 16.0 {
+        ERR_INCR_COLOR
+    } else {
+        ERR_DECR_COLOR
+    })
+}
+
+const GD_FIRST_PARAMS: GradDescentParams = GradDescentParams {
+    target_err_rel: 1e-5,
+    debug: false,
+    realtime_graph: true,
+};
+
+const GD_FINAL_PARAMS: GradDescentParams = GradDescentParams {
+    target_err_rel: 1e-10,
+    debug: false,
+    realtime_graph: true,
+};
+
+const GD_SIGMA_PARAMS: GradDescentParams = GradDescentParams {
+    target_err_rel: 1e-10,
+    debug: false,
+    realtime_graph: false,
+};
 
 /// Contains all necessary information to solve the problem
 #[derive(Clone)]
@@ -56,25 +83,183 @@ impl Solver {
     }
 
     /// The weighted sum of pairwise plane crossings
-    pub fn pairwise(&self) -> Line {
+    pub fn pairwise(&self) -> (Line, Sigmas) {
         let mut point = Vec3::new(0.0, 0.0, 0.0);
         let mut dir = Vec3::new(0.0, 0.0, 0.0);
         let mut sum = 0.0;
+        let mut results = HashMap::new();
         for (i, s1) in self.data.iter().enumerate() {
-            for s2 in self.data.iter().skip(i + 1) {
+            for (j, s2) in self.data.iter().enumerate().skip(i + 1) {
                 if let Some(pair) = PairTrajectory::calculate(s1, s2) {
                     point += pair.line.point * pair.weight;
-                    dir += pair.line.direction.into_inner() * pair.weight;
+                    dir += pair.line.direction * pair.weight;
                     sum += pair.weight;
+                    results.insert((i, j), pair);
                 }
             }
         }
-        Line {
+        let ans = Line {
             point: point / sum,
             direction: UnitVec3::new_normalize(dir),
+        };
+
+        let mut sigmas = Sigmas::default();
+
+        let mut push = |si: usize, err: f64, pd: PartDiff| {
+            let (p_diff, d_diff) = self.pairwise_diff(si, &pd, &results, point, dir, sum);
+            assert_approx_eq!(ans.direction.dot(d_diff), 0.0);
+            sigmas.add_point(p_diff, err);
+            sigmas.v_angle += d_diff.norm_squared() * err * err;
+        };
+
+        for (sample_i, sample) in self.data.iter().enumerate() {
+            let plane_norm = (ans.point - sample.location)
+                .cross(*ans.direction)
+                .normalize();
+            let semispace_k = ans.direction.cross(ans.point - sample.location);
+
+            let project_k = |k: UnitVec3| -> Vec3 {
+                let proj = if k.dot(semispace_k) >= 0.0 {
+                    (k.into_inner() - plane_norm * k.dot(plane_norm)).normalize()
+                } else {
+                    ans.direction * k.dot(*ans.direction).signum()
+                };
+                assert_approx_eq!(proj.dot(plane_norm), 0.0);
+                proj
+            };
+
+            if let Some(k_end) = sample.k_end {
+                // Project `k_end` on the apparent arc as defined by `ans`.
+                let k_end_projected = project_k(k_end);
+
+                // Calculate z0 and h0 errors
+                let projected_az =
+                    Azimuthal::from(sample.geo_location.geocentric_to_local(k_end_projected));
+                let h0_error = angle_diff(sample.h0.unwrap(), projected_az.h);
+
+                // HACK: using this approximation because of zenith problems.
+                // let z0_error = angle_diff(sample.z0.unwrap(), projected_az.z);
+                let z0_error = (k_end.dot(k_end_projected).clamp(-1.0, 1.0).acos().powi(2)
+                    - h0_error * h0_error)
+                    .max(0.0)
+                    .sqrt();
+
+                push(
+                    sample_i,
+                    z0_error,
+                    PartDiff {
+                        dz0: 1.0,
+                        dh0: 0.0,
+                        dzb: 0.0,
+                        dhb: 0.0,
+                        dda: 0.0,
+                    },
+                );
+
+                push(
+                    sample_i,
+                    h0_error,
+                    PartDiff {
+                        dz0: 0.0,
+                        dh0: 1.0,
+                        dzb: 0.0,
+                        dhb: 0.0,
+                        dda: 0.0,
+                    },
+                );
+            }
+            if let Some(k_start) = sample.k_start {
+                // Project `k_start` on the apparent arc as defined by `ans`.
+                let k_start_projected = project_k(k_start);
+
+                // Calculate zb and hb errors
+                let projected_az =
+                    Azimuthal::from(sample.geo_location.geocentric_to_local(k_start_projected));
+                let hb_error = angle_diff(sample.hb.unwrap(), projected_az.h);
+
+                // HACK: using this approximation because of zenith problems.
+                // let zb_error = angle_diff(sample.zb.unwrap(), projected_az.z);
+                let zb_error = (k_start
+                    .dot(k_start_projected)
+                    .clamp(-1.0, 1.0)
+                    .acos()
+                    .powi(2)
+                    - hb_error * hb_error)
+                    .max(0.0)
+                    .sqrt();
+
+                push(
+                    sample_i,
+                    zb_error,
+                    PartDiff {
+                        dz0: 0.0,
+                        dh0: 0.0,
+                        dzb: 1.0,
+                        dhb: 0.0,
+                        dda: 0.0,
+                    },
+                );
+
+                push(
+                    sample_i,
+                    hb_error,
+                    PartDiff {
+                        dz0: 0.0,
+                        dh0: 0.0,
+                        dzb: 0.0,
+                        dhb: 1.0,
+                        dda: 0.0,
+                    },
+                );
+            }
         }
+
+        (ans, sigmas.sqrt())
     }
 
+    /// Returns (point_diff, direction_diff)
+    pub fn pairwise_diff(
+        &self,
+        diff_i: usize,
+        pd: &PartDiff,
+        results: &HashMap<(usize, usize), PairTrajectory>,
+        point: Vec3,
+        dir: Vec3,
+        sum: f64,
+    ) -> (Vec3, Vec3) {
+        let mut point_diff = Vec3::new(0.0, 0.0, 0.0);
+        let mut dir_diff = Vec3::new(0.0, 0.0, 0.0);
+        let mut sum_diff = 0.0;
+        // let mut stat = Vec::new();
+        for i in 0..self.data.len() {
+            if i != diff_i {
+                if let Some(pair) = results.get(&(i.min(diff_i), i.max(diff_i))) {
+                    let (p_diff, d_diff, w_diff) =
+                        PairTrajectory::diff(&self.data.samples[diff_i], &self.data.samples[i], pd)
+                            .unwrap();
+                    point_diff += pair.line.point * w_diff + p_diff * pair.weight;
+                    dir_diff += pair.line.direction * w_diff + d_diff * pair.weight;
+                    sum_diff += w_diff;
+                    // if diff_i == 13 && pd.dzb == 1.0 {
+                    //     stat.push((
+                    //         (pair.line.point * w_diff + p_diff * pair.weight).norm(),
+                    //         pair.weight,
+                    //     ));
+                    // }
+                }
+            }
+        }
+        // if diff_i == 13 && pd.dzb == 1.0 {
+        //     stat.sort_unstable_by(|a, b| b.0.total_cmp(&a.0));
+        //     dbg!(stat);
+        // }
+        (
+            point_diff / sum - point / (sum * sum) * sum_diff,
+            dir.normalize_diff(dir_diff),
+        )
+    }
+
+    #[allow(dead_code)]
     fn draw_2d_image<F: Fn(Line) -> f64>(
         &self,
         name: &str,
@@ -245,10 +430,10 @@ impl Solver {
             );
 
             let initial_spherical = Geodetic::from_geocentric_cartesian(best_traj.point, 10);
-            let prev_iter_err = best_error;
             let last_best = best_traj;
             let d_lat = pos_sigma / (EARTH_R * initial_spherical.lat.cos());
             let d_lon = pos_sigma / EARTH_R;
+            let err_before_pos_adj = best_error;
 
             // Adjust position
             std::thread::scope(|s| {
@@ -294,7 +479,7 @@ impl Solver {
             eprintln!(
                 "  position adjusted by {:.1}km ({:.1}% error)",
                 (last_best.point - best_traj.point).norm() * 1e-3,
-                (best_error - prev_iter_err) / prev_iter_err * 100.0,
+                (best_error - err_before_pos_adj) / err_before_pos_adj * 100.0,
             );
 
             if (prev_iter_err - best_error) / best_error < 0.001 {
@@ -343,133 +528,195 @@ impl Solver {
         &self,
         mut traj: Line,
         weights: Option<&[Weight]>,
-        iterations: usize,
-    ) -> Line {
-        const K: f64 = -1e9;
-        const MAX_JUMP: f64 = 100.0;
+        iterations: u32,
+    ) -> (Line, GradientDescentStats) {
+        const K: f64 = -2e9;
+        // const K: f64 = -1e9;
 
-        let mut maxed = 0;
+        // const MAX_JUMP: f64 = 7.0;
+        // const MAX_JUMP: f64 = 16.0;
+        const MAX_JUMP: f64 = 25.0;
 
-        for _ in 0..iterations {
-            let (_, grad) = self.eval_grad_mean_of_squares(traj, weights);
+        let mut cycle = CycleDetector::default();
+        let mut stats = GradientDescentStats::default();
 
-            let mut delta = grad.point * K;
+        while stats.iters < iterations && !cycle.had(&traj.point) {
+            stats.iters += 1;
+            cycle.push(traj.point);
+
+            let grad = self.eval_point_grad_mean_of_squares(traj, weights);
+
+            let mut delta = grad * K;
             let delta_dist = delta.norm();
+            stats.mean_unclipped_jump += delta_dist;
             if delta_dist > MAX_JUMP {
-                maxed += 1;
+                stats.clipped_jumps_percent += 1.0;
                 delta *= MAX_JUMP / delta_dist;
             }
+
             traj.point += delta;
         }
 
-        eprint!("maxed {maxed} ");
+        stats.clipped_jumps_percent *= 100.0 / stats.iters as f64;
+        stats.mean_unclipped_jump /= stats.iters as f64;
 
-        traj
+        (traj, stats)
     }
 
     pub fn gradient_descent_dir(
         &self,
         mut traj: Line,
         weights: Option<&[Weight]>,
-        iterations: usize,
-    ) -> Line {
-        const K: f64 = -0.001;
-        // const K: f64 = -1e9;
-        const MAX_JUMP: f64 = 0.01;
+        iterations: u32,
+    ) -> (Line, GradientDescentStats) {
+        const K: f64 = -1e-5;
+        const MAX_JUMP: f64 = 0.00002;
 
-        let mut maxed = 0;
+        let mut cycle = CycleDetector::default();
+        let mut stats = GradientDescentStats::default();
 
-        for _ in 0..iterations {
-            let (_, grad) = self.eval_grad_mean_of_squares(traj, weights);
+        while stats.iters < iterations && !cycle.had(&*traj.direction) {
+            cycle.push(*traj.direction);
+            stats.iters += 1;
 
-            let mut delta = grad.direction * K;
+            let grad = self.eval_dir_grad_mean_of_squares(traj, weights);
+
+            let mut delta = grad * K;
             let delta_dist = delta.norm();
+            stats.mean_unclipped_jump += delta_dist;
             if delta_dist > MAX_JUMP {
-                maxed += 1;
+                stats.clipped_jumps_percent += 1.0;
                 delta *= MAX_JUMP / delta_dist;
             }
             traj.direction = UnitVec3::new_normalize(traj.direction + delta);
         }
 
-        eprint!("maxed {maxed} ");
+        stats.clipped_jumps_percent *= 100.0 / stats.iters as f64;
+        stats.mean_unclipped_jump /= stats.iters as f64;
 
-        traj
+        (traj, stats)
     }
 
     pub fn gradient_descent_complete(
         &self,
         mut traj: Line,
         weights: Option<&[Weight]>,
-        target_err_diff: f64,
+        params: &GradDescentParams,
     ) -> (Line, usize) {
-        const ITERS_POINT: usize = 100_000;
-        const ITERS_DIR: usize = 50_000;
+        const ITERS_POINT: u32 = 1_000;
+        const ITERS_DIR: u32 = 1_000;
 
+        let plotter = params
+            .realtime_graph
+            .then(|| plotter::Builder::new().build());
         let mut err = self.eval_mean_of_squares(traj, weights);
-        dbg!(err);
+
+        let init_traj = traj;
 
         for runs in 1.. {
             let prev_iter_err = err;
 
-            {
-                let new_traj = self.gradient_descent_point(traj, weights, ITERS_POINT);
-                let g = Geodetic::from_geocentric_cartesian(new_traj.point, 20);
-                let (new_err, grad) = self.eval_grad_mean_of_squares(new_traj, weights);
-                let derr_percents = (new_err - err) / err * 100.0;
-                let mean_zenith_coef = self
-                    .data
-                    .samples
-                    .iter()
-                    .map(|s| {
-                        let ek = UnitVec3::new_normalize(new_traj.point - s.location);
-                        Self::calc_zenith_coef(s, ek)
-                    })
-                    .sum::<f64>()
-                    / self.data.samples.len() as f64;
-                let grad_magnitude_m = grad.point.norm();
-                eprintln!(
-                    "PNT {g} | Err: {derr_percents:.12}% | Mean Z_K: {mean_zenith_coef:.2} | {DELTA_SYM}={:.6}m | |p_grad| = {grad_magnitude_m:.3e}m",
-                    (new_traj.point - traj.point).norm()
-                );
-
-                traj = new_traj;
-                err = new_err;
-            }
-
-            {
-                let new_traj = self.gradient_descent_dir(traj, weights, ITERS_DIR);
-                let g = Geodetic::from_geocentric_cartesian(new_traj.point, 20);
-                let (new_err, grad) = self.eval_grad_mean_of_squares(new_traj, weights);
-                let derr_percents = (new_err - err) / err * 100.0;
-                let mean_zenith_coef = self
-                    .data
-                    .samples
-                    .iter()
-                    .map(|s| {
-                        let ek = UnitVec3::new_normalize(new_traj.point - s.location);
-                        Self::calc_zenith_coef(s, ek)
-                    })
-                    .sum::<f64>()
-                    / self.data.samples.len() as f64;
-                let grad_magnitude_m = grad.direction.norm();
-                eprintln!(
-                    "DIR {g} | Err: {derr_percents:.12}% | Mean Z_K: {mean_zenith_coef:.2} | {DELTA_SYM}={:.6}{DEGREE_SYM} | |d_grad| = {grad_magnitude_m:.3e}m",
-                    new_traj
+            if let Some(p) = &plotter {
+                p.set_meta(format!(
+                    "{DELTA_SYM}p={:.3}km\n{DELTA_SYM}{ALPHA_SYM}={:.3}{DEGREE_SYM}\n{}",
+                    (init_traj.point - traj.point).norm() * 1e-3,
+                    init_traj
                         .direction
                         .dot(*traj.direction)
-                        .min(1.0)
+                        .clamp(-1.0, 1.0)
                         .acos()
                         .to_degrees(),
-                );
+                    self.data.name.as_deref().unwrap_or("N/A"),
+                ));
+                p.push(err as f32);
+            }
+
+            {
+                let (new_traj, stats) = self.gradient_descent_point(traj, weights, ITERS_POINT);
+                let new_err = self.eval_mean_of_squares(new_traj, weights);
+                if params.debug {
+                    let g = Geodetic::from_geocentric_cartesian(new_traj.point, 20);
+                    let p_grad = self.eval_point_grad_mean_of_squares(new_traj, weights);
+                    let derr_percents = (new_err - err) / err * 100.0;
+                    let mean_zenith_coef = self
+                        .data
+                        .samples
+                        .iter()
+                        .map(|s| {
+                            let ek = UnitVec3::new_normalize(new_traj.point - s.location);
+                            ZenithCoef::new(s, ek).coef
+                        })
+                        .sum::<f64>()
+                        / self.data.samples.len() as f64;
+                    let grad_magnitude_m = p_grad.norm();
+                    eprintln!(
+                        "PNT ({iters:4}) ({mean_jump:8.2e}m {clipped:5.1}% clipped) | Err: {derr_percents:15.12}% | Mean Z_K: {mean_zenith_coef:.2} | {DELTA_SYM}={:.6}m | |p_grad| = {grad_magnitude_m:.3e}m | {g}",
+                        (new_traj.point - traj.point).norm(),
+                        iters = stats.iters,
+                        mean_jump = stats.mean_unclipped_jump,
+                        clipped = stats.clipped_jumps_percent,
+                        derr_percents = eval_err_colored(derr_percents),
+                    );
+
+                    // if derr_percents > 0.00000053 {
+                    //     // let weight_out = std::fs::File::create("/tmp/w.json").unwrap();
+                    //     // let w = weights.unwrap();
+                    //     // serde_json::to_writer(weight_out, w).unwrap();
+                    //     dbg!(traj, err, new_err);
+                    //     panic!();
+                    // }
+                }
 
                 traj = new_traj;
                 err = new_err;
             }
 
-            let new_eval = self.eval_mean_of_squares(traj, weights);
-            dbg!(new_eval);
-            if new_eval <= prev_iter_err
-                && (prev_iter_err - new_eval) / prev_iter_err <= target_err_diff
+            {
+                let (new_traj, stats) = self.gradient_descent_dir(traj, weights, ITERS_DIR);
+                let new_err = self.eval_mean_of_squares(new_traj, weights);
+                if params.debug {
+                    let d_grad = self.eval_dir_grad_mean_of_squares(new_traj, weights);
+                    let derr_percents = (new_err - err) / err * 100.0;
+                    let mean_zenith_coef = self
+                        .data
+                        .samples
+                        .iter()
+                        .map(|s| {
+                            let ek = UnitVec3::new_normalize(new_traj.point - s.location);
+                            ZenithCoef::new(s, ek).coef
+                        })
+                        .sum::<f64>()
+                        / self.data.samples.len() as f64;
+                    let grad_magnitude_m = d_grad.norm();
+                    eprintln!(
+                        "DIR ({iters:4}) ({mean_jump:8.2e}m {clipped:5.1}% clipped) | Err: {derr_percents:15.12}% | Mean Z_K: {mean_zenith_coef:.2} | {DELTA_SYM}={:.6}{DEGREE_SYM} | |d_grad| = {grad_magnitude_m:.3e}m",
+                        new_traj
+                            .direction
+                            .dot(*traj.direction)
+                            .min(1.0)
+                            .acos()
+                            .to_degrees(),
+                        iters = stats.iters,
+                        mean_jump = stats.mean_unclipped_jump,
+                        clipped = stats.clipped_jumps_percent,
+                        derr_percents = eval_err_colored(derr_percents),
+                    );
+
+                    // if derr_percents > 0.000003 {
+                    //     let weight_out = std::fs::File::create("/tmp/w.json").unwrap();
+                    //     let w = weights.unwrap();
+                    //     serde_json::to_writer(weight_out, w).unwrap();
+                    //     dbg!(traj, err, new_err);
+                    //     panic!();
+                    // }
+                }
+
+                traj = new_traj;
+                err = new_err;
+            }
+
+            if err <= prev_iter_err
+                && (prev_iter_err - err) / prev_iter_err <= params.target_err_rel
             {
                 return (traj, runs);
             }
@@ -569,36 +816,13 @@ impl Solver {
         match weights {
             Some(weights) => {
                 for (s, w) in self.data.iter().zip(weights) {
-                    let eval = self.evaluate_traj(s, traj);
-                    if let Some(x) = eval.start {
-                        sum += x * x * w.start;
-                        cnt += w.start;
-                    }
-                    if let Some(x) = eval.end {
-                        sum += x * x * w.end;
-                        cnt += w.end;
-                    }
-                    if let Some(x) = eval.da {
-                        sum += x * x * w.da;
-                        cnt += w.da;
-                    }
+                    self.evaluate_traj(s, traj)
+                        .weighted_sum_sq(w, &mut sum, &mut cnt);
                 }
             }
             None => {
                 for s in self.data.iter() {
-                    let eval = self.evaluate_traj(s, traj);
-                    if let Some(x) = eval.start {
-                        sum += x * x;
-                        cnt += 1.0;
-                    }
-                    if let Some(x) = eval.end {
-                        sum += x * x;
-                        cnt += 1.0;
-                    }
-                    if let Some(x) = eval.da {
-                        sum += x * x;
-                        cnt += 1.0;
-                    }
+                    self.evaluate_traj(s, traj).sum_sq(&mut sum, &mut cnt);
                 }
             }
         }
@@ -606,60 +830,48 @@ impl Solver {
         sum / cnt
     }
 
-    /// Compule the value and gradient of `eval_mean_of_squares`
-    pub fn eval_grad_mean_of_squares(
-        &self,
-        traj: Line,
-        weights: Option<&[Weight]>,
-    ) -> (f64, LineGrad) {
-        let mut grad_sum = LineGrad::default();
-        let mut val_sum = 0.0;
+    pub fn eval_point_grad_mean_of_squares(&self, traj: Line, weights: Option<&[Weight]>) -> Vec3 {
+        let mut half_sum = Vec3::default();
         let mut cnt = 0.0;
 
         match weights {
             Some(weights) => {
                 for (s, w) in self.data.iter().zip(weights) {
-                    let (eval, grad) = self.evaluate_grad_traj(s, traj);
-                    if let (Some(x), Some(dx)) = (eval.start, grad.start) {
-                        grad_sum += dx * 2.0 * x * w.start;
-                        val_sum += x * x * w.start;
-                        cnt += w.start;
-                    }
-                    if let (Some(x), Some(dx)) = (eval.end, grad.end) {
-                        grad_sum += dx * 2.0 * x * w.end;
-                        val_sum += x * x * w.end;
-                        cnt += w.end;
-                    }
-                    if let (Some(x), Some(dx)) = (eval.da, grad.da) {
-                        grad_sum += dx * 2.0 * x * w.da;
-                        val_sum += x * x * w.da;
-                        cnt += w.da;
-                    }
+                    let (eval, grad) = self.evaluate_point_grad_traj(s, traj);
+                    eval.weighted_sum_sq_grad(&grad, w, &mut half_sum, &mut cnt);
                 }
             }
             None => {
                 for s in self.data.iter() {
-                    let (eval, grad) = self.evaluate_grad_traj(s, traj);
-                    if let (Some(x), Some(dx)) = (eval.start, grad.start) {
-                        grad_sum += dx * 2.0 * x;
-                        val_sum += x * x;
-                        cnt += 1.0;
-                    }
-                    if let (Some(x), Some(dx)) = (eval.end, grad.end) {
-                        grad_sum += dx * 2.0 * x;
-                        val_sum += x * x;
-                        cnt += 1.0;
-                    }
-                    if let (Some(x), Some(dx)) = (eval.da, grad.da) {
-                        grad_sum += dx * 2.0 * x;
-                        val_sum += x * x;
-                        cnt += 1.0;
-                    }
+                    let (eval, grad) = self.evaluate_point_grad_traj(s, traj);
+                    eval.sum_sq_grad(&grad, &mut half_sum, &mut cnt);
                 }
             }
         }
 
-        (val_sum / cnt, grad_sum / cnt)
+        half_sum / cnt * 2.0
+    }
+
+    pub fn eval_dir_grad_mean_of_squares(&self, traj: Line, weights: Option<&[Weight]>) -> Vec3 {
+        let mut half_sum = Vec3::default();
+        let mut cnt = 0.0;
+
+        match weights {
+            Some(weights) => {
+                for (s, w) in self.data.iter().zip(weights) {
+                    let (eval, grad) = self.evaluate_dir_grad_traj(s, traj);
+                    eval.weighted_sum_sq_grad(&grad, w, &mut half_sum, &mut cnt);
+                }
+            }
+            None => {
+                for s in self.data.iter() {
+                    let (eval, grad) = self.evaluate_dir_grad_traj(s, traj);
+                    eval.sum_sq_grad(&grad, &mut half_sum, &mut cnt);
+                }
+            }
+        }
+
+        half_sum / cnt * 2.0
     }
 
     fn _draw_plots(&self, traj: Line, weights: Option<&[(f64, f64, f64)]>, stage: &str) {
@@ -698,9 +910,10 @@ impl Solver {
         speed: f64,
         traj: Line,
         weights: Option<&[Weight]>,
+        hist: &std::sync::Mutex<Vec<TodoDeleteHist>>,
     ) -> Sigmas {
-        const DA_D: f64 = to_radians(0.5);
-        const AZ_D: f64 = to_radians(0.5);
+        const DA_D: f64 = to_radians(0.1);
+        const AZ_D: f64 = to_radians(0.1);
 
         let mut this = self.clone();
 
@@ -711,19 +924,29 @@ impl Solver {
             let old_da = this.data.samples[sample_i].da;
             *this.data.samples[sample_i].da.as_mut().unwrap() += DA_D;
 
-            let (new_traj, gd_i) =
-                this.gradient_descent_complete(traj, weights, GD_TARGET_ERR_DIFF);
+            let (new_traj, gd_i) = this.gradient_descent_complete(traj, weights, &GD_SIGMA_PARAMS);
             let (new_flash, new_speed) = this.calc_flash_and_speed(new_traj, weights);
 
-            println!(
-                "{sample_i}  [da] ({gd_i} gd runs): {:.0}m/{DEGREE_SYM} * {:.0}{DEGREE_SYM} = {:.3}km\n        {:.3}{DEGREE_SYM}/{DEGREE_SYM} * {:.0}{DEGREE_SYM} = {}{DEGREE_SYM}",
-                (new_flash - flash).norm() / DA_D.to_degrees(),
-                da_err.to_degrees().abs(),
-                (new_flash - flash).norm() / DA_D * da_err.abs() * 1e-3,
-                (new_traj.direction.dot(*traj.direction).min(1.0).acos() / DA_D).to_degrees(),
-                da_err.to_degrees().abs(),
-                (new_traj.direction.dot(*traj.direction).min(1.0).acos() * da_err.abs() / DA_D).to_degrees(),
-            );
+            // {
+            //     let derivative = (new_flash - flash).norm() / DA_D.to_degrees();
+            //     let error = da_err.to_degrees().abs();
+            //     let sigma = derivative * error * 1e-3;
+            //     hist.lock().unwrap().push(TodoDeleteHist {
+            //         ty: ObsType::Da,
+            //         derivative,
+            //         error,
+            //         sigma,
+            //         weight: weights.unwrap()[sample_i].da,
+            //         sample_i,
+            //         name: this.data.samples[sample_i].name.clone(),
+            //     });
+            //     println!(
+            //         "{sample_i}  [da] ({gd_i} gd runs): {derivative:.0}m/{DEGREE_SYM} * {error:.0}{DEGREE_SYM} = {sigma:.3}km\n        {:.3}{DEGREE_SYM}/{DEGREE_SYM} * {:.0}{DEGREE_SYM} = {}{DEGREE_SYM}",
+            //         (new_traj.direction.dot(*traj.direction).min(1.0).acos() / DA_D).to_degrees(),
+            //         da_err.to_degrees().abs(),
+            //         (new_traj.direction.dot(*traj.direction).min(1.0).acos() * da_err.abs() / DA_D).to_degrees(),
+            //     );
+            // }
 
             let new_dir: Azimuthal = new_traj.direction.into_inner().into();
             this.data.samples[sample_i].da = old_da;
@@ -732,8 +955,6 @@ impl Solver {
             s.x += mul * f64::powi(new_flash.x - flash.x, 2);
             s.y += mul * f64::powi(new_flash.y - flash.y, 2);
             s.z += mul * f64::powi(new_flash.z - flash.z, 2);
-            s.v_z += mul * f64::powi(new_dir.z - dir.z, 2);
-            s.v_h += mul * f64::powi(new_dir.h - dir.h, 2);
             s.v_angle +=
                 mul * f64::powi(new_traj.direction.dot(*traj.direction).min(1.0).acos(), 2);
             s.speed += mul * f64::powi(new_speed - speed, 2);
@@ -741,30 +962,42 @@ impl Solver {
 
         if let Some(z0_err) = eval.end {
             let old_z0 = this.data.samples[sample_i].z0;
+            let old_k_end = this.data.samples[sample_i].k_end;
             *this.data.samples[sample_i].z0.as_mut().unwrap() += AZ_D;
+            this.data.samples[sample_i].update_k_end();
 
-            let (new_traj, gd_i) =
-                this.gradient_descent_complete(traj, weights, GD_TARGET_ERR_DIFF);
+            let (new_traj, gd_i) = this.gradient_descent_complete(traj, weights, &GD_SIGMA_PARAMS);
             let (new_flash, new_speed) = this.calc_flash_and_speed(new_traj, weights);
-            println!(
-                "{sample_i}   [z0] ({gd_i} gd runs): {:.0}m/{DEGREE_SYM} * {:.0}{DEGREE_SYM} = {:.3}km\n        {:.3}{DEGREE_SYM}/{DEGREE_SYM} * {:.0}{DEGREE_SYM} = {}{DEGREE_SYM}",
-                (new_flash - flash).norm() / DA_D.to_degrees(),
-                z0_err.to_degrees().abs(),
-                (new_flash - flash).norm() / DA_D * z0_err.abs() * 1e-3,
-                (new_traj.direction.dot(*traj.direction).min(1.0).acos() / DA_D).to_degrees(),
-                z0_err.to_degrees().abs(),
-                (new_traj.direction.dot(*traj.direction).min(1.0).acos() * z0_err.abs() / DA_D).to_degrees(),
-            );
+            // {
+            //     let derivative = (new_flash - flash).norm() / AZ_D.to_degrees();
+            //     let error = z0_err.to_degrees().abs();
+            //     let sigma = derivative * error * 1e-3;
+            //     hist.lock().unwrap().push(TodoDeleteHist {
+            //         ty: ObsType::Z0,
+            //         derivative,
+            //         error,
+            //         sigma,
+            //         weight: weights.unwrap()[sample_i].end,
+            //         sample_i,
+            //         name: this.data.samples[sample_i].name.clone(),
+            //     });
+            //     println!(
+            //         "{sample_i}   [z0] ({gd_i} gd runs): {derivative:.0}m/{DEGREE_SYM} * {error:.0}{DEGREE_SYM} = {sigma:.3}km\n        {:.3}{DEGREE_SYM}/{DEGREE_SYM} * {:.0}{DEGREE_SYM} = {}{DEGREE_SYM}",
+            //         (new_traj.direction.dot(*traj.direction).min(1.0).acos() / DA_D).to_degrees(),
+            //         z0_err.to_degrees().abs(),
+            //         (new_traj.direction.dot(*traj.direction).min(1.0).acos() * z0_err.abs() / DA_D).to_degrees(),
+            //     );
+            // }
 
-            let new_dir: Azimuthal = new_traj.direction.into_inner().into();
+            // let new_dir: Azimuthal = new_traj.direction.into_inner().into();
+
             this.data.samples[sample_i].z0 = old_z0;
+            this.data.samples[sample_i].k_end = old_k_end;
 
             let mul = z0_err * z0_err / AZ_D / AZ_D;
             s.x += mul * f64::powi(new_flash.x - flash.x, 2);
             s.y += mul * f64::powi(new_flash.y - flash.y, 2);
             s.z += mul * f64::powi(new_flash.z - flash.z, 2);
-            s.v_z += mul * f64::powi(new_dir.z - dir.z, 2);
-            s.v_h += mul * f64::powi(new_dir.h - dir.h, 2);
             s.v_angle +=
                 mul * f64::powi(new_traj.direction.dot(*traj.direction).min(1.0).acos(), 2);
             s.speed += mul * f64::powi(new_speed - speed, 2);
@@ -777,11 +1010,88 @@ impl Solver {
         let (flash, speed) = self.calc_flash_and_speed(traj, weights);
         let dir: Azimuthal = traj.direction.into_inner().into();
 
-        (0..self.data.samples.len())
+        let hist = std::sync::Mutex::new(Vec::new());
+
+        let result = (0..self.data.samples.len())
             .into_par_iter()
-            .map(|i| self.calc_sigma_sample(i, flash, dir, speed, traj, weights))
+            .map(|i| self.calc_sigma_sample(i, flash, dir, speed, traj, weights, &hist))
             .sum::<Sigmas>()
-            .sqrt()
+            .sqrt();
+
+        {
+            let mut hist = hist.into_inner().unwrap();
+            hist.sort_unstable_by(|a, b| b.sigma.total_cmp(&a.sigma));
+
+            let out_path = format!(
+                "sigmas_distr/{}",
+                self.data.name.as_deref().unwrap_or("unknown")
+            );
+            let mut out = std::io::BufWriter::new(std::fs::File::create(out_path).unwrap());
+
+            serde_json::to_writer_pretty(&mut out, &hist).unwrap();
+            serde_json::to_writer_pretty(&mut out, &traj).unwrap();
+
+            // let weight_out = std::fs::File::create("/tmp/w.json").unwrap();
+            // let w = weights.unwrap();
+            // serde_json::to_writer(weight_out, w).unwrap();
+
+            // let max_da_diff = hist
+            //     .iter()
+            //     .filter(|h| h.ty == ObsType::Da)
+            //     .map(|h| h.derivative)
+            //     .max_by(f64::total_cmp)
+            //     .unwrap();
+            // let max_z0_diff = hist
+            //     .iter()
+            //     .filter(|h| h.ty == ObsType::Z0)
+            //     .map(|h| h.derivative)
+            //     .max_by(f64::total_cmp)
+            //     .unwrap();
+
+            // let mut pts_da = Vec::new();
+            // let mut pts_z0 = Vec::new();
+            // for h in &hist {
+            //     let s = &self.data.samples[h.sample_i];
+            //     let lon = s.geo_location.lon;
+            //     let lat = s.geo_location.lat;
+            //     match h.ty {
+            //         ObsType::Da => {
+            //             let x = h.derivative / max_da_diff;
+            //             let point = (lon, lat, weight_to_rgb(1.0 - x), 3.0 + 7.0 * x);
+            //             pts_da.push(point);
+            //         }
+            //         ObsType::Z0 => {
+            //             let x = h.derivative / max_z0_diff;
+            //             let point = (lon, lat, weight_to_rgb(1.0 - x), 3.0 + 7.0 * x);
+            //             pts_z0.push(point)
+            //         }
+            //     }
+            // }
+
+            // draw_plot_svg_with_named_axes(
+            //     "/tmp/diffs_da.svg",
+            //     &pts_da,
+            //     &[],
+            //     &[],
+            //     &[],
+            //     "lon",
+            //     "lat",
+            // )
+            // .unwrap();
+
+            // draw_plot_svg_with_named_axes(
+            //     "/tmp/diffs_z0.svg",
+            //     &pts_z0,
+            //     &[],
+            //     &[],
+            //     &[],
+            //     "lon",
+            //     "lat",
+            // )
+            // .unwrap();
+        }
+
+        result
     }
 
     fn flip_da(&mut self, traj: Line) -> usize {
@@ -804,13 +1114,13 @@ impl Solver {
 
     fn run_stage<F>(&mut self, f: F) -> Line
     where
-        F: FnOnce(&mut Self) -> (String, Line),
+        F: FnOnce(&mut Self) -> (String, Line, Option<Sigmas>),
     {
         let timer = Instant::now();
-        let (title, result) = f(self);
+        let (title, result, sigmas) = f(self);
         let duration = timer.elapsed();
 
-        self.data.compare(result, &title);
+        self.data.compare(result, sigmas, &title);
         eprintln!("This step took {duration:?}\n");
 
         result
@@ -818,100 +1128,44 @@ impl Solver {
 
     /// Find the solution
     pub fn solve(&mut self) -> Solution {
-        let traj = self.run_stage(|this| ("Initial guess (pairwise)".into(), this.pairwise()));
-
         let traj = self.run_stage(|this| {
-            let (traj, gd_i) = this.gradient_descent_complete(traj, None, GD_FIRST_ERR_DIFF);
-            (format!("Gradient descent ({gd_i} runs)"), traj)
+            let (result, sigmas) = this.pairwise();
+            ("Initial guess (pairwise)".into(), result, Some(sigmas))
         });
 
-        // {
-        // let mut errs = Vec::new();
-        // let mut errs_sq = Vec::new();
-        // for s in &self.data.samples {
-        //     let eval = self.evaluate_traj(s, traj);
-        //     if let Some(da) = eval.da {
-        //         let da = da.to_degrees();
-        //         errs.push(da);
-        //         errs_sq.push(da * da);
-        //     }
-        // }
-        // draw_hitogram(&errs, 5);
-        // println!();
-        // draw_hitogram(&errs_sq, 5);
-        // println!();
+        let traj = self.run_stage(|this| {
+            let (traj, gd_i) = this.gradient_descent_complete(traj, None, &GD_FIRST_PARAMS);
+            (format!("Gradient descent ({gd_i} runs)"), traj, None)
+        });
 
-        // let mut list = Vec::new();
-        // for (i, s) in self.data.samples.iter().enumerate() {
-        //     let eval = self.evaluate_traj(s, traj);
-        //     if let Some(da) = eval.da {
-        //         list.push((da.to_degrees(), s.name.as_deref().unwrap_or("N/A"), i));
-        //     }
-        // }
-        // list.sort_unstable_by(|a, b| a.0.abs().total_cmp(&b.0.abs()));
-        // for entry in &list {
-        //     dbg!(entry);
-        // }
-        // eprintln!("median: {:#?}", list[list.len() / 2]);
-        // }
-
-        // {
-        //     let mut points = Vec::new();
-        //     let mut p = Geodetic::from_geocentric_cartesian(traj.point, 10);
-        //     p.h = 0.0;
-        //     while p.h < 6_000_000.0 {
-        //         let mut traj = traj;
-        //         traj.point = p.into_geocentric_cartesian();
-        //         points.push((
-        //             p.h * 1e-3,
-        //             self.eval_mean_of_squares(traj, None),
-        //             BLACK,
-        //             1.0,
-        //         ));
-        //         p.h += 10_000.0;
-        //     }
-        //     draw_plot_svg_with_named_axes(
-        //         "plots/height-err-after.svg",
-        //         &points,
-        //         &[],
-        //         &[],
-        //         &[],
-        //         "height",
-        //         "error",
-        //     )
-        //     .unwrap();
-        // }
-
-        let traj = self.lms(traj);
-        self.data.compare(traj, "After LMS");
+        let traj = self.run_stage(|this| ("After LMS".into(), this.lms(traj), None));
 
         let mut weights = self.compute_weights(traj);
 
-        let mut traj = self.ls(traj, Some(&weights));
-        self.data.compare(traj, "After LS");
+        let mut traj =
+            self.run_stage(|this| ("After LS".into(), this.ls(traj, Some(&weights)), None));
 
         if !self.params.no_da_flip {
             eprintln!("flipped {} descent angles", self.flip_da(traj));
             eprintln!();
             weights = self.compute_weights(traj);
             traj = self.ls(traj, Some(&weights));
-            self.data.compare(traj, "LS (after DA-flip)");
+            self.data.compare(traj, None, "LS (after DA-flip)");
         }
 
-        // self.draw_2d_image("after-ls", traj, 100_000.0, 120.0, |traj| {
-        //     self.eval_mean_of_squares(traj, Some(&weights))
-        // });
+        dbg!(traj);
 
-        let (traj, gd_i) = self.gradient_descent_complete(traj, Some(&weights), GD_TARGET_ERR_DIFF);
-        self.data
-            .compare(traj, &format!("Gradient descent ({} runs)", gd_i));
+        let traj = self.run_stage(|this| {
+            let (traj, gd_i) =
+                this.gradient_descent_complete(traj, Some(&weights), &GD_FINAL_PARAMS);
+            (format!("Gradient descent ({gd_i} runs)"), traj, None)
+        });
 
-        let sigmas = dbg!(self.calc_sigmas(traj, Some(&weights)));
-        dbg!(Vec3::new(sigmas.x, sigmas.y, sigmas.z).norm() / 1000.0);
-        dbg!(sigmas.v_angle.to_degrees());
+        dbg!(traj);
+        dump_weights(&weights);
 
-        self.data
-            .compare(traj, &format!("Gradient descent ({} runs)", gd_i));
+        let sigmas = self.calc_sigmas(traj, Some(&weights));
+        self.data.compare(traj, Some(sigmas), "Final");
 
         let (flash, speed) = self.calc_flash_and_speed(traj, Some(&weights));
 
@@ -968,166 +1222,118 @@ impl Solver {
         (traj.point + traj.direction * l_end, speed)
     }
 
-    const ZENITH_COEF_ANGLE: f64 = to_radians(40.0);
-    const ZENITH_COEF_SIN_K: f64 = FRAC_PI_2 / Self::ZENITH_COEF_ANGLE;
-    const ZENITH_COEF_K: f64 = 5.0;
-
-    fn calc_zenith_coef(sample: &DataSample, ek: UnitVec3) -> f64 {
-        // k(x) = 1/sin(x * ZENITH_COEF_SIN_K)
-        // k'(x) = -1 * a * ZENITH_COEF_SIN_K / (1 - a^2), where a = cos(x * ZENITH_COEF_SIN_K)
-        let to_zenith = sample.zenith_dir.dot(*ek).min(1.0).acos();
-        if to_zenith < Self::ZENITH_COEF_ANGLE {
-            Self::ZENITH_COEF_K / f64::sin(to_zenith * Self::ZENITH_COEF_SIN_K)
-        } else if to_zenith > PI - Self::ZENITH_COEF_ANGLE {
-            Self::ZENITH_COEF_K / f64::sin((PI - to_zenith) * Self::ZENITH_COEF_SIN_K)
-        } else {
-            1.0
-        }
-        // 1.0
-    }
-
-    fn calc_zenith_coef_diff(sample: &DataSample, ek: UnitVec3, ek_diff: Vec3) -> f64 {
-        // k(x) = 1/sin(x * ZENITH_COEF_SIN_K)
-        // k'(x) = -1 * a * ZENITH_COEF_SIN_K / (1 - a^2), where a = cos(x * ZENITH_COEF_SIN_K)
-
-        let to_zenith_cos = sample.zenith_dir.dot(*ek);
-        let to_zenith_cos_diff = sample.zenith_dir.dot(ek_diff);
-
-        let to_zenith = to_zenith_cos.min(1.0).acos();
-        let to_zenith_diff =
-            -1.0 / f64::sqrt(1.0 - to_zenith_cos * to_zenith_cos) * to_zenith_cos_diff;
-
-        if to_zenith < Self::ZENITH_COEF_ANGLE {
-            let a = f64::cos(to_zenith * Self::ZENITH_COEF_SIN_K);
-            -1.0 * Self::ZENITH_COEF_K * a * Self::ZENITH_COEF_SIN_K * to_zenith_diff
-                / (1.0 - a * a)
-        } else if to_zenith > PI - Self::ZENITH_COEF_ANGLE {
-            let a = f64::cos((PI - to_zenith) * Self::ZENITH_COEF_SIN_K);
-            a * Self::ZENITH_COEF_K * Self::ZENITH_COEF_SIN_K * to_zenith_diff / (1.0 - a * a)
-        } else {
-            0.0
-        }
-
-        // 0.0
-    }
-
-    pub fn evaluate_traj(&self, sample: &DataSample, traj: Line) -> Evaluation {
-        let ek = UnitVec3::new_normalize(traj.point - sample.location);
-        let zenith_coef = Self::calc_zenith_coef(sample, ek);
-
+    fn evaluate_traj_with(
+        &self,
+        sample: &DataSample,
+        traj: Line,
+        ek: UnitVec3,
+        zenith_k: f64,
+    ) -> Evaluation {
         Evaluation {
             start: None,
             end: if !self.params.da_only {
                 sample
                     .z0
-                    .map(|z0| angle_diff(z0, sample.calc_azimuth(traj.point)))
+                    .map(|z0| angle_diff(z0, sample.calc_azimuth(*ek)) * zenith_k)
             } else {
                 None
             },
             da: sample.da.map(|da| {
-                angle_diff(descent_angle(sample.zenith_dir, ek, *traj.direction), da) * zenith_coef
+                angle_diff(descent_angle(sample.zenith_dir, ek, *traj.direction), da) * zenith_k
             }),
         }
     }
 
-    /// Compute the value and gradient of `evaluate_traj`
-    pub fn evaluate_grad_traj(
+    pub fn evaluate_traj(&self, sample: &DataSample, traj: Line) -> Evaluation {
+        let ek = UnitVec3::new_normalize(traj.point - sample.location);
+        let zenith_k = ZenithCoef::new(sample, ek).coef;
+        self.evaluate_traj_with(sample, traj, ek, zenith_k)
+    }
+
+    pub fn evaluate_point_grad_traj(
         &self,
         s: &DataSample,
         traj: Line,
-    ) -> (Evaluation, Evaluation<LineGrad>) {
-        let err0 = self.evaluate_traj(s, traj);
-
+    ) -> (Evaluation, Evaluation<Vec3>) {
         let k = traj.point - s.location;
         let (ek, k_norm) = UnitVec3::new_and_get(k);
-        let zenith_coef = Self::calc_zenith_coef(s, ek);
+        let k_norm_recip = k_norm.recip();
+        let zenith_coef = ZenithCoef::new(s, ek);
 
-        fn make_end_diff(s: &DataSample, k: Vec3, mask: Vec3) -> f64 {
-            // E = diff(z0, atan2(k*east, k*north))
-            // E = atan2(k*east, k*north) - z0
-            // E,x = -(k*east) / (xx+yy) * north_x + (k*north) / (xx+yy) * east_x
-            // E,x = (k*north * east_x - k*east * north_x) / (xx+yy)
-            let x = k.dot(*s.east_dir);
-            let y = k.dot(*s.north_dir);
-            (y * s.east_dir.dot(mask) - x * s.north_dir.dot(mask)) / (x * x + y * y)
-        }
+        let err0 = self.evaluate_traj_with(s, traj, ek, zenith_coef.coef);
 
-        let make_da_diff_point = |s: &DataSample, da: f64, vel: Vec3, mask: Vec3| -> f64 {
+        let make_end_diff_x = k.dot(*s.east_dir);
+        let make_end_diff_y = k.dot(*s.north_dir);
+        let make_end_diff = |z0: f64, mask: Vec3| {
             // k_norm = (k_norm^2)^1/2
             // k_norm,x = 1/2 * (k_norm^2)^(-1/2) * 2kx = kx / k_norm
-            let diff_k_norm = k.dot(mask) / k_norm;
-
-            let diff_k = mask;
+            let diff_k_norm = k.dot(mask) * k_norm_recip;
 
             // ek = k * k_norm^-1
             // ek,x = (k,x * k_norm^-1) + (k * -1 * k_norm^-2 * k_norm,x)
-            let diff_ek = (diff_k / k_norm) - (k * diff_k_norm / k_norm / k_norm);
+            // ek,x = (k,x - (k * k_norm,x * k_norm^-1)) * * k_norm^-1
+            let diff_ek = (mask - (k * diff_k_norm * k_norm_recip)) * k_norm_recip;
+            let diff_zenith_coef = zenith_coef.diff(s, diff_ek);
 
-            let diff_zenith_coef = Self::calc_zenith_coef_diff(s, ek, diff_ek);
+            // E_0 = diff(z0, atan2(k*east, k*north))
+            // E_0 = atan2(k*east, k*north) - z0
+            // E_0,x = -(k*east) / (xx+yy) * north_x + (k*north) / (xx+yy) * east_x
+            // E_0,x = (k*north * east_x - k*east * north_x) / (xx+yy)
+            let e0 = angle_diff(z0, f64::atan2(make_end_diff_x, make_end_diff_y));
+            let e0_diff = (make_end_diff_y * s.east_dir.dot(mask)
+                - make_end_diff_x * s.north_dir.dot(mask))
+                / (make_end_diff_x * make_end_diff_x + make_end_diff_y * make_end_diff_y);
 
-            let xa = ek.cross(*s.zenith_dir);
+            // E = E_0 * zenith_coef
+            // E,x = E_0,x * zenith_coef + E_0 * zenith_coef,x
+            e0_diff * zenith_coef.coef + e0 * diff_zenith_coef
+        };
+
+        let make_da_diff_xa = ek.cross(*s.zenith_dir);
+        let make_da_diff_ya = make_da_diff_xa.cross(*ek);
+        let make_da_diff_x = traj.direction.dot(make_da_diff_xa);
+        let make_da_diff_y = traj.direction.dot(make_da_diff_ya);
+        let make_da_diff_dac = f64::atan2(make_da_diff_x, make_da_diff_y);
+        let make_da_diff = |da: f64, mask: Vec3| -> f64 {
+            // k_norm = (k_norm^2)^1/2
+            // k_norm,x = 1/2 * (k_norm^2)^(-1/2) * 2kx = kx / k_norm
+            let diff_k_norm = k.dot(mask) * k_norm_recip;
+
+            // ek = k * k_norm^-1
+            // ek,x = (k,x * k_norm^-1) + (k * -1 * k_norm^-2 * k_norm,x)
+            // ek,x = (k,x - (k * k_norm,x * k_norm^-1)) * * k_norm^-1
+            let diff_ek = (mask - (k * diff_k_norm * k_norm_recip)) * k_norm_recip;
+            let diff_zenith_coef = zenith_coef.diff(s, diff_ek);
+
             let diff_xa = diff_ek.cross(*s.zenith_dir);
+            let diff_ya = diff_xa.cross(*ek) + make_da_diff_xa.cross(diff_ek);
 
-            let ya = xa.cross(*ek);
-            let diff_ya = diff_xa.cross(*ek) + xa.cross(diff_ek);
+            let diff_x = traj.direction.dot(diff_xa);
+            let diff_y = traj.direction.dot(diff_ya);
 
-            let x = vel.dot(xa);
-            let diff_x = vel.dot(diff_xa);
-
-            let y = vel.dot(ya);
-            let diff_y = vel.dot(diff_ya);
-
-            // let x = k.cross(*zenith); // -> +0
-            // let y = x.cross(*k); // -> +0
-            let dac = f64::atan2(x, y);
-            let diff_dac = (y * diff_x - x * diff_y) / (x * x + y * y);
+            let diff_dac = (make_da_diff_y * diff_x - make_da_diff_x * diff_y)
+                / (make_da_diff_x * make_da_diff_x + make_da_diff_y * make_da_diff_y);
 
             // Err = (da - dac) * zenith_coef = da*zenith_coef - dac*zenith_coef
             // Err,i = da*zenith_coef,i - dac*zenith_coef,i - dac,i*zenith_coef
             //       = zenith_coef,i*(da - dac) - dac,i*zenith_coef
-            diff_zenith_coef * angle_diff(dac, da) - diff_dac * zenith_coef
+            diff_zenith_coef * angle_diff(make_da_diff_dac, da) - diff_dac * zenith_coef.coef
         };
 
-        let make_da_diff_dir = |s: &DataSample, ek: UnitVec3, vel: Vec3, mask: Vec3| -> f64 {
-            let xa = ek.cross(*s.zenith_dir);
-            let ya = xa.cross(*ek);
-
-            // v = {x, y, z}
-            // dx
-            // v' = {x+dx, y, z} / (1 + dx*dx + 2x*dx)
-            // dv = ...
-            // dv/dx = {1-xx, -xy, -xz}
-            let diff_vel = mask - vel * mask.dot(vel);
-
-            let x = vel.dot(xa);
-            let diff_x = diff_vel.dot(xa);
-
-            let y = vel.dot(ya);
-            let diff_y = diff_vel.dot(ya);
-
-            (x * diff_y - y * diff_x) / (x * x + y * y) * zenith_coef
-        };
-
-        let end = (s.z0.is_some() && !self.params.da_only).then(|| LineGrad {
-            point: Vec3::new(
-                make_end_diff(s, k, Vec3::x()),
-                make_end_diff(s, k, Vec3::y()),
-                make_end_diff(s, k, Vec3::z()),
-            ),
-            direction: Vec3::default(),
+        let end = (s.z0.is_some() && !self.params.da_only).then(|| {
+            Vec3::new(
+                make_end_diff(s.z0.unwrap(), Vec3::x()),
+                make_end_diff(s.z0.unwrap(), Vec3::y()),
+                make_end_diff(s.z0.unwrap(), Vec3::z()),
+            )
         });
 
-        let da = s.da.map(|da| LineGrad {
-            point: Vec3::new(
-                make_da_diff_point(s, da, *traj.direction, Vec3::x()),
-                make_da_diff_point(s, da, *traj.direction, Vec3::y()),
-                make_da_diff_point(s, da, *traj.direction, Vec3::z()),
-            ),
-            direction: Vec3::new(
-                make_da_diff_dir(s, ek, *traj.direction, Vec3::x()),
-                make_da_diff_dir(s, ek, *traj.direction, Vec3::y()),
-                make_da_diff_dir(s, ek, *traj.direction, Vec3::z()),
-            ),
+        let da = s.da.map(|da| {
+            Vec3::new(
+                make_da_diff(da, Vec3::x()),
+                make_da_diff(da, Vec3::y()),
+                make_da_diff(da, Vec3::z()),
+            )
         });
 
         (
@@ -1135,6 +1341,55 @@ impl Solver {
             Evaluation {
                 start: None,
                 end,
+                da,
+            },
+        )
+    }
+
+    pub fn evaluate_dir_grad_traj(
+        &self,
+        s: &DataSample,
+        traj: Line,
+    ) -> (Evaluation, Evaluation<Vec3>) {
+        let k = traj.point - s.location;
+        let ek = UnitVec3::new_normalize(k);
+        let zenith_coef = ZenithCoef::new(s, ek).coef;
+
+        let err0 = self.evaluate_traj_with(s, traj, ek, zenith_coef);
+
+        let xa = ek.cross(*s.zenith_dir);
+        let ya = xa.cross(*ek);
+
+        let x = traj.direction.dot(xa);
+        let y = traj.direction.dot(ya);
+
+        let make_da_diff_dir = |mask: Vec3| -> f64 {
+            // v = {x, y, z}
+            // dx
+            // v' = {x+dx, y, z} / (1 + dx*dx + 2x*dx)
+            // dv = ...
+            // dv/dx = {1-xx, -xy, -xz}
+            let diff_vel = mask - traj.direction * traj.direction.dot(mask);
+
+            let diff_x = diff_vel.dot(xa);
+            let diff_y = diff_vel.dot(ya);
+
+            (x * diff_y - y * diff_x) / (x * x + y * y) * zenith_coef
+        };
+
+        let da = s.da.map(|_| {
+            Vec3::new(
+                make_da_diff_dir(Vec3::x()),
+                make_da_diff_dir(Vec3::y()),
+                make_da_diff_dir(Vec3::z()),
+            )
+        });
+
+        (
+            err0,
+            Evaluation {
+                start: None,
+                end: None,
                 da,
             },
         )
@@ -1181,9 +1436,75 @@ impl Evaluation {
             .chain(self.end.map(sq))
             .chain(self.da.map(sq))
     }
+
+    fn sum_sq(&self, sum: &mut f64, cnt: &mut f64) {
+        if let Some(x) = self.start {
+            *sum += x * x;
+            *cnt += 1.0;
+        }
+        if let Some(x) = self.end {
+            *sum += x * x;
+            *cnt += 1.0;
+        }
+        if let Some(x) = self.da {
+            *sum += x * x;
+            *cnt += 1.0;
+        }
+    }
+
+    fn weighted_sum_sq(&self, w: &Weight, sum: &mut f64, cnt: &mut f64) {
+        if let Some(x) = self.start {
+            *sum += x * x * w.start;
+            *cnt += w.start;
+        }
+        if let Some(x) = self.end {
+            *sum += x * x * w.end;
+            *cnt += w.end;
+        }
+        if let Some(x) = self.da {
+            *sum += x * x * w.da;
+            *cnt += w.da;
+        }
+    }
+
+    fn sum_sq_grad(&self, grad: &Evaluation<Vec3>, half_sum: &mut Vec3, cnt: &mut f64) {
+        if let (Some(x), Some(dx)) = (self.start, grad.start) {
+            *half_sum += dx * x;
+            *cnt += 1.0;
+        }
+        if let (Some(x), Some(dx)) = (self.end, grad.end) {
+            *half_sum += dx * x;
+            *cnt += 1.0;
+        }
+        if let (Some(x), Some(dx)) = (self.da, grad.da) {
+            *half_sum += dx * x;
+            *cnt += 1.0;
+        }
+    }
+
+    fn weighted_sum_sq_grad(
+        &self,
+        grad: &Evaluation<Vec3>,
+        w: &Weight,
+        half_sum: &mut Vec3,
+        cnt: &mut f64,
+    ) {
+        if let (Some(x), Some(dx)) = (self.start, grad.start) {
+            *half_sum += dx * x * w.start;
+            *cnt += w.start;
+        }
+        if let (Some(x), Some(dx)) = (self.end, grad.end) {
+            *half_sum += dx * x * w.end;
+            *cnt += w.end;
+        }
+        if let (Some(x), Some(dx)) = (self.da, grad.da) {
+            *half_sum += dx * x * w.da;
+            *cnt += w.da;
+        }
+    }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Weight {
     pub start: f64,
     pub end: f64,
@@ -1198,61 +1519,265 @@ const fn sq(x: f64) -> f64 {
     x * x
 }
 
-#[derive(Debug, Default, Clone, Copy)]
-pub struct Sigmas {
-    /// Meters
-    pub x: f64,
-    /// Meters
-    pub y: f64,
-    /// Meters
-    pub z: f64,
-    /// Radians
-    pub v_z: f64,
-    /// Radians
-    pub v_h: f64,
-    /// Radians
-    pub v_angle: f64,
-    /// Meters/Seconds
-    pub speed: f64,
+struct ZenithCoef {
+    pub to_zenith_cos: f64,
+    pub to_zenith: f64,
+    pub coef: f64,
 }
 
-impl Sigmas {
-    fn sqrt(self) -> Self {
+impl ZenithCoef {
+    const ZENITH_COEF_ANGLE: f64 = to_radians(40.0);
+    const ZENITH_COEF_SIN_K: f64 = FRAC_PI_2 / Self::ZENITH_COEF_ANGLE;
+    const ZENITH_COEF_K: f64 = 5.0;
+
+    fn new(s: &DataSample, ek: UnitVec3) -> Self {
+        let to_zenith_cos = s.zenith_dir.dot(*ek);
+        let to_zenith = to_zenith_cos.min(1.0).acos();
+
+        let coef = if to_zenith < Self::ZENITH_COEF_ANGLE {
+            Self::ZENITH_COEF_K / f64::sin(to_zenith * Self::ZENITH_COEF_SIN_K) + 1.0
+                - Self::ZENITH_COEF_K
+        } else if to_zenith > PI - Self::ZENITH_COEF_ANGLE {
+            Self::ZENITH_COEF_K / f64::sin((PI - to_zenith) * Self::ZENITH_COEF_SIN_K) + 1.0
+                - Self::ZENITH_COEF_K
+        } else {
+            1.0
+        };
+
         Self {
-            x: self.x.sqrt(),
-            y: self.y.sqrt(),
-            z: self.z.sqrt(),
-            v_z: self.v_z.sqrt(),
-            v_h: self.v_h.sqrt(),
-            v_angle: self.v_angle.sqrt(),
-            speed: self.speed.sqrt(),
+            to_zenith_cos,
+            to_zenith,
+            coef,
+        }
+    }
+
+    fn diff(&self, s: &DataSample, ek_diff: Vec3) -> f64 {
+        // k(x) = 1/sin(x * ZENITH_COEF_SIN_K)
+        // k'(x) = a * ZENITH_COEF_SIN_K / (a^2 - 1), where a = cos(x * ZENITH_COEF_SIN_K)
+
+        let to_zenith_cos_diff = s.zenith_dir.dot(ek_diff);
+
+        let to_zenith_diff =
+            -1.0 / f64::sqrt(1.0 - self.to_zenith_cos * self.to_zenith_cos) * to_zenith_cos_diff;
+
+        if self.to_zenith < Self::ZENITH_COEF_ANGLE {
+            let a = f64::cos(self.to_zenith * Self::ZENITH_COEF_SIN_K);
+            a * Self::ZENITH_COEF_K * Self::ZENITH_COEF_SIN_K * to_zenith_diff / (a * a - 1.0)
+        } else if self.to_zenith > PI - Self::ZENITH_COEF_ANGLE {
+            let a = f64::cos((PI - self.to_zenith) * Self::ZENITH_COEF_SIN_K);
+            a * Self::ZENITH_COEF_K * Self::ZENITH_COEF_SIN_K * to_zenith_diff / (1.0 - a * a)
+        } else {
+            0.0
         }
     }
 }
 
-impl ops::AddAssign for Sigmas {
-    fn add_assign(&mut self, rhs: Self) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
-        self.v_z += rhs.v_z;
-        self.v_h += rhs.v_h;
-        self.v_angle += rhs.v_angle;
-        self.speed += rhs.speed;
+#[derive(Debug, Default)]
+pub struct GradientDescentStats {
+    pub iters: u32,
+    pub clipped_jumps_percent: f64,
+    pub mean_unclipped_jump: f64,
+}
+
+/// Detect cycles of stats.
+///
+/// Current implementation only detects cycles of up to 10 states. It is efficient and in most cases
+/// sufficient.
+///
+/// It is assumed that `T::default()` is not a "used" value.
+pub struct CycleDetector<T> {
+    history: [T; 10],
+}
+
+impl<T: Default + Copy> Default for CycleDetector<T> {
+    fn default() -> Self {
+        Self {
+            history: [T::default(); 10],
+        }
     }
 }
 
-impl ops::Add for Sigmas {
-    type Output = Self;
+impl<T: PartialEq + Copy> CycleDetector<T> {
+    pub fn had(&self, v: &T) -> bool {
+        self.history.contains(v)
+    }
 
-    fn add(mut self, rhs: Self) -> Self::Output {
-        self += rhs;
-        self
+    pub fn push(&mut self, v: T) {
+        self.history.rotate_right(1);
+        self.history[0] = v;
     }
 }
 
-impl std::iter::Sum for Sigmas {
-    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.fold(Self::default(), |s, x| s + x)
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use common::obs_data::RawData;
+    // use common::plot::plotters::style::*;
+
+    #[test]
+    fn botswana_grad_direction() {
+        let jamie = 20;
+
+        let data = RawData::read_from_toml_file("./data/new-zeland-2022-07-07.toml").finalize();
+        let weights: Vec<Weight> = serde_json::from_str(include_str!("../weights.json")).unwrap();
+
+        assert_eq!(data.samples.len(), weights.len());
+
+        // dbg!(&data.samples[jamie]);
+        // dbg!(&weights[jamie]);
+
+        let params = Params {
+            da_only: false,
+            no_da_flip: true,
+        };
+
+        let s = Solver::new(data, params);
+
+        let init_traj = Line {
+            point: Vec3 {
+                x: -4571321.677919821,
+                y: 363340.9579855858,
+                z: -4173833.2329518804,
+            },
+            direction: UnitVec3::new_unchecked(Vec3::new(
+                0.19695076658517333,
+                -0.36780497139690055,
+                0.9088068543740402,
+            )),
+        };
+        let (init_point, _) = s.calc_flash_and_speed(init_traj, Some(&weights));
+
+        let old = s.data.samples[jamie].z0.unwrap();
+
+        let mut pts = Vec::new();
+        // range(-0.2, 0.2, 0.4 / 14.0)
+        //     .collect::<Vec<_>>()
+        (0..1)
+            .into_par_iter()
+            .map(|x| {
+                let x = x as f64;
+                dbg!(x);
+                let mut s = s.clone();
+                s.data.samples[jamie].z0 = Some(old + x.to_radians());
+                let (new_traj, _gd_i) =
+                    // s.gradient_descent_complete(init_traj, Some(&weights), &GD_TARGET_PARAMS);
+                    s.gradient_descent_complete(init_traj, Some(&weights), &GD_FIRST_PARAMS);
+                eprintln!("{x} done");
+                let (point, _) = s.calc_flash_and_speed(new_traj, Some(&weights));
+                let dist = (point - init_point).norm();
+                (x, dist, plotters::style::RED, 1.0)
+            })
+            .collect_into_vec(&mut pts);
+
+        draw_plot_svg(&format!("/tmp/test.svg",), &pts, &[], &[], &[]).unwrap();
+
+        // let err0 = get_err(traj);
+        // let err1 = get_err(traj.offset_point(comp_grad * JUMP));
+
+        // dbg!(err0);
+        // dbg!(err1);
+        // // dbg!(get_err(s.gradient_descent_point(traj, None, 10)));
+
+        // // dbg!(s.gradient_descent_point(traj, None, 10));
+
+        // let mut rng = SmallRng::from_entropy();
+        // for _ in 0..10_000 {
+        //     let rand_grad = Vec3::new(
+        //         rng.sample::<f64, _>(StandardNormal),
+        //         rng.sample::<f64, _>(StandardNormal),
+        //         rng.sample::<f64, _>(StandardNormal),
+        //     )
+        //     .normalize();
+
+        //     let err = get_err(traj.offset_point(rand_grad * JUMP));
+        //     if !(err < err1) {
+        //         dbg!(err);
+
+        //         let sample = &s.data.samples[17];
+
+        //         let mut pts = Vec::new();
+        //         let mut x = 0.32;
+        //         while x <= 0.36 {
+        //             let eval = {
+        //                 let traj = traj.offset_point(rand_grad * x);
+        //                 let ek = UnitVec3::new_normalize(traj.point - sample.location);
+        //                 let zenith_k = ZenithCoef::new(sample, ek).coef;
+        //                 zenith_k
+        //             };
+
+        //             pts.push((x, eval, plotters::style::RED, 1.0));
+        //             x += 0.00005;
+        //         }
+
+        //         draw_plot_svg(&format!("/tmp/test.svg",), &pts, &[], &[], &[]).unwrap();
+
+        //         panic!();
+        //     }
+        // }
+        panic!();
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct GradDescentParams {
+    pub target_err_rel: f64,
+    pub debug: bool,
+    pub realtime_graph: bool,
+}
+
+#[derive(Serialize, Debug, Clone)]
+struct TodoDeleteHist {
+    ty: ObsType,
+    derivative: f64,
+    error: f64,
+    sigma: f64,
+    weight: f64,
+    sample_i: usize,
+    name: Option<String>,
+}
+
+#[derive(Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+enum ObsType {
+    Da,
+    Z0,
+}
+
+fn dump_weights(weights: &[Weight]) {
+    let weight_out = std::fs::File::create("./weights.json").unwrap();
+    serde_json::to_writer(weight_out, weights).unwrap();
+}
+
+struct RangeIter {
+    start: f64,
+    end: f64,
+    step: f64,
+}
+
+impl Iterator for RangeIter {
+    type Item = f64;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.start <= self.end {
+            let retval = self.start;
+            self.start += self.step;
+            Some(retval)
+        } else {
+            None
+        }
+    }
+}
+
+// impl ParallelIterator for RangeIter {
+//     type Item = f64;
+
+//     fn drive_unindexed<C>(self, consumer: C) -> C::Result
+//     where
+//         C: rayon::iter::plumbing::UnindexedConsumer<Self::Item>,
+//     {
+//         todo!()
+//     }
+// }
+
+fn range(start: f64, end: f64, step: f64) -> RangeIter {
+    RangeIter { start, end, step }
 }

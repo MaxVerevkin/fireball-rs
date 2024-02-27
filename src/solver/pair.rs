@@ -1,7 +1,5 @@
-use crate::approx_eq::ApproxEq;
-
-use common::obs_data::DataSample;
-use common::structs::{Line, UnitVec3};
+use common::obs_data::{DataSample, PartDiff};
+use common::structs::{Geodetic, Line, UnitVec3, Vec3};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PairTrajectory {
@@ -22,22 +20,22 @@ impl PairTrajectory {
         }
 
         let axis1 = s1.axis?;
+        let axis2 = s2.axis?;
         let plane1 = s1.plane?;
         let plane2 = s2.plane?;
 
-        // weight = sin^2(plane1^plane2)
-        //
-        // Note: Perpendicular planes are expected to give more reliable results, while almost
-        // parallel planes should be ignored.
-        let (direction, mut weight) = UnitVec3::new_and_get(plane1.cross(*plane2));
-        weight *= weight;
+        let dot1 = axis1.dot(*plane2).abs();
+        let dot2 = axis2.dot(*plane1).abs();
 
-        if weight.approx_eq(0.0) {
-            // Planes are parallel
+        const MIN_ACCEPTABLE_SIN: f64 = 0.1; // ~ sin(6 deg)
+        if dot1 < MIN_ACCEPTABLE_SIN || dot2 < MIN_ACCEPTABLE_SIN {
             return None;
         }
 
+        let weight = (dot1 * dot2).sqrt();
+
         // Check direction
+        let direction = UnitVec3::new_normalize(plane1.cross(*plane2));
         let direction = match (
             s1.direction_matches(direction),
             s2.direction_matches(direction),
@@ -51,8 +49,21 @@ impl PairTrajectory {
         };
 
         let l1 = (s2.location - s1.location).dot(*plane2) / axis1.dot(*plane2);
-        let point = s1.location + axis1.into_inner() * l1;
+        let point1 = s1.location + axis1 * l1;
+        let l2 = (s1.location - s2.location).dot(*plane1) / axis2.dot(*plane1);
+        let point2 = s2.location + axis2 * l2;
+        let point = (point1 + point2) * 0.5;
 
+        if axis1.dot(*axis2).acos() < 10f64.to_radians() {
+            if l1 > 5e6 && l2 > 5e6 {
+                dbg!(
+                    weight,
+                    l1,
+                    l2,
+                    Geodetic::from_geocentric_cartesian(point, 10)
+                );
+            }
+        }
         // Ensure that the point actually belongs to both planes
         assert_approx_eq!(plane1.dot((point - s1.location).normalize()), 0.0);
         assert_approx_eq!(plane2.dot((point - s2.location).normalize()), 0.0);
@@ -67,5 +78,69 @@ impl PairTrajectory {
             line: Line { point, direction },
             weight,
         })
+    }
+
+    /// Calculate the derivative of the `calculate` function is respect to `s1`'s `pd`.
+    ///
+    /// Call this function only if `calculate` have returned `Some`.
+    ///
+    /// Returns (point_diff, direction_diff, weight_diff)
+    pub fn diff(s1: &DataSample, s2: &DataSample, pd: &PartDiff) -> Option<(Vec3, Vec3, f64)> {
+        let axis1 = s1.axis?;
+        let axis2 = s2.axis?;
+        let plane1 = s1.plane?;
+        let plane2 = s2.plane?;
+
+        let axis1_diff = s1.axis_diff(pd)?;
+        let plane1_diff = s1.plane_diff(pd)?;
+
+        let dot1 = axis1.dot(*plane2).abs();
+        let dot1_diff = axis1_diff.dot(*plane2).abs();
+        let dot2 = axis2.dot(*plane1).abs();
+        let dot2_diff = axis2.dot(plane1_diff).abs();
+
+        let weight_sq = dot1 * dot2;
+        let weight_sq_diff = dot1 * dot2_diff + dot1_diff * dot2;
+        let weight = weight_sq.sqrt();
+        let weight_diff = 0.5 / weight * weight_sq_diff;
+
+        let cross = plane1.cross(*plane2);
+        let cross_diff = plane1_diff.cross(*plane2);
+
+        let direction = UnitVec3::new_normalize(cross);
+        let direction_diff = cross.normalize_diff(cross_diff);
+
+        // Check direction
+        let (_direction, direction_diff) = match (
+            s1.direction_matches(direction),
+            s2.direction_matches(direction),
+        ) {
+            // Observers are giving opposite directions
+            (true, false) | (false, true) => return None,
+            // Both observers argee that velocity should be negated
+            (false, false) => (-direction, -direction_diff),
+            // Both observers argee that velocity should not be changed
+            (true, true) => (direction, direction_diff),
+        };
+
+        let l1 = (s2.location - s1.location).dot(*plane2) / axis1.dot(*plane2);
+        let l1_diff = -(s2.location - s1.location).dot(*plane2) / axis1.dot(*plane2).powi(2)
+            * axis1_diff.dot(*plane2);
+
+        let l2 = (s1.location - s2.location).dot(*plane1) / axis2.dot(*plane1);
+        let l2_diff = (s1.location - s2.location).dot(plane1_diff) / axis2.dot(*plane1)
+            - (s1.location - s2.location).dot(*plane1) / axis2.dot(*plane1).powi(2)
+                * axis2.dot(plane1_diff);
+
+        let point1 = s1.location + axis1 * l1;
+        let point1_diff = axis1 * l1_diff + axis1_diff * l1;
+
+        let point2 = s2.location + axis2 * l2;
+        let point2_diff = axis2 * l2_diff;
+
+        let _point = (point1 + point2) * 0.5;
+        let point_diff = (point1_diff + point2_diff) * 0.5;
+
+        Some((point_diff, direction_diff, weight_diff))
     }
 }

@@ -1,11 +1,11 @@
 use rand::Rng;
 use rand_distr::StandardNormal;
+use serde::Serialize;
 
 use std::f64::consts::TAU;
-use std::intrinsics::unlikely;
 use std::ops;
 
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
+#[derive(Serialize, Debug, Default, Clone, Copy, PartialEq)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -13,7 +13,7 @@ pub struct Vec3 {
 }
 
 impl Vec3 {
-    pub fn new(x: f64, y: f64, z: f64) -> Self {
+    pub const fn new(x: f64, y: f64, z: f64) -> Self {
         Self { x, y, z }
     }
 
@@ -37,6 +37,13 @@ impl Vec3 {
         self.norm_squared().sqrt()
     }
 
+    pub fn norm_diff(self, self_diff: Self) -> f64 {
+        // norm = (x**2 + y**2 + z**2)**0.5
+        // norm,i = 0.5 * (x**2 + y**2 + z**2)**(-0.5) * (2x*x,i + 2y*y,i + 2z*z,i)
+        //        = dot(self, self_diff) / L
+        self.dot(self_diff) / self.norm()
+    }
+
     pub fn normalize_mut(mut self: &mut Self) {
         self /= self.norm();
     }
@@ -44,6 +51,20 @@ impl Vec3 {
     pub fn normalize(mut self) -> Self {
         self /= self.norm();
         self
+    }
+
+    pub fn normalize_diff(self, self_diff: Self) -> Self {
+        // L = (vec.x**2 + vec.y**2 + vec.z**2)**0.5
+        // L,i = 0.5 * (vec.x**2 + vec.y**2 + vec.z**2)**(-0.5) * (2*vec.x*vec.x,i + 2.vec.y....)
+        //     = dot(vec, vec,i) / L
+
+        // result.x = vec.x / L
+        // result.x,i = vec.x,i / L - vec.x / L**2 * L,i
+        //            = vec.x,i / L - vec.x / L**3 * dot(vec, vec,i)
+
+        // result,i = vec,i / L - vec / L**3 * dot(vec, vec,i)
+        let l = self.norm();
+        self_diff / l - self / (l * l * l) * self.dot(self_diff)
     }
 
     pub fn dot(self, rhs: Self) -> f64 {
@@ -62,6 +83,28 @@ impl Vec3 {
     pub fn rotate(self, axis: UnitVec3, angle: f64) -> Self {
         let (sin_a, cos_a) = angle.sin_cos();
         self * cos_a + axis.cross(self) * sin_a + (*axis) * (1.0 - cos_a) * axis.dot(self)
+    }
+
+    pub fn rotate_diff(
+        self,
+        axis: UnitVec3,
+        angle: f64,
+        self_diff: Vec3,
+        axis_diff: Vec3,
+        angle_diff: f64,
+    ) -> Vec3 {
+        let (sin_a, cos_a) = angle.sin_cos(); // sin_a = sin(angle)
+        let sin_a_diff = cos_a * angle_diff;
+        let cos_a_diff = -sin_a * angle_diff;
+
+        self * cos_a_diff
+            + self_diff * cos_a
+            + axis.cross(self) * sin_a_diff
+            + sin_a * (axis.cross(self_diff) + axis_diff.cross(self))
+            + axis_diff * ((1.0 - cos_a) * axis.dot(self))
+            + axis
+                * ((1.0 - cos_a) * (axis.dot(self_diff) + axis_diff.dot(self))
+                    - axis.dot(self) * cos_a_diff)
     }
 }
 
@@ -197,7 +240,8 @@ impl ops::Neg for Vec3 {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Serialize, Debug, Clone, Copy, PartialEq)]
+#[serde(transparent)]
 pub struct UnitVec3 {
     inner: Vec3,
 }
@@ -230,7 +274,7 @@ impl UnitVec3 {
         let beta = rng.gen::<f64>() * TAU;
 
         let mut perp = self.cross(Vec3::x());
-        if unlikely(self.dot(Vec3::x()) < 0.01) {
+        if self.dot(Vec3::x()) < 0.01 {
             perp = self.cross(Vec3::y());
         }
         let perp = Self::new_normalize(perp);

@@ -259,7 +259,7 @@ fn parse_file(in_file: impl AsRef<Path>) -> Option<impl Iterator<Item = Sample>>
 
     Some(data.samples.into_iter().flat_map(move |s| {
         let reported = s.z0?.rem_euclid(TAU);
-        let actual = s.calc_azimuth(point).rem_euclid(TAU);
+        let actual = s.calc_azimuth(point - s.location).rem_euclid(TAU);
         Some(Sample { reported, actual })
     }))
 }

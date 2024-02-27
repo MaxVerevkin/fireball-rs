@@ -6,6 +6,24 @@ edition = "2021"
 [dependencies]
 rand_distr = "0.4"
 rand = { version = "0.8", features = ["nightly", "small_rng"] }
-plotters = "0.3"
+# plotters = { version = "0.3", default-features = false, features = [ "svg_backend" ] }
 serde = { version = "1.0.152", features = ["derive"] }
 toml = "0.7.2"
+
+[dependencies.plotters]
+version = "0.3"
+default_features = false
+features = [
+  # "bitmap_backend",
+  # "bitmap_encoder",
+  # "bitmap_gif",
+  "svg_backend",
+  "chrono",
+  # "ttf",
+  "image",
+  # "deprecated_items",
+  "all_series",
+  "all_elements",
+  "full_palette",
+  "colormaps",
+]

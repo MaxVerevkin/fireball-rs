@@ -22,6 +22,10 @@ struct CliArgs {
     #[arg(long)]
     da_only: bool,
 
+    /// Use only descent angles in the trajectory evaluation
+    #[arg(long)]
+    correct_altitudes: bool,
+
     /// Do not 'flip' the decent angles
     #[arg(long)]
     no_da_flip: bool,
@@ -39,10 +43,13 @@ fn main() {
     let args = CliArgs::parse();
 
     // Read data
-    let data = RawData::read_from_toml_file(&args.file)
+    let mut data = RawData::read_from_toml_file(&args.file)
         .da_correction(args.da_k)
-        .az_correction(args.az_k)
-        .finalize();
+        .az_correction(args.az_k);
+    if args.correct_altitudes {
+        data = data.altitudes_correction();
+    }
+    let data = data.finalize();
 
     // Solve!
     let mut solver = Solver::new(

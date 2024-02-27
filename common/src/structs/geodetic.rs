@@ -37,6 +37,22 @@ impl Geodetic {
         (east, north, zenith)
     }
 
+    /// Convert from (East, North, Zenith) to (X, Y, Z)
+    pub fn local_to_geocentric(self, vec: Vec3) -> Vec3 {
+        let (east, north, zenith) = self.local_cartesian_triple();
+        vec.x * east + vec.y * north + vec.z * zenith
+    }
+
+    /// Convert from (X, Y, Z) to (East, North, Zenith)
+    pub fn geocentric_to_local(self, vec: Vec3) -> Vec3 {
+        let (sin_lon, cos_lon) = self.lon.sin_cos();
+        let (sin_lat, cos_lat) = self.lat.sin_cos();
+        let x = Vec3::new(-sin_lon, -cos_lon * sin_lat, cos_lon * cos_lat);
+        let y = Vec3::new(cos_lon, -sin_lon * sin_lat, sin_lon * cos_lat);
+        let z = Vec3::new(0.0, self.lat.cos(), self.lat.sin());
+        vec.x * x + vec.y * y + vec.z * z
+    }
+
     // https://en.wikipedia.org/wiki/Geodetic_coordinates#Conversion
     pub fn into_geocentric_cartesian(self) -> Vec3 {
         let (sin_lat, cos_lat) = self.lat.sin_cos();
@@ -83,7 +99,7 @@ impl fmt::Display for Geodetic {
         let lon_dir = if lon >= 0. { 'E' } else { 'W' };
         write!(
             f,
-            "({:.3}{}{}, {:.3}{}{}, {:.3} KM)",
+            "({:.3}{}{}, {:.3}{}{}, {:.3}km)",
             self.lat.to_degrees().abs(),
             DEGREE_SYM,
             lat_dir,

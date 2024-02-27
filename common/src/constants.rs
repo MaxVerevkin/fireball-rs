@@ -9,6 +9,8 @@ pub const EARTH_R: f64 = 6_371_000.;
 /// Unicode's degree symbol
 pub const DEGREE_SYM: char = '\u{00b0}';
 
+pub const ALPHA_SYM: char = '\u{03b1}';
+
 /// Unicode's delta symbol
 pub const DELTA_SYM: char = '\u{0394}';
 

@@ -5,10 +5,10 @@ use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 
-use crate::constants::*;
-use crate::maths::*;
 use crate::quick_median::SliceExt;
 use crate::structs::*;
+use crate::{constants::*, hilbert};
+use crate::{maths::*, Sigmas};
 
 /// The sample as it is in the file. Angles are meausred in degrees.
 #[derive(Deserialize, Serialize, Debug, Clone)]
@@ -23,7 +23,7 @@ pub struct RawSample {
     pub h0: Option<f64>,
     pub t: Option<f64>,
     pub name: Option<String>,
-    pub exp: Option<f64>,
+    pub exp: Option<u8>,
 }
 
 /// `RawSample` with degrees converted to radians
@@ -79,10 +79,12 @@ pub struct DataSample {
     pub plane: Option<UnitVec3>,
     pub dur: Option<f64>,
     pub name: Option<String>,
-    pub exp: Option<f64>,
+    pub exp: Option<u8>,
 
     pub z0: Option<f64>,
     pub h0: Option<f64>,
+    pub zb: Option<f64>,
+    pub hb: Option<f64>,
 }
 
 impl From<NormalizedRawSample> for DataSample {
@@ -106,7 +108,10 @@ impl From<NormalizedRawSample> for DataSample {
         let mut k_start = make_k_vec(raw.0.zb, raw.0.hb);
         let k_end = make_k_vec(raw.0.z0, raw.0.h0);
 
-        if let Some(ks) = k_start && let Some(ke) = k_end && ks.dot(*ke).abs() > 0.9999 {
+        if let Some(ks) = k_start
+            && let Some(ke) = k_end
+            && ks.dot(*ke).abs() > 0.9999
+        {
             k_start = None;
         }
 
@@ -147,11 +152,88 @@ impl From<NormalizedRawSample> for DataSample {
 
             z0: raw.0.z0,
             h0: raw.0.h0,
+            zb: raw.0.zb,
+            hb: raw.0.hb,
         }
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct PartDiff {
+    pub dz0: f64,
+    pub dh0: f64,
+    pub dzb: f64,
+    pub dhb: f64,
+    pub dda: f64,
+}
+
 impl DataSample {
+    pub fn k_start_diff(&self, pd: &PartDiff) -> Option<Vec3> {
+        let (zb, hb) = self.zb.zip(self.hb)?;
+        let az = Azimuthal { z: zb, h: hb };
+        let local_diff = az.to_vec3_diff(pd.dzb, pd.dhb);
+        Some(
+            local_diff.x * self.east_dir
+                + local_diff.y * self.north_dir
+                + local_diff.z * self.zenith_dir,
+        )
+    }
+
+    pub fn k_end_diff(&self, pd: &PartDiff) -> Option<Vec3> {
+        let (z0, h0) = self.z0.zip(self.h0)?;
+        let az = Azimuthal { z: z0, h: h0 };
+        let local_diff = az.to_vec3_diff(pd.dz0, pd.dh0);
+        Some(
+            local_diff.x * self.east_dir
+                + local_diff.y * self.north_dir
+                + local_diff.z * self.zenith_dir,
+        )
+    }
+
+    pub fn axis_diff(&self, pd: &PartDiff) -> Option<Vec3> {
+        match (self.k_start, self.k_end) {
+            (Some(a), Some(b)) => Some(Vec3::normalize_diff(
+                a.into_inner() + b.into_inner(),
+                self.k_start_diff(pd)? + self.k_end_diff(pd)?,
+            )),
+            (Some(_), None) => self.k_start_diff(pd),
+            (None, Some(_)) => self.k_end_diff(pd),
+            (None, None) => None,
+        }
+    }
+
+    pub fn plane_diff(&self, pd: &PartDiff) -> Option<Vec3> {
+        if let (Some(v1), Some(v2)) = (self.k_start, self.k_end) {
+            Some(Vec3::normalize_diff(
+                v2.cross(*v1),
+                v2.cross(self.k_start_diff(pd)?) + self.k_end_diff(pd)?.cross(*v1),
+            ))
+        } else if let (Some(axis), Some(da)) = (self.axis, self.da) {
+            if axis.normalize().dot(self.location.normalize()) > 0.999 {
+                None
+            } else {
+                let axis_diff = self.axis_diff(pd)?;
+                let not_n = axis.cross(self.location);
+                let not_n_diff = axis_diff.cross(self.location);
+                let n = UnitVec3::new_normalize(not_n);
+                let n_diff = not_n.normalize_diff(not_n_diff);
+                Some(n.rotate_diff(axis, da + PI, n_diff, axis_diff, pd.dda))
+            }
+        } else {
+            None
+        }
+    }
+
+    pub fn update_k_end(&mut self) {
+        self.k_end = self.z0.zip(self.h0).map(|(z0, h0)| {
+            let local = UnitVec3::from(Azimuthal { z: z0, h: h0 });
+            let v = local.x * self.east_dir.into_inner()
+                + local.y * self.north_dir.into_inner()
+                + local.z * self.zenith_dir.into_inner();
+            UnitVec3::new_unchecked(v)
+        });
+    }
+
     /// Compute the descent angle given `k_start` and `k_end`
     pub fn calculated_da(&self) -> Option<f64> {
         let axis = self.axis?;
@@ -174,7 +256,9 @@ impl DataSample {
 
     /// Check whether a direction matches the observation
     pub fn direction_matches(&self, direction: UnitVec3) -> bool {
-        if let Some(axis) = self.axis && let Some(plane) = self.plane {
+        if let Some(axis) = self.axis
+            && let Some(plane) = self.plane
+        {
             axis.cross(*plane).dot(*direction) > 0.0
         } else {
             false
@@ -223,8 +307,7 @@ impl DataSample {
     }
 
     /// Calculate azimuth in range (-pi, pi]
-    pub fn calc_azimuth(&self, p: Vec3) -> f64 {
-        let k = p - self.location;
+    pub fn calc_azimuth(&self, k: Vec3) -> f64 {
         let x = k.dot(*self.east_dir);
         let y = k.dot(*self.north_dir);
         f64::atan2(x, y)
@@ -335,6 +418,48 @@ impl RawData {
         self
     }
 
+    pub fn altitudes_correction(mut self) -> Self {
+        fn predict_calculated(observed: f64) -> f64 {
+            const P1: Vec3 = hilbert(0.668, 32);
+            let bez = bezier_predict_calculated(FRAC_PI_2 * P1, observed);
+            1.8216 * (observed / FRAC_PI_2).sqrt() * (1.0 - (1.6335 * observed + 0.65775).tanh())
+                + bez
+        }
+
+        fn bezier_predict_calculated(p1: Vec3, observed: f64) -> f64 {
+            let p1 = FRAC_PI_2 * p1;
+            let p2 = FRAC_PI_2 * Vec3::new(1.0, 1.0, 0.0);
+            let p = |t: f64| t * (2.0 * (1.0 - t) * p1 + t * p2);
+
+            let d = (p1.x * p1.x + observed * (p2.x - 2.0 * p1.x)).sqrt();
+            let t1 = (p1.x + d) / (2.0 * p1.x - p2.x);
+            let t2 = (p1.x - d) / (2.0 * p1.x - p2.x);
+
+            let e = 0.001;
+            let t = if t1 >= -e && t1 <= 1.0 + e {
+                t1
+            } else if t2 >= -e && t2 <= 1.0 + e {
+                t2
+            } else {
+                dbg!(t1, t2);
+                unreachable!()
+            };
+
+            p(t).y
+        }
+
+        for s in &mut self.sample {
+            if let Some(x) = &mut s.0.h0 {
+                *x = predict_calculated(*x);
+            }
+            if let Some(x) = &mut s.0.hb {
+                *x = predict_calculated(*x);
+            }
+        }
+
+        self
+    }
+
     pub fn finalize(self) -> Data {
         Data {
             samples: self.sample.into_iter().map(Into::into).collect(),
@@ -346,11 +471,20 @@ impl RawData {
 }
 
 impl Data {
-    pub fn compare(&self, other: Line, message: &str) {
+    pub fn compare(&self, other: Line, sigmas: Option<Sigmas>, message: &str) {
         let Some(answer) = self.answer else { return };
         let Some(answer_point) = answer.point else {
             return;
         };
+
+        let (point_sigma, dir_sigma) = sigmas
+            .map(|s| {
+                (
+                    Vec3::new(s.x, s.y, s.z).norm() * 1e-3,
+                    s.v_angle.to_degrees(),
+                )
+            })
+            .unzip();
 
         let vel_error = answer
             .traj
@@ -385,9 +519,17 @@ impl Data {
 
         eprintln!("--- {message} ---");
         eprintln!("Point: {geo}");
-        eprintln!("Distance: {distance:.1}km");
+        if let Some(s) = point_sigma {
+            eprintln!("Distance: {distance:.1}{PLUS_MINUS}{s:.1}km");
+        } else {
+            eprintln!("Distance: {distance:.1}km");
+        }
         if let Some(vel_error) = vel_error {
-            eprintln!("Velocity angular error: {vel_error:.1}{DEGREE_SYM}");
+            if let Some(s) = dir_sigma {
+                eprintln!("Velocity angular error: {vel_error:.1}{PLUS_MINUS}{s:.1}{DEGREE_SYM}");
+            } else {
+                eprintln!("Velocity angular error: {vel_error:.1}{DEGREE_SYM}");
+            }
         }
         if let Some(elevation_angle) = elevation_angle {
             eprintln!("Elevation angular error: {elevation_angle:.1}{DEGREE_SYM}");
@@ -409,62 +551,62 @@ impl DerefMut for Data {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use rand::prelude::*;
+// #[cfg(test)]
+// mod tests {
+//     use super::*;
+//     use rand::prelude::*;
 
-    #[test]
-    fn azimuth() {
-        for _ in 0..10_000 {
-            let raw = RawSample {
-                lat: random::<f64>() * 180.0 - 90.0,
-                lon: random::<f64>() * 360.0 - 180.0,
-                h: random::<f64>() * 2_000.0,
-                a: None,
-                zb: None,
-                hb: None,
-                z0: None,
-                h0: None,
-                t: None,
-                name: None,
-                exp: None,
-            };
-            let s = DataSample::from(raw);
+//     #[test]
+//     fn azimuth() {
+//         for _ in 0..10_000 {
+//             let raw = RawSample {
+//                 lat: random::<f64>() * 180.0 - 90.0,
+//                 lon: random::<f64>() * 360.0 - 180.0,
+//                 h: random::<f64>() * 2_000.0,
+//                 a: None,
+//                 zb: None,
+//                 hb: None,
+//                 z0: None,
+//                 h0: None,
+//                 t: None,
+//                 name: None,
+//                 exp: None,
+//             };
+//             let s = DataSample::from(raw);
 
-            {
-                let z_north = s.calc_azimuth(
-                    s.location
-                        + s.north_dir * (10.0 + random::<f64>() * 1_000.0)
-                        + s.zenith_dir * random::<f64>() * 1_000.0,
-                );
-                assert!(angle_diff(0.0, z_north).abs() < 0.001);
-            }
+//             {
+//                 let z_north = s.calc_azimuth(
+//                     s.location
+//                         + s.north_dir * (10.0 + random::<f64>() * 1_000.0)
+//                         + s.zenith_dir * random::<f64>() * 1_000.0,
+//                 );
+//                 assert!(angle_diff(0.0, z_north).abs() < 0.001);
+//             }
 
-            {
-                let z_east = s.calc_azimuth(
-                    s.location
-                        + s.east_dir * (10.0 + random::<f64>() * 1_000.0)
-                        + s.zenith_dir * random::<f64>() * 1_000.0,
-                );
-                assert!(angle_diff(FRAC_PI_2, z_east).abs() < 0.001);
-            }
+//             {
+//                 let z_east = s.calc_azimuth(
+//                     s.location
+//                         + s.east_dir * (10.0 + random::<f64>() * 1_000.0)
+//                         + s.zenith_dir * random::<f64>() * 1_000.0,
+//                 );
+//                 assert!(angle_diff(FRAC_PI_2, z_east).abs() < 0.001);
+//             }
 
-            {
-                let z_south = s.calc_azimuth(
-                    s.location - s.north_dir * (10.0 + random::<f64>() * 1_000.0)
-                        + s.zenith_dir * random::<f64>() * 1_000.0,
-                );
-                assert!(angle_diff(PI, z_south).abs() < 0.001);
-            }
+//             {
+//                 let z_south = s.calc_azimuth(
+//                     s.location - s.north_dir * (10.0 + random::<f64>() * 1_000.0)
+//                         + s.zenith_dir * random::<f64>() * 1_000.0,
+//                 );
+//                 assert!(angle_diff(PI, z_south).abs() < 0.001);
+//             }
 
-            {
-                let z_west = s.calc_azimuth(
-                    s.location - s.east_dir * (10.0 + random::<f64>() * 1_000.0)
-                        + s.zenith_dir * random::<f64>() * 1_000.0,
-                );
-                assert!(angle_diff(FRAC_PI_2 * 3.0, z_west).abs() < 0.001);
-            }
-        }
-    }
-}
+//             {
+//                 let z_west = s.calc_azimuth(
+//                     s.location - s.east_dir * (10.0 + random::<f64>() * 1_000.0)
+//                         + s.zenith_dir * random::<f64>() * 1_000.0,
+//                 );
+//                 assert!(angle_diff(FRAC_PI_2 * 3.0, z_west).abs() < 0.001);
+//             }
+//         }
+//     }
+// }

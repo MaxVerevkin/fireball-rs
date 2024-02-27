@@ -21,6 +21,24 @@ pub struct Azimuthal {
     pub h: f64,
 }
 
+impl Azimuthal {
+    pub fn to_vec3_diff(self, z_diff: f64, h_diff: f64) -> Vec3 {
+        let (h_sin, h_cos) = self.h.sin_cos();
+        let h_sin_diff = h_cos * h_diff;
+        let h_cos_diff = -h_sin * h_diff;
+
+        let (z_sin, z_cos) = self.z.sin_cos();
+        let z_sin_diff = z_cos * z_diff;
+        let z_cos_diff = -z_sin * z_diff;
+
+        Vec3::new(
+            h_cos * z_sin_diff + h_cos_diff * z_sin,
+            h_cos * z_cos_diff + h_cos_diff * z_cos,
+            h_sin_diff,
+        )
+    }
+}
+
 impl Display for Azimuthal {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
@@ -56,6 +74,7 @@ impl From<UnitVec3> for Azimuthal {
 
 impl From<Azimuthal> for UnitVec3 {
     fn from(a: Azimuthal) -> Self {
+        // a = (h, z)
         Self::new_unchecked(Vec3::new(
             a.h.cos() * a.z.sin(),
             a.h.cos() * a.z.cos(),
