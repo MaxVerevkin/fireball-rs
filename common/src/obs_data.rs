@@ -315,13 +315,24 @@ impl DataSample {
 }
 
 #[derive(Deserialize)]
-pub struct RawAnswer {
-    lat: f64,
-    lon: f64,
-    h: Option<f64>,
-    vx: Option<f64>,
-    vy: Option<f64>,
-    vz: Option<f64>,
+#[serde(untagged, deny_unknown_fields)]
+pub enum RawAnswer {
+    V1 {
+        lat: f64,
+        lon: f64,
+        h: Option<f64>,
+        vx: Option<f64>,
+        vy: Option<f64>,
+        vz: Option<f64>,
+    },
+    V2 {
+        lat: f64,
+        lon: f64,
+        h: Option<f64>,
+        bearing: f64,
+        incidence: f64,
+        speed: f64,
+    },
 }
 
 #[derive(Deserialize, Debug, Clone, Copy, PartialEq)]
@@ -335,14 +346,36 @@ pub struct Answer {
 
 impl From<RawAnswer> for Answer {
     fn from(raw: RawAnswer) -> Self {
-        let geo_location = Geodetic::new_from_degrees_m(raw.lat, raw.lon, raw.h.unwrap_or(0.0));
-        let point_no_h = geo_location.into_geocentric_cartesian();
-        let point = raw.h.is_some().then_some(point_no_h);
+        let (lat, lon, h) = match raw {
+            RawAnswer::V1 { lat, lon, h, .. } => (lat, lon, h),
+            RawAnswer::V2 { lat, lon, h, .. } => (lat, lon, h),
+        };
 
-        let (direction, speed) = if let (Some(vx), Some(vy), Some(vz)) = (raw.vx, raw.vy, raw.vz) {
-            Some(UnitVec3::new_and_get(Vec3::new(vx, vy, vz) * 1_000.0)).unzip()
-        } else {
-            (None, None)
+        let geo_location = Geodetic::new_from_degrees_m(lat, lon, h.unwrap_or(0.0));
+        let point_no_h = geo_location.into_geocentric_cartesian();
+        let point = h.is_some().then_some(point_no_h);
+
+        let (direction, speed) = match raw {
+            RawAnswer::V1 {
+                vx: Some(vx),
+                vy: Some(vy),
+                vz: Some(vz),
+                ..
+            } => Some(UnitVec3::new_and_get(Vec3::new(vx, vy, vz) * 1_000.0)).unzip(),
+            RawAnswer::V2 {
+                bearing,
+                incidence,
+                speed,
+                ..
+            } => {
+                let local = UnitVec3::from(Azimuthal {
+                    z: bearing.to_radians(),
+                    h: (incidence - 90.0).to_radians(),
+                });
+                let dir = UnitVec3::new_unchecked(geo_location.local_to_geocentric(*local));
+                (Some(dir), Some(speed * 1_000.0))
+            }
+            _ => (None, None),
         };
 
         Self {
@@ -550,63 +583,3 @@ impl DerefMut for Data {
         &mut self.samples
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use rand::prelude::*;
-
-//     #[test]
-//     fn azimuth() {
-//         for _ in 0..10_000 {
-//             let raw = RawSample {
-//                 lat: random::<f64>() * 180.0 - 90.0,
-//                 lon: random::<f64>() * 360.0 - 180.0,
-//                 h: random::<f64>() * 2_000.0,
-//                 a: None,
-//                 zb: None,
-//                 hb: None,
-//                 z0: None,
-//                 h0: None,
-//                 t: None,
-//                 name: None,
-//                 exp: None,
-//             };
-//             let s = DataSample::from(raw);
-
-//             {
-//                 let z_north = s.calc_azimuth(
-//                     s.location
-//                         + s.north_dir * (10.0 + random::<f64>() * 1_000.0)
-//                         + s.zenith_dir * random::<f64>() * 1_000.0,
-//                 );
-//                 assert!(angle_diff(0.0, z_north).abs() < 0.001);
-//             }
-
-//             {
-//                 let z_east = s.calc_azimuth(
-//                     s.location
-//                         + s.east_dir * (10.0 + random::<f64>() * 1_000.0)
-//                         + s.zenith_dir * random::<f64>() * 1_000.0,
-//                 );
-//                 assert!(angle_diff(FRAC_PI_2, z_east).abs() < 0.001);
-//             }
-
-//             {
-//                 let z_south = s.calc_azimuth(
-//                     s.location - s.north_dir * (10.0 + random::<f64>() * 1_000.0)
-//                         + s.zenith_dir * random::<f64>() * 1_000.0,
-//                 );
-//                 assert!(angle_diff(PI, z_south).abs() < 0.001);
-//             }
-
-//             {
-//                 let z_west = s.calc_azimuth(
-//                     s.location - s.east_dir * (10.0 + random::<f64>() * 1_000.0)
-//                         + s.zenith_dir * random::<f64>() * 1_000.0,
-//                 );
-//                 assert!(angle_diff(FRAC_PI_2 * 3.0, z_west).abs() < 0.001);
-//             }
-//         }
-//     }
-// }
