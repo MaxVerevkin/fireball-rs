@@ -910,7 +910,6 @@ impl Solver {
         speed: f64,
         traj: Line,
         weights: Option<&[Weight]>,
-        hist: &std::sync::Mutex<Vec<TodoDeleteHist>>,
     ) -> Sigmas {
         const DA_D: f64 = to_radians(0.1);
         const AZ_D: f64 = to_radians(0.1);
@@ -1010,88 +1009,11 @@ impl Solver {
         let (flash, speed) = self.calc_flash_and_speed(traj, weights);
         let dir: Azimuthal = traj.direction.into_inner().into();
 
-        let hist = std::sync::Mutex::new(Vec::new());
-
-        let result = (0..self.data.samples.len())
+        (0..self.data.samples.len())
             .into_par_iter()
-            .map(|i| self.calc_sigma_sample(i, flash, dir, speed, traj, weights, &hist))
+            .map(|i| self.calc_sigma_sample(i, flash, dir, speed, traj, weights))
             .sum::<Sigmas>()
-            .sqrt();
-
-        {
-            let mut hist = hist.into_inner().unwrap();
-            hist.sort_unstable_by(|a, b| b.sigma.total_cmp(&a.sigma));
-
-            let out_path = format!(
-                "sigmas_distr/{}",
-                self.data.name.as_deref().unwrap_or("unknown")
-            );
-            let mut out = std::io::BufWriter::new(std::fs::File::create(out_path).unwrap());
-
-            serde_json::to_writer_pretty(&mut out, &hist).unwrap();
-            serde_json::to_writer_pretty(&mut out, &traj).unwrap();
-
-            // let weight_out = std::fs::File::create("/tmp/w.json").unwrap();
-            // let w = weights.unwrap();
-            // serde_json::to_writer(weight_out, w).unwrap();
-
-            // let max_da_diff = hist
-            //     .iter()
-            //     .filter(|h| h.ty == ObsType::Da)
-            //     .map(|h| h.derivative)
-            //     .max_by(f64::total_cmp)
-            //     .unwrap();
-            // let max_z0_diff = hist
-            //     .iter()
-            //     .filter(|h| h.ty == ObsType::Z0)
-            //     .map(|h| h.derivative)
-            //     .max_by(f64::total_cmp)
-            //     .unwrap();
-
-            // let mut pts_da = Vec::new();
-            // let mut pts_z0 = Vec::new();
-            // for h in &hist {
-            //     let s = &self.data.samples[h.sample_i];
-            //     let lon = s.geo_location.lon;
-            //     let lat = s.geo_location.lat;
-            //     match h.ty {
-            //         ObsType::Da => {
-            //             let x = h.derivative / max_da_diff;
-            //             let point = (lon, lat, weight_to_rgb(1.0 - x), 3.0 + 7.0 * x);
-            //             pts_da.push(point);
-            //         }
-            //         ObsType::Z0 => {
-            //             let x = h.derivative / max_z0_diff;
-            //             let point = (lon, lat, weight_to_rgb(1.0 - x), 3.0 + 7.0 * x);
-            //             pts_z0.push(point)
-            //         }
-            //     }
-            // }
-
-            // draw_plot_svg_with_named_axes(
-            //     "/tmp/diffs_da.svg",
-            //     &pts_da,
-            //     &[],
-            //     &[],
-            //     &[],
-            //     "lon",
-            //     "lat",
-            // )
-            // .unwrap();
-
-            // draw_plot_svg_with_named_axes(
-            //     "/tmp/diffs_z0.svg",
-            //     &pts_z0,
-            //     &[],
-            //     &[],
-            //     &[],
-            //     "lon",
-            //     "lat",
-            // )
-            // .unwrap();
-        }
-
-        result
+            .sqrt()
     }
 
     fn flip_da(&mut self, traj: Line) -> usize {
@@ -1725,23 +1647,6 @@ pub struct GradDescentParams {
     pub realtime_graph: bool,
 }
 
-#[derive(Serialize, Debug, Clone)]
-struct TodoDeleteHist {
-    ty: ObsType,
-    derivative: f64,
-    error: f64,
-    sigma: f64,
-    weight: f64,
-    sample_i: usize,
-    name: Option<String>,
-}
-
-#[derive(Serialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-enum ObsType {
-    Da,
-    Z0,
-}
-
 fn dump_weights(weights: &[Weight]) {
     let weight_out = std::fs::File::create("./weights.json").unwrap();
     serde_json::to_writer(weight_out, weights).unwrap();
@@ -1766,17 +1671,6 @@ impl Iterator for RangeIter {
         }
     }
 }
-
-// impl ParallelIterator for RangeIter {
-//     type Item = f64;
-
-//     fn drive_unindexed<C>(self, consumer: C) -> C::Result
-//     where
-//         C: rayon::iter::plumbing::UnindexedConsumer<Self::Item>,
-//     {
-//         todo!()
-//     }
-// }
 
 fn range(start: f64, end: f64, step: f64) -> RangeIter {
     RangeIter { start, end, step }
