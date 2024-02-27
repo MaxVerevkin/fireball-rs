@@ -739,39 +739,39 @@ impl Solver {
         };
 
         let mut weights: Vec<Weight> = Vec::with_capacity(self.data.samples.len());
-        let mut sw = Vec::new();
-        let mut ew = Vec::new();
+        let mut hw = Vec::new();
+        let mut zw = Vec::new();
         let mut daw = Vec::new();
-        let mut se = Vec::new();
-        let mut ee = Vec::new();
+        let mut he = Vec::new();
+        let mut ze = Vec::new();
         let mut dae = Vec::new();
         for s in &self.data.samples {
             let eval = self.evaluate_traj(s, traj);
-            let b1 = eval.start.map_or(0.0, get_weight);
-            let b2 = eval.end.map_or(0.0, get_weight);
+            let b1 = eval.h_end.map_or(0.0, get_weight);
+            let b2 = eval.z_end.map_or(0.0, get_weight);
             let b3 = eval.da.map_or(0.0, get_weight);
             weights.push(Weight {
-                start: b1,
-                end: b2,
+                h_end: b1,
+                z_end: b2,
                 da: b3,
             });
-            eval.start.map(|x| se.push(x.abs() / best_err));
-            eval.end.map(|x| ee.push(x.abs() / best_err));
+            eval.h_end.map(|x| he.push(x.abs() / best_err));
+            eval.z_end.map(|x| ze.push(x.abs() / best_err));
             eval.da.map(|x| dae.push(x.abs() / best_err));
-            eval.start.map(|_| sw.push(b1));
-            eval.end.map(|_| ew.push(b2));
+            eval.h_end.map(|_| hw.push(b1));
+            eval.z_end.map(|_| zw.push(b2));
             eval.da.map(|_| daw.push(b3));
         }
 
         println!("Error distribution");
         println!();
-        if !sw.is_empty() {
-            println!("Start ({}):", se.len());
-            draw_hitogram(&se, 5);
+        if !hw.is_empty() {
+            println!("H-End ({}):", he.len());
+            draw_hitogram(&he, 5);
         }
-        if !ew.is_empty() {
-            println!("End ({}):", ee.len());
-            draw_hitogram(&ee, 5);
+        if !zw.is_empty() {
+            println!("Z-End ({}):", ze.len());
+            draw_hitogram(&ze, 5);
         }
         if !daw.is_empty() {
             println!("DA ({}):", dae.len());
@@ -781,13 +781,13 @@ impl Solver {
 
         println!("Weight distribution");
         println!();
-        if !sw.is_empty() {
-            println!("Start ({}):", sw.len());
-            draw_hitogram(&sw, 5);
+        if !hw.is_empty() {
+            println!("H-End ({}):", hw.len());
+            draw_hitogram(&hw, 5);
         }
-        if !ew.is_empty() {
-            println!("End ({}):", ew.len());
-            draw_hitogram(&ew, 5);
+        if !zw.is_empty() {
+            println!("Z-End ({}):", zw.len());
+            draw_hitogram(&zw, 5);
         }
         if !daw.is_empty() {
             println!("DA ({}):", daw.len());
@@ -959,7 +959,7 @@ impl Solver {
             s.speed += mul * f64::powi(new_speed - speed, 2);
         }
 
-        if let Some(z0_err) = eval.end {
+        if let Some(z0_err) = eval.z_end {
             let old_z0 = this.data.samples[sample_i].z0;
             let old_k_end = this.data.samples[sample_i].k_end;
             *this.data.samples[sample_i].z0.as_mut().unwrap() += AZ_D;
@@ -1152,8 +1152,8 @@ impl Solver {
         zenith_k: f64,
     ) -> Evaluation {
         Evaluation {
-            start: None,
-            end: if !self.params.da_only {
+            h_end: None,
+            z_end: if !self.params.da_only {
                 sample
                     .z0
                     .map(|z0| angle_diff(z0, sample.calc_azimuth(*ek)) * zenith_k)
@@ -1261,8 +1261,8 @@ impl Solver {
         (
             err0,
             Evaluation {
-                start: None,
-                end,
+                h_end: None,
+                z_end: end,
                 da,
             },
         )
@@ -1310,8 +1310,8 @@ impl Solver {
         (
             err0,
             Evaluation {
-                start: None,
-                end: None,
+                h_end: None,
+                z_end: None,
                 da,
             },
         )
@@ -1320,8 +1320,8 @@ impl Solver {
 
 #[derive(Debug, Clone, Copy)]
 pub struct Evaluation<T = f64> {
-    pub start: Option<T>,
-    pub end: Option<T>,
+    pub h_end: Option<T>,
+    pub z_end: Option<T>,
     pub da: Option<T>,
 }
 
@@ -1330,8 +1330,8 @@ impl ops::Sub for Evaluation {
 
     fn sub(self, rhs: Self) -> Self {
         Self {
-            start: self.start.zip(rhs.start).map(|(x, y)| x - y),
-            end: self.end.zip(rhs.end).map(|(x, y)| x - y),
+            z_end: self.z_end.zip(rhs.z_end).map(|(x, y)| x - y),
+            h_end: self.h_end.zip(rhs.h_end).map(|(x, y)| x - y),
             da: self.da.zip(rhs.da).map(|(x, y)| x - y),
         }
     }
@@ -1342,8 +1342,8 @@ impl ops::Div<f64> for Evaluation {
 
     fn div(self, rhs: f64) -> Self {
         Self {
-            start: self.start.map(|x| x / rhs),
-            end: self.end.map(|x| x / rhs),
+            z_end: self.z_end.map(|x| x / rhs),
+            h_end: self.h_end.map(|x| x / rhs),
             da: self.da.map(|x| x / rhs),
         }
     }
@@ -1352,19 +1352,19 @@ impl ops::Div<f64> for Evaluation {
 impl Evaluation {
     fn iter_squared(self) -> impl Iterator<Item = f64> {
         let sq = |x| x * x;
-        self.start
+        self.h_end
             .map(sq)
             .into_iter()
-            .chain(self.end.map(sq))
+            .chain(self.z_end.map(sq))
             .chain(self.da.map(sq))
     }
 
     fn sum_sq(&self, sum: &mut f64, cnt: &mut f64) {
-        if let Some(x) = self.start {
+        if let Some(x) = self.h_end {
             *sum += x * x;
             *cnt += 1.0;
         }
-        if let Some(x) = self.end {
+        if let Some(x) = self.z_end {
             *sum += x * x;
             *cnt += 1.0;
         }
@@ -1375,13 +1375,13 @@ impl Evaluation {
     }
 
     fn weighted_sum_sq(&self, w: &Weight, sum: &mut f64, cnt: &mut f64) {
-        if let Some(x) = self.start {
-            *sum += x * x * w.start;
-            *cnt += w.start;
+        if let Some(x) = self.h_end {
+            *sum += x * x * w.h_end;
+            *cnt += w.h_end;
         }
-        if let Some(x) = self.end {
-            *sum += x * x * w.end;
-            *cnt += w.end;
+        if let Some(x) = self.z_end {
+            *sum += x * x * w.z_end;
+            *cnt += w.z_end;
         }
         if let Some(x) = self.da {
             *sum += x * x * w.da;
@@ -1390,11 +1390,11 @@ impl Evaluation {
     }
 
     fn sum_sq_grad(&self, grad: &Evaluation<Vec3>, half_sum: &mut Vec3, cnt: &mut f64) {
-        if let (Some(x), Some(dx)) = (self.start, grad.start) {
+        if let (Some(x), Some(dx)) = (self.h_end, grad.h_end) {
             *half_sum += dx * x;
             *cnt += 1.0;
         }
-        if let (Some(x), Some(dx)) = (self.end, grad.end) {
+        if let (Some(x), Some(dx)) = (self.z_end, grad.z_end) {
             *half_sum += dx * x;
             *cnt += 1.0;
         }
@@ -1411,13 +1411,13 @@ impl Evaluation {
         half_sum: &mut Vec3,
         cnt: &mut f64,
     ) {
-        if let (Some(x), Some(dx)) = (self.start, grad.start) {
-            *half_sum += dx * x * w.start;
-            *cnt += w.start;
+        if let (Some(x), Some(dx)) = (self.h_end, grad.h_end) {
+            *half_sum += dx * x * w.h_end;
+            *cnt += w.h_end;
         }
-        if let (Some(x), Some(dx)) = (self.end, grad.end) {
-            *half_sum += dx * x * w.end;
-            *cnt += w.end;
+        if let (Some(x), Some(dx)) = (self.z_end, grad.z_end) {
+            *half_sum += dx * x * w.z_end;
+            *cnt += w.z_end;
         }
         if let (Some(x), Some(dx)) = (self.da, grad.da) {
             *half_sum += dx * x * w.da;
@@ -1428,8 +1428,8 @@ impl Evaluation {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Weight {
-    pub start: f64,
-    pub end: f64,
+    pub h_end: f64,
+    pub z_end: f64,
     pub da: f64,
 }
 
