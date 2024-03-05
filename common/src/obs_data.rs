@@ -312,6 +312,11 @@ impl DataSample {
         let y = k.dot(*self.north_dir);
         f64::atan2(x, y)
     }
+
+    /// Calculate altitude in range [-pi/2, pi/2]
+    pub fn calc_altitude(&self, k: UnitVec3) -> f64 {
+        k.dot(*self.zenith_dir).clamp(-1.0, 1.0).asin()
+    }
 }
 
 #[derive(Deserialize)]

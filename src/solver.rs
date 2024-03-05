@@ -913,6 +913,7 @@ impl Solver {
     ) -> Sigmas {
         const DA_D: f64 = to_radians(0.1);
         const AZ_D: f64 = to_radians(0.1);
+        const ALT_D: f64 = to_radians(0.1);
 
         let mut this = self.clone();
 
@@ -923,31 +924,9 @@ impl Solver {
             let old_da = this.data.samples[sample_i].da;
             *this.data.samples[sample_i].da.as_mut().unwrap() += DA_D;
 
-            let (new_traj, gd_i) = this.gradient_descent_complete(traj, weights, &GD_SIGMA_PARAMS);
+            let (new_traj, _gd_i) = this.gradient_descent_complete(traj, weights, &GD_SIGMA_PARAMS);
             let (new_flash, new_speed) = this.calc_flash_and_speed(new_traj, weights);
 
-            // {
-            //     let derivative = (new_flash - flash).norm() / DA_D.to_degrees();
-            //     let error = da_err.to_degrees().abs();
-            //     let sigma = derivative * error * 1e-3;
-            //     hist.lock().unwrap().push(TodoDeleteHist {
-            //         ty: ObsType::Da,
-            //         derivative,
-            //         error,
-            //         sigma,
-            //         weight: weights.unwrap()[sample_i].da,
-            //         sample_i,
-            //         name: this.data.samples[sample_i].name.clone(),
-            //     });
-            //     println!(
-            //         "{sample_i}  [da] ({gd_i} gd runs): {derivative:.0}m/{DEGREE_SYM} * {error:.0}{DEGREE_SYM} = {sigma:.3}km\n        {:.3}{DEGREE_SYM}/{DEGREE_SYM} * {:.0}{DEGREE_SYM} = {}{DEGREE_SYM}",
-            //         (new_traj.direction.dot(*traj.direction).min(1.0).acos() / DA_D).to_degrees(),
-            //         da_err.to_degrees().abs(),
-            //         (new_traj.direction.dot(*traj.direction).min(1.0).acos() * da_err.abs() / DA_D).to_degrees(),
-            //     );
-            // }
-
-            let new_dir: Azimuthal = new_traj.direction.into_inner().into();
             this.data.samples[sample_i].da = old_da;
 
             let mul = da_err * da_err / DA_D / DA_D;
@@ -965,35 +944,34 @@ impl Solver {
             *this.data.samples[sample_i].z0.as_mut().unwrap() += AZ_D;
             this.data.samples[sample_i].update_k_end();
 
-            let (new_traj, gd_i) = this.gradient_descent_complete(traj, weights, &GD_SIGMA_PARAMS);
+            let (new_traj, _gd_i) = this.gradient_descent_complete(traj, weights, &GD_SIGMA_PARAMS);
             let (new_flash, new_speed) = this.calc_flash_and_speed(new_traj, weights);
-            // {
-            //     let derivative = (new_flash - flash).norm() / AZ_D.to_degrees();
-            //     let error = z0_err.to_degrees().abs();
-            //     let sigma = derivative * error * 1e-3;
-            //     hist.lock().unwrap().push(TodoDeleteHist {
-            //         ty: ObsType::Z0,
-            //         derivative,
-            //         error,
-            //         sigma,
-            //         weight: weights.unwrap()[sample_i].end,
-            //         sample_i,
-            //         name: this.data.samples[sample_i].name.clone(),
-            //     });
-            //     println!(
-            //         "{sample_i}   [z0] ({gd_i} gd runs): {derivative:.0}m/{DEGREE_SYM} * {error:.0}{DEGREE_SYM} = {sigma:.3}km\n        {:.3}{DEGREE_SYM}/{DEGREE_SYM} * {:.0}{DEGREE_SYM} = {}{DEGREE_SYM}",
-            //         (new_traj.direction.dot(*traj.direction).min(1.0).acos() / DA_D).to_degrees(),
-            //         z0_err.to_degrees().abs(),
-            //         (new_traj.direction.dot(*traj.direction).min(1.0).acos() * z0_err.abs() / DA_D).to_degrees(),
-            //     );
-            // }
-
-            // let new_dir: Azimuthal = new_traj.direction.into_inner().into();
 
             this.data.samples[sample_i].z0 = old_z0;
             this.data.samples[sample_i].k_end = old_k_end;
 
             let mul = z0_err * z0_err / AZ_D / AZ_D;
+            s.x += mul * f64::powi(new_flash.x - flash.x, 2);
+            s.y += mul * f64::powi(new_flash.y - flash.y, 2);
+            s.z += mul * f64::powi(new_flash.z - flash.z, 2);
+            s.v_angle +=
+                mul * f64::powi(new_traj.direction.dot(*traj.direction).min(1.0).acos(), 2);
+            s.speed += mul * f64::powi(new_speed - speed, 2);
+        }
+
+        if let Some(h0_err) = eval.h_end {
+            let old_h0 = this.data.samples[sample_i].h0;
+            let old_k_end = this.data.samples[sample_i].k_end;
+            *this.data.samples[sample_i].h0.as_mut().unwrap() += ALT_D;
+            this.data.samples[sample_i].update_k_end();
+
+            let (new_traj, _gd_i) = this.gradient_descent_complete(traj, weights, &GD_SIGMA_PARAMS);
+            let (new_flash, new_speed) = this.calc_flash_and_speed(new_traj, weights);
+
+            this.data.samples[sample_i].h0 = old_h0;
+            this.data.samples[sample_i].k_end = old_k_end;
+
+            let mul = h0_err * h0_err / AZ_D / AZ_D;
             s.x += mul * f64::powi(new_flash.x - flash.x, 2);
             s.y += mul * f64::powi(new_flash.y - flash.y, 2);
             s.z += mul * f64::powi(new_flash.z - flash.z, 2);
@@ -1152,7 +1130,13 @@ impl Solver {
         zenith_k: f64,
     ) -> Evaluation {
         Evaluation {
-            h_end: None,
+            h_end: if !self.params.da_only {
+                sample
+                    .h0
+                    .map(|h0| angle_diff(h0, sample.calc_altitude(ek)) * zenith_k * 4.0)
+            } else {
+                None
+            },
             z_end: if !self.params.da_only {
                 sample
                     .z0
@@ -1184,27 +1168,45 @@ impl Solver {
 
         let err0 = self.evaluate_traj_with(s, traj, ek, zenith_coef.coef);
 
-        let make_end_diff_x = k.dot(*s.east_dir);
-        let make_end_diff_y = k.dot(*s.north_dir);
-        let make_end_diff = |z0: f64, mask: Vec3| {
+        let end_diff_x = k.dot(*s.east_dir);
+        let end_diff_y = k.dot(*s.north_dir);
+
+        let make_diff_ek_and_diff_zenith_coef = |mask: Vec3| {
             // k_norm = (k_norm^2)^1/2
             // k_norm,x = 1/2 * (k_norm^2)^(-1/2) * 2kx = kx / k_norm
             let diff_k_norm = k.dot(mask) * k_norm_recip;
-
             // ek = k * k_norm^-1
             // ek,x = (k,x * k_norm^-1) + (k * -1 * k_norm^-2 * k_norm,x)
             // ek,x = (k,x - (k * k_norm,x * k_norm^-1)) * * k_norm^-1
             let diff_ek = (mask - (k * diff_k_norm * k_norm_recip)) * k_norm_recip;
-            let diff_zenith_coef = zenith_coef.diff(s, diff_ek);
+            (diff_ek, zenith_coef.diff(s, diff_ek))
+        };
+
+        let make_h_end_diff = |h0: f64, mask: Vec3| {
+            let (diff_ek, diff_zenith_coef) = make_diff_ek_and_diff_zenith_coef(mask);
+
+            // E_0 = 4 * diff(h0, asin(ek*zenith))
+            // E_0 = 4[asin(ek*zenith) - h0]
+            // E_0,i = 4 * (diff_ek * zenith) / sqrt(1-(ek*zenith)^2)
+            let e0 = angle_diff(h0, ek.dot(*s.zenith_dir).clamp(-1.0, 1.0).asin()) * 4.0;
+            let e0_diff = diff_ek.dot(*s.zenith_dir) * 4.0
+                / f64::sqrt(1.0 - ek.dot(*s.zenith_dir) * ek.dot(*s.zenith_dir));
+
+            // E = E_0 * zenith_coef
+            // E,x = E_0,x * zenith_coef + E_0 * zenith_coef,x
+            e0_diff * zenith_coef.coef + e0 * diff_zenith_coef
+        };
+
+        let make_z_end_diff = |z0: f64, mask: Vec3| {
+            let (_, diff_zenith_coef) = make_diff_ek_and_diff_zenith_coef(mask);
 
             // E_0 = diff(z0, atan2(k*east, k*north))
             // E_0 = atan2(k*east, k*north) - z0
             // E_0,x = -(k*east) / (xx+yy) * north_x + (k*north) / (xx+yy) * east_x
             // E_0,x = (k*north * east_x - k*east * north_x) / (xx+yy)
-            let e0 = angle_diff(z0, f64::atan2(make_end_diff_x, make_end_diff_y));
-            let e0_diff = (make_end_diff_y * s.east_dir.dot(mask)
-                - make_end_diff_x * s.north_dir.dot(mask))
-                / (make_end_diff_x * make_end_diff_x + make_end_diff_y * make_end_diff_y);
+            let e0 = angle_diff(z0, f64::atan2(end_diff_x, end_diff_y));
+            let e0_diff = (end_diff_y * s.east_dir.dot(mask) - end_diff_x * s.north_dir.dot(mask))
+                / (end_diff_x * end_diff_x + end_diff_y * end_diff_y);
 
             // E = E_0 * zenith_coef
             // E,x = E_0,x * zenith_coef + E_0 * zenith_coef,x
@@ -1217,15 +1219,7 @@ impl Solver {
         let make_da_diff_y = traj.direction.dot(make_da_diff_ya);
         let make_da_diff_dac = f64::atan2(make_da_diff_x, make_da_diff_y);
         let make_da_diff = |da: f64, mask: Vec3| -> f64 {
-            // k_norm = (k_norm^2)^1/2
-            // k_norm,x = 1/2 * (k_norm^2)^(-1/2) * 2kx = kx / k_norm
-            let diff_k_norm = k.dot(mask) * k_norm_recip;
-
-            // ek = k * k_norm^-1
-            // ek,x = (k,x * k_norm^-1) + (k * -1 * k_norm^-2 * k_norm,x)
-            // ek,x = (k,x - (k * k_norm,x * k_norm^-1)) * * k_norm^-1
-            let diff_ek = (mask - (k * diff_k_norm * k_norm_recip)) * k_norm_recip;
-            let diff_zenith_coef = zenith_coef.diff(s, diff_ek);
+            let (diff_ek, diff_zenith_coef) = make_diff_ek_and_diff_zenith_coef(mask);
 
             let diff_xa = diff_ek.cross(*s.zenith_dir);
             let diff_ya = diff_xa.cross(*ek) + make_da_diff_xa.cross(diff_ek);
@@ -1242,11 +1236,19 @@ impl Solver {
             diff_zenith_coef * angle_diff(make_da_diff_dac, da) - diff_dac * zenith_coef.coef
         };
 
-        let end = (s.z0.is_some() && !self.params.da_only).then(|| {
+        let h_end = (s.h0.is_some() && !self.params.da_only).then(|| {
             Vec3::new(
-                make_end_diff(s.z0.unwrap(), Vec3::x()),
-                make_end_diff(s.z0.unwrap(), Vec3::y()),
-                make_end_diff(s.z0.unwrap(), Vec3::z()),
+                make_h_end_diff(s.h0.unwrap(), Vec3::x()),
+                make_h_end_diff(s.h0.unwrap(), Vec3::y()),
+                make_h_end_diff(s.h0.unwrap(), Vec3::z()),
+            )
+        });
+
+        let z_end = (s.z0.is_some() && !self.params.da_only).then(|| {
+            Vec3::new(
+                make_z_end_diff(s.z0.unwrap(), Vec3::x()),
+                make_z_end_diff(s.z0.unwrap(), Vec3::y()),
+                make_z_end_diff(s.z0.unwrap(), Vec3::z()),
             )
         });
 
@@ -1258,14 +1260,7 @@ impl Solver {
             )
         });
 
-        (
-            err0,
-            Evaluation {
-                h_end: None,
-                z_end: end,
-                da,
-            },
-        )
+        (err0, Evaluation { h_end, z_end, da })
     }
 
     pub fn evaluate_dir_grad_traj(
@@ -1310,7 +1305,9 @@ impl Solver {
         (
             err0,
             Evaluation {
+                // h_end does not depend on the direction
                 h_end: None,
+                // z_end does not depend on the direction
                 z_end: None,
                 da,
             },
