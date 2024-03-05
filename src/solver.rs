@@ -60,6 +60,7 @@ const GD_SIGMA_PARAMS: GradDescentParams = GradDescentParams {
 pub struct Solver {
     data: Data,
     params: Params,
+    altitude_error_multiplier: f64,
 }
 
 /// Parameters to tweak the algorithm
@@ -79,7 +80,11 @@ pub struct Solution {
 impl Solver {
     /// Construct new solver given dataset and paramesters
     pub fn new(data: Data, params: Params) -> Solver {
-        Solver { data, params }
+        Solver {
+            data,
+            params,
+            altitude_error_multiplier: 1.0,
+        }
     }
 
     /// The weighted sum of pairwise plane crossings
@@ -1033,6 +1038,8 @@ impl Solver {
             ("Initial guess (pairwise)".into(), result, Some(sigmas))
         });
 
+        self.update_altidutes_error_k(traj);
+
         let traj = self.run_stage(|this| {
             let (traj, gd_i) = this.gradient_descent_complete(traj, None, &GD_FIRST_PARAMS);
             (format!("Gradient descent ({gd_i} runs)"), traj, None)
@@ -1122,6 +1129,38 @@ impl Solver {
         (traj.point + traj.direction * l_end, speed)
     }
 
+    fn update_altidutes_error_k(&mut self, traj: Line) {
+        self.altitude_error_multiplier = 1.0;
+        let mut h_end = Vec::new();
+        let mut z_end = Vec::new();
+        let mut da = Vec::new();
+
+        for s in &self.data.samples {
+            let e = self.evaluate_traj(s, traj);
+            if let Some(x) = e.h_end {
+                h_end.push(x.abs());
+            }
+            if let Some(x) = e.z_end {
+                z_end.push(x.abs());
+            }
+            if let Some(x) = e.da {
+                da.push(x.abs());
+            }
+        }
+
+        let z_end = z_end.median();
+        let h_end = h_end.median();
+        let da = da.median();
+
+        let avg = (z_end + da) / 2.0;
+
+        self.altitude_error_multiplier = avg / h_end;
+        println!(
+            "altitude_error_multiplier = {:.1}",
+            self.altitude_error_multiplier
+        );
+    }
+
     fn evaluate_traj_with(
         &self,
         sample: &DataSample,
@@ -1131,9 +1170,11 @@ impl Solver {
     ) -> Evaluation {
         Evaluation {
             h_end: if !self.params.da_only {
-                sample
-                    .h0
-                    .map(|h0| angle_diff(h0, sample.calc_altitude(ek)) * zenith_k * 4.0)
+                sample.h0.map(|h0| {
+                    angle_diff(h0, sample.calc_altitude(ek))
+                        * zenith_k
+                        * self.altitude_error_multiplier
+                })
             } else {
                 None
             },
@@ -1188,8 +1229,9 @@ impl Solver {
             // E_0 = 4 * diff(h0, asin(ek*zenith))
             // E_0 = 4[asin(ek*zenith) - h0]
             // E_0,i = 4 * (diff_ek * zenith) / sqrt(1-(ek*zenith)^2)
-            let e0 = angle_diff(h0, ek.dot(*s.zenith_dir).clamp(-1.0, 1.0).asin()) * 4.0;
-            let e0_diff = diff_ek.dot(*s.zenith_dir) * 4.0
+            let e0 = angle_diff(h0, ek.dot(*s.zenith_dir).clamp(-1.0, 1.0).asin())
+                * self.altitude_error_multiplier;
+            let e0_diff = diff_ek.dot(*s.zenith_dir) * self.altitude_error_multiplier
                 / f64::sqrt(1.0 - ek.dot(*s.zenith_dir) * ek.dot(*s.zenith_dir));
 
             // E = E_0 * zenith_coef
