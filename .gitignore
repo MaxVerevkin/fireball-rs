@@ -3,3 +3,6 @@
 /generated_data
 visual.scad
 /failed_tests
+
+weights.json
+ComicCodeLigatures-Regular.otf
