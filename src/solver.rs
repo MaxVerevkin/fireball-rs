@@ -739,13 +739,13 @@ impl Solver {
 
         let mut buf = Vec::with_capacity(self.data.samples.len());
         buf.extend(evals.iter().flat_map(|eval| eval.h_end.map(|x| x * x)));
-        let h_end_med = buf.median() * med_mul;
+        let h_end_med = buf.median().sqrt() * med_mul;
         buf.clear();
         buf.extend(evals.iter().flat_map(|eval| eval.z_end.map(|x| x * x)));
-        let z_end_med = buf.median() * med_mul;
+        let z_end_med = buf.median().sqrt() * med_mul;
         buf.clear();
         buf.extend(evals.iter().flat_map(|eval| eval.da.map(|x| x * x)));
-        let da_med = buf.median() * med_mul;
+        let da_med = buf.median().sqrt() * med_mul;
 
         let get_weight = |err: f64, best_err: f64| -> f64 {
             // Smooth transition from 1 to 0
