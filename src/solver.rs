@@ -731,17 +731,35 @@ impl Solver {
     }
 
     pub fn compute_weights(&self, traj: Line) -> Vec<Weight> {
-        let best_err = self.eval_median_of_squares(traj).sqrt()
-            * 1.483
-            * (1. + 5. / (self.data.samples.len() - 6) as f64);
-        dbg!(best_err.to_degrees());
-        let get_weight = |err: f64| -> f64 {
+        let evals = self
+            .data
+            .samples
+            .iter()
+            .map(|s| self.evaluate_traj(s, traj))
+            .collect::<Vec<Evaluation>>();
+
+        let med_mul = 1.483 * (1. + 5. / (self.data.samples.len() - 6) as f64);
+
+        let mut buf = Vec::with_capacity(self.data.samples.len());
+        buf.extend(evals.iter().flat_map(|eval| eval.h_end.map(|x| x * x)));
+        let h_end_med = buf.median() * med_mul;
+        buf.clear();
+        buf.extend(evals.iter().flat_map(|eval| eval.z_end.map(|x| x * x)));
+        let z_end_med = buf.median() * med_mul;
+        buf.clear();
+        buf.extend(evals.iter().flat_map(|eval| eval.da.map(|x| x * x)));
+        let da_med = buf.median() * med_mul;
+
+        let get_weight = |err: f64, best_err: f64| -> f64 {
             // Smooth transition from 1 to 0
             // Visualization: https://www.desmos.com/calculator/qxgcyxc3dc
             const O: f64 = 0.90;
             const F: f64 = 0.25;
             0.5 * (1.0 - ((err.abs() / best_err - O) / F).tanh())
         };
+        let get_weight_h_end = |err| get_weight(err, h_end_med);
+        let get_weight_z_end = |err| get_weight(err, z_end_med);
+        let get_weight_da = |err| get_weight(err, da_med);
 
         let mut weights: Vec<Weight> = Vec::with_capacity(self.data.samples.len());
         let mut hw = Vec::new();
@@ -750,19 +768,18 @@ impl Solver {
         let mut he = Vec::new();
         let mut ze = Vec::new();
         let mut dae = Vec::new();
-        for s in &self.data.samples {
-            let eval = self.evaluate_traj(s, traj);
-            let b1 = eval.h_end.map_or(0.0, get_weight);
-            let b2 = eval.z_end.map_or(0.0, get_weight);
-            let b3 = eval.da.map_or(0.0, get_weight);
+        for eval in &evals {
+            let b1 = eval.h_end.map_or(0.0, get_weight_h_end);
+            let b2 = eval.z_end.map_or(0.0, get_weight_z_end);
+            let b3 = eval.da.map_or(0.0, get_weight_da);
             weights.push(Weight {
                 h_end: b1,
                 z_end: b2,
                 da: b3,
             });
-            eval.h_end.map(|x| he.push(x.abs() / best_err));
-            eval.z_end.map(|x| ze.push(x.abs() / best_err));
-            eval.da.map(|x| dae.push(x.abs() / best_err));
+            eval.h_end.map(|x| he.push(x.abs() / h_end_med));
+            eval.z_end.map(|x| ze.push(x.abs() / z_end_med));
+            eval.da.map(|x| dae.push(x.abs() / da_med));
             eval.h_end.map(|_| hw.push(b1));
             eval.z_end.map(|_| zw.push(b2));
             eval.da.map(|_| daw.push(b3));
