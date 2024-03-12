@@ -536,12 +536,8 @@ impl Solver {
         weights: Option<&[Weight]>,
         iterations: u32,
     ) -> (Line, GradientDescentStats) {
-        const K: f64 = -2e9;
-        // const K: f64 = -1e9;
-
-        // const MAX_JUMP: f64 = 7.0;
-        // const MAX_JUMP: f64 = 16.0;
-        const MAX_JUMP: f64 = 25.0;
+        const K: f64 = -1e10;
+        const MAX_JUMP: f64 = 1.0;
 
         let mut cycle = CycleDetector::default();
         let mut stats = GradientDescentStats::default();
@@ -575,7 +571,7 @@ impl Solver {
         weights: Option<&[Weight]>,
         iterations: u32,
     ) -> (Line, GradientDescentStats) {
-        const K: f64 = -1e-5;
+        const K: f64 = -1e-2;
         const MAX_JUMP: f64 = 0.00002;
 
         let mut cycle = CycleDetector::default();
