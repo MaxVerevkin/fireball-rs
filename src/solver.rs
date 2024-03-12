@@ -753,8 +753,8 @@ impl Solver {
         let get_weight = |err: f64, best_err: f64| -> f64 {
             // Smooth transition from 1 to 0
             // Visualization: https://www.desmos.com/calculator/qxgcyxc3dc
-            const O: f64 = 0.90;
-            const F: f64 = 0.25;
+            const O: f64 = 1.50;
+            const F: f64 = 0.40;
             0.5 * (1.0 - ((err.abs() / best_err - O) / F).tanh())
         };
         let get_weight_h_end = |err| get_weight(err, h_end_med);
