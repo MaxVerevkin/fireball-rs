@@ -66,8 +66,9 @@ pub struct Solver {
 /// Parameters to tweak the algorithm
 #[derive(Debug, Clone, Copy)]
 pub struct Params {
-    pub da_only: bool,
     pub no_da_flip: bool,
+    pub no_altitudes: bool,
+    pub no_azimuths: bool,
 }
 
 /// The answer
@@ -1165,6 +1166,11 @@ impl Solver {
             }
         }
 
+        if z_end.is_empty() || h_end.is_empty() || da.is_empty() {
+            println!("altitude_error_multiplier not updated");
+            return;
+        }
+
         let z_end = z_end.median();
         let h_end = h_end.median();
         let da = da.median();
@@ -1186,7 +1192,7 @@ impl Solver {
         zenith_k: f64,
     ) -> Evaluation {
         Evaluation {
-            h_end: if !self.params.da_only {
+            h_end: if !self.params.no_altitudes {
                 sample.h0.map(|h0| {
                     angle_diff(h0, sample.calc_altitude(ek))
                         * zenith_k
@@ -1195,7 +1201,7 @@ impl Solver {
             } else {
                 None
             },
-            z_end: if !self.params.da_only {
+            z_end: if !self.params.no_azimuths {
                 sample
                     .z0
                     .map(|z0| angle_diff(z0, sample.calc_azimuth(*ek)) * zenith_k)
@@ -1295,7 +1301,7 @@ impl Solver {
             diff_zenith_coef * angle_diff(make_da_diff_dac, da) - diff_dac * zenith_coef.coef
         };
 
-        let h_end = (s.h0.is_some() && !self.params.da_only).then(|| {
+        let h_end = (s.h0.is_some() && !self.params.no_altitudes).then(|| {
             Vec3::new(
                 make_h_end_diff(s.h0.unwrap(), Vec3::x()),
                 make_h_end_diff(s.h0.unwrap(), Vec3::y()),
@@ -1303,7 +1309,7 @@ impl Solver {
             )
         });
 
-        let z_end = (s.z0.is_some() && !self.params.da_only).then(|| {
+        let z_end = (s.z0.is_some() && !self.params.no_azimuths).then(|| {
             Vec3::new(
                 make_z_end_diff(s.z0.unwrap(), Vec3::x()),
                 make_z_end_diff(s.z0.unwrap(), Vec3::y()),
@@ -1583,116 +1589,6 @@ impl<T: PartialEq + Copy> CycleDetector<T> {
     pub fn push(&mut self, v: T) {
         self.history.rotate_right(1);
         self.history[0] = v;
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use common::obs_data::RawData;
-    // use common::plot::plotters::style::*;
-
-    #[test]
-    fn botswana_grad_direction() {
-        let jamie = 20;
-
-        let data = RawData::read_from_toml_file("./data/new-zeland-2022-07-07.toml").finalize();
-        let weights: Vec<Weight> = serde_json::from_str(include_str!("../weights.json")).unwrap();
-
-        assert_eq!(data.samples.len(), weights.len());
-
-        // dbg!(&data.samples[jamie]);
-        // dbg!(&weights[jamie]);
-
-        let params = Params {
-            da_only: false,
-            no_da_flip: true,
-        };
-
-        let s = Solver::new(data, params);
-
-        let init_traj = Line {
-            point: Vec3 {
-                x: -4571321.677919821,
-                y: 363340.9579855858,
-                z: -4173833.2329518804,
-            },
-            direction: UnitVec3::new_unchecked(Vec3::new(
-                0.19695076658517333,
-                -0.36780497139690055,
-                0.9088068543740402,
-            )),
-        };
-        let (init_point, _) = s.calc_flash_and_speed(init_traj, Some(&weights));
-
-        let old = s.data.samples[jamie].z0.unwrap();
-
-        let mut pts = Vec::new();
-        // range(-0.2, 0.2, 0.4 / 14.0)
-        //     .collect::<Vec<_>>()
-        (0..1)
-            .into_par_iter()
-            .map(|x| {
-                let x = x as f64;
-                dbg!(x);
-                let mut s = s.clone();
-                s.data.samples[jamie].z0 = Some(old + x.to_radians());
-                let (new_traj, _gd_i) =
-                    // s.gradient_descent_complete(init_traj, Some(&weights), &GD_TARGET_PARAMS);
-                    s.gradient_descent_complete(init_traj, Some(&weights), &GD_FIRST_PARAMS);
-                eprintln!("{x} done");
-                let (point, _) = s.calc_flash_and_speed(new_traj, Some(&weights));
-                let dist = (point - init_point).norm();
-                (x, dist, plotters::style::RED, 1.0)
-            })
-            .collect_into_vec(&mut pts);
-
-        draw_plot_svg(&format!("/tmp/test.svg",), &pts, &[], &[], &[]).unwrap();
-
-        // let err0 = get_err(traj);
-        // let err1 = get_err(traj.offset_point(comp_grad * JUMP));
-
-        // dbg!(err0);
-        // dbg!(err1);
-        // // dbg!(get_err(s.gradient_descent_point(traj, None, 10)));
-
-        // // dbg!(s.gradient_descent_point(traj, None, 10));
-
-        // let mut rng = SmallRng::from_entropy();
-        // for _ in 0..10_000 {
-        //     let rand_grad = Vec3::new(
-        //         rng.sample::<f64, _>(StandardNormal),
-        //         rng.sample::<f64, _>(StandardNormal),
-        //         rng.sample::<f64, _>(StandardNormal),
-        //     )
-        //     .normalize();
-
-        //     let err = get_err(traj.offset_point(rand_grad * JUMP));
-        //     if !(err < err1) {
-        //         dbg!(err);
-
-        //         let sample = &s.data.samples[17];
-
-        //         let mut pts = Vec::new();
-        //         let mut x = 0.32;
-        //         while x <= 0.36 {
-        //             let eval = {
-        //                 let traj = traj.offset_point(rand_grad * x);
-        //                 let ek = UnitVec3::new_normalize(traj.point - sample.location);
-        //                 let zenith_k = ZenithCoef::new(sample, ek).coef;
-        //                 zenith_k
-        //             };
-
-        //             pts.push((x, eval, plotters::style::RED, 1.0));
-        //             x += 0.00005;
-        //         }
-
-        //         draw_plot_svg(&format!("/tmp/test.svg",), &pts, &[], &[], &[]).unwrap();
-
-        //         panic!();
-        //     }
-        // }
-        panic!();
     }
 }
 

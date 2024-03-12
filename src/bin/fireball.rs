@@ -20,15 +20,19 @@ struct CliArgs {
 
     /// Use only descent angles in the trajectory evaluation
     #[arg(long)]
-    da_only: bool,
-
-    /// Use only descent angles in the trajectory evaluation
-    #[arg(long)]
     correct_altitudes: bool,
 
     /// Do not 'flip' the decent angles
     #[arg(long)]
     no_da_flip: bool,
+
+    /// Ignore altitudes
+    #[arg(long)]
+    no_altitudes: bool,
+
+    /// Ignore azimuths
+    #[arg(long)]
+    no_azimuths: bool,
 
     /// Parameter of descent angle correction function da_corrected = da - k * sin(da * 2.0)
     #[arg(long, default_value_t = 0.0)]
@@ -55,8 +59,9 @@ fn main() {
     let mut solver = Solver::new(
         data,
         Params {
-            da_only: args.da_only,
             no_da_flip: args.no_da_flip,
+            no_altitudes: args.no_altitudes,
+            no_azimuths: args.no_azimuths,
         },
     );
     let solution = solver.solve();
