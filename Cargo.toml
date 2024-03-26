@@ -14,6 +14,7 @@ members = [
 ]
 
 [dependencies]
+anyhow = "1.0"
 common = { path = "./common" }
 assert_approx_eq = "1.1"
 toml = "0.7"

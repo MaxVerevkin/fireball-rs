@@ -62,6 +62,9 @@ fn main() {
             no_da_flip: args.no_da_flip,
             no_altitudes: args.no_altitudes,
             no_azimuths: args.no_azimuths,
+            correct_altitudes: args.correct_altitudes,
+            da_k: args.da_k,
+            az_k: args.az_k,
         },
     );
     let solution = solver.solve();

@@ -1,11 +1,11 @@
 use super::{UnitVec3, Vec3};
 use rand::Rng;
 use rand_distr::StandardNormal;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::ops;
 
 /// A (directed) line in space
-#[derive(Serialize, Debug, Copy, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq)]
 pub struct Line {
     pub point: Vec3,
     pub direction: UnitVec3,

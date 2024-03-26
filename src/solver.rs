@@ -5,6 +5,7 @@ use std::f64::consts::*;
 use std::ops;
 use std::time::Instant;
 
+use common::constants::*;
 use common::histogram::draw_hitogram;
 use common::maths::*;
 use common::obs_data::{Data, DataSample, PartDiff};
@@ -12,8 +13,7 @@ use common::plot::{draw_plot_svg, plotters, weight_to_rgb};
 use common::quick_median::SliceExt;
 use common::rand::random;
 use common::structs::*;
-use common::{constants::*, Sigmas};
-use common::{rand, rand_distr};
+use common::{rand, rand_distr, Sigmas};
 
 use image::{Rgb, RgbImage};
 
@@ -26,6 +26,8 @@ use serde::{Deserialize, Serialize};
 
 pub mod pair;
 use pair::PairTrajectory;
+
+use crate::db;
 
 const ERR_INCR_COLOR: yansi::Color = yansi::Color::Red;
 const ERR_DECR_COLOR: yansi::Color = yansi::Color::Unset;
@@ -61,6 +63,8 @@ pub struct Solver {
     data: Data,
     params: Params,
     altitude_error_multiplier: f64,
+
+    stages: Vec<db::Stage>,
 }
 
 /// Parameters to tweak the algorithm
@@ -69,6 +73,9 @@ pub struct Params {
     pub no_da_flip: bool,
     pub no_altitudes: bool,
     pub no_azimuths: bool,
+    pub correct_altitudes: bool,
+    pub da_k: f64,
+    pub az_k: f64,
 }
 
 /// The answer
@@ -85,6 +92,8 @@ impl Solver {
             data,
             params,
             altitude_error_multiplier: 1.0,
+
+            stages: Vec::new(),
         }
     }
 
@@ -1031,62 +1040,58 @@ impl Solver {
         flipped
     }
 
-    fn run_stage<F>(&mut self, f: F) -> Line
-    where
-        F: FnOnce(&mut Self) -> (String, Line, Option<Sigmas>),
-    {
-        let timer = Instant::now();
-        let (title, result, sigmas) = f(self);
-        let duration = timer.elapsed();
-
-        self.data.compare(result, sigmas, &title);
-        eprintln!("This step took {duration:?}\n");
-
-        result
-    }
-
     /// Find the solution
     pub fn solve(&mut self) -> Solution {
-        let traj = self.run_stage(|this| {
-            let (result, sigmas) = this.pairwise();
-            ("Initial guess (pairwise)".into(), result, Some(sigmas))
-        });
+        self.stages.clear();
+
+        let traj = StageBuilder::new("Initial guess (pairwise)", |t| t.pairwise(), |x| x.0)
+            .sigmas(|x| x.1)
+            .run(self);
 
         self.update_altidutes_error_k(traj);
 
-        let traj = self.run_stage(|this| {
-            let (traj, gd_i) = this.gradient_descent_complete(traj, None, &GD_FIRST_PARAMS);
-            (format!("Gradient descent ({gd_i} runs)"), traj, None)
-        });
+        let traj = StageBuilder::new(
+            "Gradient descent",
+            |t| t.gradient_descent_complete(traj, None, &GD_FIRST_PARAMS),
+            |x| x.0,
+        )
+        .extra_info(|x| format!("{} runs", x.1))
+        .run(self);
 
-        let traj = self.run_stage(|this| ("After LMS".into(), this.lms(traj), None));
+        let traj = StageBuilder::new("LMS", |t| t.lms(traj), |x| *x).run(self);
 
         let mut weights = self.compute_weights(traj);
 
-        let mut traj =
-            self.run_stage(|this| ("After LS".into(), this.ls(traj, Some(&weights)), None));
+        let mut traj = StageBuilder::new("LS", |t| t.ls(traj, Some(&weights)), |x| *x).run(self);
 
         if !self.params.no_da_flip {
-            eprintln!("flipped {} descent angles", self.flip_da(traj));
-            eprintln!();
             weights = self.compute_weights(traj);
-            traj = self.ls(traj, Some(&weights));
-            self.data.compare(traj, None, "LS (after DA-flip)");
+            let flipped = self.flip_da(traj);
+            traj = StageBuilder::new("LS (after da-flip)", |t| t.ls(traj, Some(&weights)), |x| *x)
+                .extra_info(move |_| format!("flipped {flipped} descent angles"))
+                .run(self);
         }
 
-        dbg!(traj);
-
-        let traj = self.run_stage(|this| {
-            let (traj, gd_i) =
-                this.gradient_descent_complete(traj, Some(&weights), &GD_FINAL_PARAMS);
-            (format!("Gradient descent ({gd_i} runs)"), traj, None)
-        });
-
-        dbg!(traj);
-        dump_weights(&weights);
+        let traj = StageBuilder::new(
+            "Gradient descent",
+            |t| t.gradient_descent_complete(traj, Some(&weights), &GD_FINAL_PARAMS),
+            |x| x.0,
+        )
+        .extra_info(|x| format!("{} runs", x.1))
+        .run(self);
 
         let sigmas = self.calc_sigmas(traj, Some(&weights));
         self.data.compare(traj, Some(sigmas), "Final");
+        self.stages.last_mut().unwrap().sigmas = Some(sigmas);
+
+        let mut db = db::Db::read().unwrap();
+        db.add_run(
+            self.data.name.clone().unwrap(),
+            self.data.answer.unwrap(),
+            self.params,
+            self.stages.clone(),
+        );
+        db.write().unwrap();
 
         let (flash, speed) = self.calc_flash_and_speed(traj, Some(&weights));
 
@@ -1509,6 +1514,7 @@ impl ZenithCoef {
     const ZENITH_COEF_ANGLE: f64 = to_radians(40.0);
     const ZENITH_COEF_SIN_K: f64 = FRAC_PI_2 / Self::ZENITH_COEF_ANGLE;
     const ZENITH_COEF_K: f64 = 5.0;
+    // const ZENITH_COEF_K: f64 = 0.0;
 
     fn new(s: &DataSample, ek: UnitVec3) -> Self {
         let to_zenith_cos = s.zenith_dir.dot(*ek);
@@ -1622,4 +1628,76 @@ impl Iterator for RangeIter {
 
 fn range(start: f64, end: f64, step: f64) -> RangeIter {
     RangeIter { start, end, step }
+}
+
+struct StageBuilder<'a, T> {
+    f: Box<dyn FnOnce(&mut Solver) -> T + 'a>,
+    extractor: Box<dyn Fn(&T) -> Line>,
+    sigmas_extractor: Option<Box<dyn Fn(&T) -> Sigmas>>,
+    extra_info_extractor: Option<Box<dyn Fn(&T) -> String>>,
+    title: &'static str,
+}
+
+impl<'a, T> StageBuilder<'a, T> {
+    fn new<F, Extractor>(title: &'static str, f: F, extractor: Extractor) -> Self
+    where
+        F: FnOnce(&mut Solver) -> T + 'a,
+        Extractor: Fn(&T) -> Line + 'static,
+    {
+        Self {
+            f: Box::new(f),
+            extractor: Box::new(extractor),
+            sigmas_extractor: None,
+            extra_info_extractor: None,
+            title,
+        }
+    }
+
+    fn sigmas<Extractor>(mut self, extractor: Extractor) -> Self
+    where
+        Extractor: Fn(&T) -> Sigmas + 'static,
+    {
+        self.sigmas_extractor = Some(Box::new(extractor));
+        self
+    }
+
+    fn extra_info<Extractor>(mut self, extractor: Extractor) -> Self
+    where
+        Extractor: Fn(&T) -> String + 'static,
+    {
+        self.extra_info_extractor = Some(Box::new(extractor));
+        self
+    }
+
+    fn run(self, solver: &mut Solver) -> Line {
+        let timer = Instant::now();
+        let res = (self.f)(solver);
+        let duration = timer.elapsed();
+
+        let traj = (self.extractor)(&res);
+        let sigmas = self.sigmas_extractor.as_ref().map(|x| x(&res));
+
+        let mut extra_info = None;
+        let title = match self.extra_info_extractor {
+            Some(ex) => {
+                let extra = ex(&res);
+                let title = format!("{} ({extra})", self.title);
+                extra_info = Some(extra);
+                title
+            }
+            None => self.title.to_owned(),
+        };
+
+        solver.data.compare(traj, sigmas, &title);
+        eprintln!("This step took {duration:?}\n");
+
+        solver.stages.push(db::Stage {
+            title: self.title.to_owned(),
+            extra_info,
+            traj,
+            sigmas,
+        });
+
+        traj
+    }
 }

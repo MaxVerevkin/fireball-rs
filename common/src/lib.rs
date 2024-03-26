@@ -19,6 +19,7 @@ pub mod structs;
 pub mod utils;
 
 use plotters::style::RGBColor;
+use serde::{Deserialize, Serialize};
 use structs::Vec3;
 
 pub const COLORS: &[RGBColor] = {
@@ -156,7 +157,7 @@ pub const fn old_hilbert(a: f64, iters: u32) -> Vec3 {
     }
 }
 
-#[derive(Debug, Default, Clone, Copy)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Copy)]
 pub struct Sigmas {
     /// Meters
     pub x: f64,

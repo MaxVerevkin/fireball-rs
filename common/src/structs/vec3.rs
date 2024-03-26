@@ -1,11 +1,11 @@
 use rand::Rng;
 use rand_distr::StandardNormal;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 use std::f64::consts::TAU;
 use std::ops;
 
-#[derive(Serialize, Debug, Default, Clone, Copy, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, Copy, PartialEq)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -240,7 +240,7 @@ impl ops::Neg for Vec3 {
     }
 }
 
-#[derive(Serialize, Debug, Clone, Copy, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 #[serde(transparent)]
 pub struct UnitVec3 {
     inner: Vec3,

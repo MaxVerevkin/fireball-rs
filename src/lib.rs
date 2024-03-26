@@ -12,9 +12,5 @@
 extern crate assert_approx_eq;
 
 pub mod approx_eq;
-// pub mod constants;
-// pub mod data;
-// pub mod maths;
-// pub mod quick_median;
+pub mod db;
 pub mod solver;
-// pub mod structs;
