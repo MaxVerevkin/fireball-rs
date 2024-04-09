@@ -18,10 +18,11 @@ pub struct Db {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Event {
     pub answer: Answer,
+    pub observers_count: u32,
     pub runs: HashMap<ParamsKey, Vec<Stage>>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy)]
 pub struct Answer {
     pub point: Vec3,
     pub dir: Option<UnitVec3>,
@@ -40,8 +41,8 @@ pub struct Stage {
 }
 
 impl Db {
-    pub fn read() -> Result<Self> {
-        match std::fs::File::open("db.json") {
+    pub fn read(path: Option<&str>) -> Result<Self> {
+        match std::fs::File::open(path.unwrap_or("db.json")) {
             Ok(file) => {
                 let reader = io::BufReader::new(file);
                 let db = serde_json::from_reader(reader).context("could not deserialize DB")?;
@@ -61,23 +62,26 @@ impl Db {
 
     pub fn add_run(
         &mut self,
-        event_name: String,
-        answer: common::obs_data::Answer,
+        data: &common::obs_data::Data,
         params: crate::solver::Params,
         stages: Vec<Stage>,
     ) {
+        let event_name = data.name.clone().unwrap();
+        let answer = data.answer.unwrap();
+        let observers_count = data.samples.len() as u32;
+
         let answer = Answer {
             point: answer.point.unwrap(),
             dir: answer.traj.map(|traj| traj.direction),
         };
-        self.events
-            .entry(event_name)
-            .or_insert_with(|| Event {
-                answer,
-                runs: HashMap::new(),
-            })
-            .runs
-            .insert(ParamsKey::from_params(params), stages);
+        let entry = self.events.entry(event_name).or_insert_with(|| Event {
+            answer,
+            observers_count,
+            runs: HashMap::new(),
+        });
+        entry.answer = answer;
+        entry.observers_count = observers_count;
+        entry.runs.insert(ParamsKey::from_params(params), stages);
     }
 }
 
@@ -94,6 +98,9 @@ impl ParamsKey {
         }
         if params.no_azimuths {
             res.push_str("no_azimuths;");
+        }
+        if params.no_da_flip {
+            res.push_str("no_da_flip;");
         }
         Self(res)
     }

@@ -1084,13 +1084,8 @@ impl Solver {
         self.data.compare(traj, Some(sigmas), "Final");
         self.stages.last_mut().unwrap().sigmas = Some(sigmas);
 
-        let mut db = db::Db::read().unwrap();
-        db.add_run(
-            self.data.name.clone().unwrap(),
-            self.data.answer.unwrap(),
-            self.params,
-            self.stages.clone(),
-        );
+        let mut db = db::Db::read(None).unwrap();
+        db.add_run(&self.data, self.params, self.stages.clone());
         db.write().unwrap();
 
         let (flash, speed) = self.calc_flash_and_speed(traj, Some(&weights));
