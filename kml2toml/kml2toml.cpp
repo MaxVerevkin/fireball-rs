@@ -7,8 +7,8 @@
 
 void process_whitnesses(tinyxml2::XMLElement *, std::fstream &);
 void process_placemark(tinyxml2::XMLElement *, int, std::fstream &);
-const char *last_word(std::string);
-const char *last_word_dur(std::string);
+const char* last_word(const std::string&);
+const char* last_word_dur(const std::string&);
 
 int main(int argc, char **argv) {
   // Check args
@@ -156,14 +156,14 @@ void process_placemark(tinyxml2::XMLElement *pPlacemark, int experience,
   outfile << "exp = " << experience << std::endl << std::endl;
 }
 
-const char *last_word(std::string str) {
+const char* last_word(const std::string& str) {
   int i = str.size() - 1;
   while (i > 0 && str[i] != ' ' && str[i] != '\t')
     i--;
   return str.c_str() + i + 1;
 }
 
-const char *last_word_dur(std::string str) {
+const char* last_word_dur(const std::string& str) {
   int i = str.size() - 1;
   while (i > 0 && str[i] != ';' && str[i] != '<')
     i--;
