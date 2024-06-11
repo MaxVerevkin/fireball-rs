@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title> Table Visualizer </title>
+  <script src="../out/index.js"></script>
+
+  <style>
+    table,
+    th,
+    td {
+      border: 1px solid black;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 6px;
+    }
+
+    .nowrap {
+      white-space: nowrap;
+    }
+
+    .bold-left-border {
+      border-left: 3px solid black;
+    }
+
+    .more-than-three-sigmas {
+      background: red;
+    }
+
+    .two-to-three-sigmas {
+      background: yellow;
+    }
+  </style>
+</head>
+
+<body>
+  <button onclick="open_db()"> Open DB </button>
+  <hr>
+  <div id="output"></div>
+</body>
+
+</html>

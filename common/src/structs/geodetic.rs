@@ -26,6 +26,7 @@ impl Geodetic {
         }
     }
 
+    /// (East, North, Zenith)
     pub fn local_cartesian_triple(self) -> (UnitVec3, UnitVec3, UnitVec3) {
         let (sin_lon, cos_lon) = self.lon.sin_cos();
         let (sin_lat, cos_lat) = self.lat.sin_cos();

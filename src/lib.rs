@@ -14,3 +14,5 @@ extern crate assert_approx_eq;
 pub mod approx_eq;
 pub mod db;
 pub mod solver;
+
+pub use common;

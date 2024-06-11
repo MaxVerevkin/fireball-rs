@@ -1,6 +1,6 @@
-use std::collections::HashMap;
 use std::fmt::Write;
 use std::io;
+use std::{borrow::Borrow, collections::HashMap};
 
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
@@ -19,6 +19,7 @@ pub struct Db {
 pub struct Event {
     pub answer: Answer,
     pub observers_count: u32,
+    pub avg_observer: Vec3,
     pub runs: HashMap<ParamsKey, Vec<Stage>>,
 }
 
@@ -31,6 +32,12 @@ pub struct Answer {
 #[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 #[serde(transparent)]
 pub struct ParamsKey(pub String);
+
+impl Borrow<str> for ParamsKey {
+    fn borrow(&self) -> &str {
+        &self.0
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Stage {
@@ -77,6 +84,12 @@ impl Db {
         let entry = self.events.entry(event_name).or_insert_with(|| Event {
             answer,
             observers_count,
+            avg_observer: data
+                .samples
+                .iter()
+                .map(|s| s.location)
+                .fold(Vec3::new(0.0, 0.0, 0.0), |a, b| a + b)
+                / data.samples.len() as f64,
             runs: HashMap::new(),
         });
         entry.answer = answer;

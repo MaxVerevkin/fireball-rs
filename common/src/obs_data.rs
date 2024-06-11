@@ -528,6 +528,7 @@ impl Data {
             .traj
             .map(|traj| traj.direction.dot(*other.direction).acos().to_degrees());
 
+        // From answer point to our trajectory
         let distance = (answer_point - other.point).cross(*other.direction).norm() * 1e-3;
 
         let mut med_buf = Vec::new();

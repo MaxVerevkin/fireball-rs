@@ -1,0 +1,249 @@
+[[sample]]
+lat = 53.3584
+lon = 8.45095
+h = 1.3045
+a = 157
+zb = 50.68
+hb = 45
+z0 = 64.27
+h0 = 23
+t = 1.5
+name = "Charlotte L"
+exp = 1
+
+[[sample]]
+lat = 53.4214
+lon = 7.73588
+h = 10.5527
+zb = 65.53
+hb = 39
+z0 = 64.27
+h0 = 1
+t = 1
+name = "Claus V"
+exp = 1
+
+[[sample]]
+lat = 53.3472
+lon = 8.36083
+h = 0.662944
+a = 154
+zb = 47.64
+hb = 49
+z0 = 62.76
+h0 = 29
+t = 1.5
+name = "Heini W"
+exp = 1
+
+[[sample]]
+lat = 52.3592
+lon = 9.85058
+h = 62.8479
+a = 145
+hb = 50
+z0 = 30.12
+t = 3.5
+name = "A. H"
+exp = 1
+
+[[sample]]
+lat = 52.2757
+lon = 9.56904
+h = 89.5882
+a = 180
+zb = 6.34
+hb = 57
+z0 = 6.34
+h0 = 13
+t = 3.5
+name = "Inga P"
+exp = 1
+
+[[sample]]
+lat = 53.2846
+lon = 10.5088
+h = 24.3829
+a = 182
+zb = 320
+hb = 25
+z0 = 320
+t = 1.5
+name = "Tymoteusz B"
+exp = 1
+
+[[sample]]
+lat = 53.0459
+lon = 6.58883
+h = 16.09
+a = 143
+zb = 31.65
+hb = 61
+z0 = 37.17
+h0 = 34
+t = 1.5
+name = "Roy O"
+exp = 1
+
+[[sample]]
+lat = 53.0664
+lon = 9.28726
+h = 22.2851
+a = 182
+zb = 16.59
+hb = 13
+z0 = 16.61
+h0 = 11
+t = 1.5
+name = "Julia S"
+exp = 1
+
+[[sample]]
+lat = 54.314
+lon = 8.62115
+h = 2.47523
+a = 185
+zb = 129.75
+hb = 53
+z0 = 126.05
+h0 = 11
+t = 3.5
+name = "Gernot M"
+exp = 2
+
+[[sample]]
+lat = 51.5896
+lon = 9.9267
+h = 149.315
+a = 186
+zb = 8.35
+hb = 31
+z0 = 8.35
+h0 = 23
+t = 3.5
+name = "Marc K"
+exp = 2
+
+[[sample]]
+lat = 52.4433
+lon = 10.0132
+h = 52.4259
+a = 8
+zb = 337.49
+hb = 52
+z0 = 327.27
+h0 = 29
+t = 3.5
+name = "Gerd K"
+exp = 2
+
+[[sample]]
+lat = 53.071
+lon = 9.02176
+h = 10.2213
+a = 182
+zb = 35
+hb = 19
+h0 = 9
+t = 3.5
+name = "Sabrina H"
+exp = 2
+
+[[sample]]
+lat = 52.8043
+lon = 10.6638
+h = 68.8906
+a = 178
+zb = 336.11
+hb = 90
+h0 = 13
+t = 1.5
+name = "Jürgen B"
+exp = 2
+
+[[sample]]
+lat = 53.4326
+lon = 10.0639
+h = 1.40471
+a = 205
+zb = 337.21
+z0 = 309.41
+t = 3.5
+name = "Susanne K"
+exp = 2
+
+[[sample]]
+lat = 53.3721
+lon = 8.1791
+h = 1.35534
+a = 102
+zb = 60.29
+hb = 45
+z0 = 60.23
+h0 = 30
+t = 3.5
+name = "Mathias R"
+exp = 2
+
+[[sample]]
+lat = 52.4444
+lon = 10.7757
+h = 56.0647
+a = 182
+zb = 356.22
+hb = 45
+z0 = 0.24
+t = 1.5
+name = "Jan K"
+exp = 3
+
+[[sample]]
+lat = 52.8252
+lon = 8.75497
+h = 47.8456
+a = 179
+zb = 34.75
+hb = 40
+z0 = 34.67
+h0 = 10
+t = 3.5
+name = "GeLeTo S"
+exp = 3
+
+[[sample]]
+lat = 53.1572
+lon = 11.2433
+h = 16.5738
+a = 180
+zb = 326.97
+hb = 45
+z0 = 324.95
+h0 = 35
+t = 1.5
+name = "Thomas J"
+exp = 3
+
+[[sample]]
+lat = 52.7246
+lon = 6.45475
+h = 7.25044
+a = 175
+zb = 254.77
+hb = 45
+z0 = 251.49
+h0 = 10
+t = 1.5
+name = "Erwin N"
+exp = 4
+
+[answer]
+lat = 53.7727
+lon = 9.6109
+h = 18000
+bearing = 153
+incidence = 5
+speed = 20
+
+[meta]
+url_imo = "https://fireball.amsmeteors.org//members/imo_view/event/2023/2341"
+url_strewnify = "https://www.strewnify.com/y20230425_12z_32u/"

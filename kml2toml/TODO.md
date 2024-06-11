@@ -1,0 +1,4 @@
+- parse kml file and exctract a list of (point, timestamp) pairs
+- compute bearing and incidence angles
+- plot velocity over time/altitude
+- compute the difference between the direction in the beginning and the end of the trajectory

@@ -1,0 +1,163 @@
+[[sample]]
+lat = 43.4248
+lon = -1.6043
+h = 34.7402
+a = 148
+zb = 353.23
+hb = 34
+z0 = 12.4
+h0 = 5
+t = 3.5
+name = "Hélène M"
+exp = 1
+
+[[sample]]
+lat = 43.3266
+lon = 1.11616
+h = 283.63
+a = 116
+zb = 290
+hb = 44
+z0 = 320
+h0 = 24
+t = 3.5
+name = "Amandine S"
+exp = 1
+
+[[sample]]
+lat = 44.2381
+lon = -1.00615
+h = 55.105
+a = 261
+zb = 215.87
+hb = 62
+z0 = 34.22
+h0 = 53
+t = 7.5
+name = "Julie R"
+exp = 1
+
+[[sample]]
+lat = 43.1824
+lon = -0.617146
+h = 238.466
+a = 91
+hb = 35
+h0 = 23
+t = 3.5
+name = "michel B"
+exp = 1
+
+[[sample]]
+lat = 46.1685
+lon = -1.1982
+h = 17.7892
+a = 246
+zb = 180
+hb = 35
+z0 = 160
+h0 = 6
+t = 3.5
+name = "Emilie G"
+exp = 1
+
+[[sample]]
+lat = 46.9799
+lon = -1.37453
+h = 43.4105
+a = 236
+zb = 223.87
+hb = 29
+z0 = 212.31
+h0 = 15
+t = 3.5
+name = "Cyril P"
+exp = 2
+
+[[sample]]
+lat = 43.2659
+lon = -0.187581
+h = 297.934
+a = 100
+zb = 288
+hb = 25
+z0 = 330
+h0 = 20
+t = 3.5
+name = "François B"
+exp = 2
+
+[[sample]]
+lat = 43.7923
+lon = -0.161079
+h = 124.747
+a = 107
+zb = 312.6
+hb = 34
+z0 = 338.46
+h0 = 19
+t = 3.5
+name = "Marina S"
+exp = 2
+
+[[sample]]
+lat = 44.8989
+lon = -0.707637
+h = 20.6265
+a = 257
+zb = 279.01
+hb = 60
+z0 = 76
+h0 = 35
+t = 7.5
+name = "Manuel M"
+exp = 2
+
+[[sample]]
+lat = 43.4928
+lon = -0.783887
+h = 94.5712
+a = 86
+zb = 335
+hb = 17
+z0 = 3
+h0 = 16
+t = 3.5
+name = "Marie L"
+exp = 2
+
+[[sample]]
+lat = 44.8208
+lon = -0.606855
+h = 19.1907
+a = 261
+zb = 243.52
+hb = 37
+z0 = 264.19
+h0 = 60
+t = 7.5
+name = "Emilie N"
+exp = 3
+
+[[sample]]
+lat = 43.4904
+lon = 0.258353
+h = 174.046
+a = 97
+hb = 29
+h0 = 16
+t = 3.5
+name = "Guy l"
+exp = 3
+
+[answer]
+lat = 44.390
+lon = -0.712
+h = 27500
+bearing = 54.8
+incidence = 64.2
+speed = 13.8
+
+[meta]
+url_imo = "https://fireball.amsmeteors.org/members/imo_view/Event/2023/1743"
+url_strewnify = "https://www.strewnify.com/y20230324_22z_30t/"

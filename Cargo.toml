@@ -11,6 +11,7 @@ members = [
   "da-corrector",
 	"azimuth-corrector",
 	"altitudes",
+	"parse-somerset-traj",
 ]
 
 [dependencies]
