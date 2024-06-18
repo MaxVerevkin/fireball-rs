@@ -1,0 +1,8436 @@
+[[sample]]
+lat = 42.0786
+lon = -82.7097
+h = 200.087
+a = 354
+zb = 340.53
+hb = 45
+z0 = 347.74
+h0 = 19
+t = 3.5
+name = "Ian D"
+exp = 1
+
+[[sample]]
+lat = 42.5105
+lon = -87.8254
+h = 193.452
+a = 182
+zb = 70.42
+hb = 60
+z0 = 75.98
+h0 = 8
+t = 3.5
+name = "Dave S"
+exp = 1
+
+[[sample]]
+lat = 41.7113
+lon = -87.747
+h = 182.608
+a = 198
+hb = 30
+z0 = 69.36
+h0 = 7
+t = 3.5
+name = "zack l"
+exp = 1
+
+[[sample]]
+lat = 40.6629
+lon = -80.2303
+h = 270.995
+a = 180
+hb = 15
+z0 = 312.18
+h0 = 5
+t = 3.5
+name = "Robert L"
+exp = 1
+
+[[sample]]
+lat = 42.5707
+lon = -83.7458
+h = 290.735
+a = 90
+zb = 150
+hb = 78
+z0 = 210
+h0 = 75
+t = 7.5
+name = "Nils L"
+exp = 1
+
+[[sample]]
+lat = 40.7718
+lon = -82.227
+h = 331.173
+a = 195
+zb = 333.61
+hb = 30
+z0 = 312.63
+h0 = 5
+t = 3.5
+name = "Amber B"
+exp = 1
+
+[[sample]]
+lat = 42.7053
+lon = -83.3488
+h = 298.155
+a = 94
+zb = 269.79
+hb = 90
+z0 = 177.56
+h0 = 90
+t = 1.5
+name = "Trish M"
+exp = 1
+
+[[sample]]
+lat = 41.2023
+lon = -85.5001
+h = 275.114
+a = 120
+zb = 61.24
+hb = 22
+z0 = 36.16
+t = 1.5
+name = "Staci B"
+exp = 1
+
+[[sample]]
+lat = 42.4334
+lon = -85.5582
+h = 283.47
+zb = 62.67
+hb = 79
+z0 = 72.28
+t = 3.5
+name = "Jeff M"
+exp = 1
+
+[[sample]]
+lat = 40.5762
+lon = -81.5087
+h = 281.088
+a = 206
+zb = 351.1
+hb = 60
+z0 = 305.8
+h0 = 10
+t = 20
+name = "Will V"
+exp = 1
+
+[[sample]]
+lat = 42.4467
+lon = -85.5512
+h = 266.327
+a = 270
+zb = 90
+hb = 45
+z0 = 90
+h0 = 45
+t = 3.5
+name = "mary c"
+exp = 1
+
+[[sample]]
+lat = 41.9445
+lon = -83.979
+h = 242.266
+a = 97
+zb = 0.6
+hb = 50
+z0 = 33.26
+h0 = 39
+t = 3.5
+name = "Mark H"
+exp = 1
+
+[[sample]]
+lat = 41.5169
+lon = -82.7431
+h = 185.189
+a = 25
+zb = 140.74
+hb = 60
+z0 = 225.14
+h0 = 25
+t = 3.5
+name = "Nancy W"
+exp = 1
+
+[[sample]]
+lat = 42.9167
+lon = -84.3652
+h = 251.968
+a = 107
+zb = 89.57
+hb = 39
+z0 = 97.61
+h0 = 20
+t = 3.5
+name = "Amy K"
+exp = 1
+
+[[sample]]
+lat = 42.3067
+lon = -83.4335
+h = 203.514
+a = 206
+zb = 19.51
+hb = 34
+z0 = 354.85
+h0 = 22
+t = 1.5
+name = "Merle C"
+exp = 1
+
+[[sample]]
+lat = 42.6924
+lon = -83.0682
+h = 215.612
+a = 105
+zb = 257.03
+hb = 39
+z0 = 294.74
+h0 = 28
+t = 3.5
+name = "Trumble J"
+exp = 1
+
+[[sample]]
+lat = 42.2925
+lon = -83.7549
+h = 284.132
+a = 87
+zb = 325.71
+hb = 41
+z0 = 325.01
+h0 = 44
+t = 3.5
+name = "ANGELA O"
+exp = 1
+
+[[sample]]
+lat = 42.442
+lon = -83.6067
+h = 299.768
+a = 259
+zb = 308.42
+z0 = 338.26
+t = 1.5
+name = "Melissa E"
+exp = 1
+
+[[sample]]
+lat = 42.4461
+lon = -84.0742
+h = 281.118
+a = 90
+zb = 17.41
+hb = 70
+z0 = 142.4
+h0 = 70
+t = 20
+name = "Mr. & Mrs. D"
+exp = 1
+
+[[sample]]
+lat = 40.8341
+lon = -81.434
+h = 328.264
+zb = 158.6
+z0 = 159.29
+name = "Hernandez J"
+exp = 1
+
+[[sample]]
+lat = 42.9211
+lon = -83.5731
+h = 262.455
+a = 271
+zb = 323.42
+hb = 59
+z0 = 200.05
+h0 = 59
+t = 3.5
+name = "Remington C"
+exp = 1
+
+[[sample]]
+lat = 42.1249
+lon = -83.2211
+h = 178.618
+a = 10
+zb = 335.41
+hb = 30
+z0 = 336.23
+h0 = 30
+t = 1.5
+name = "Lori P"
+exp = 1
+
+[[sample]]
+lat = 42.6417
+lon = -83.2833
+h = 280.321
+a = 186
+zb = 275.47
+hb = 88
+z0 = 274.44
+h0 = 21
+t = 3.5
+name = "Travis A"
+exp = 1
+
+[[sample]]
+lat = 42.0047
+lon = -87.6998
+h = 180.62
+a = 130
+hb = 58
+h0 = 41
+t = 1.5
+name = "Sulema G"
+exp = 1
+
+[[sample]]
+lat = 42.5752
+lon = -86.1634
+h = 209.78
+a = 206
+zb = 87.68
+hb = 22
+z0 = 79.93
+t = 3.5
+name = "Laura P"
+exp = 1
+
+[[sample]]
+lat = 42.6463
+lon = -83.665
+h = 315.909
+a = 99
+zb = 173.69
+hb = 45
+z0 = 180.5
+h0 = 45
+t = 3.5
+name = "Liz S"
+exp = 1
+
+[[sample]]
+lat = 43.5228
+lon = -83.1499
+h = 228.286
+a = 122
+zb = 214.21
+hb = 20
+z0 = 206.37
+h0 = 5
+t = 1.5
+name = "R C"
+exp = 1
+
+[[sample]]
+lat = 42.3272
+lon = -88.8814
+h = 266.389
+a = 191
+zb = 92.45
+hb = 58
+z0 = 91.42
+h0 = 1
+t = 3.5
+name = "Jared Y"
+exp = 1
+
+[[sample]]
+lat = 41.5941
+lon = -88.1849
+h = 184.312
+a = 180
+zb = 83.1
+hb = 90
+z0 = 78.75
+h0 = 45
+t = 1.5
+name = "Mike D"
+exp = 1
+
+[[sample]]
+lat = 41.6677
+lon = -85.7626
+h = 272.357
+a = 114
+zb = 70
+hb = 25
+z0 = 20
+h0 = 15
+t = 20
+name = "Austin C"
+exp = 1
+
+[[sample]]
+lat = 42.7698
+lon = -88.2498
+h = 271.084
+a = 235
+zb = 99.56
+hb = 2
+z0 = 175.93
+t = 3.5
+name = "Liz M"
+exp = 1
+
+[[sample]]
+lat = 42.2974
+lon = -85.2299
+h = 282.454
+a = 236
+zb = 84.85
+hb = 15
+z0 = 72.4
+h0 = 5
+t = 3.5
+name = "Kelly S"
+exp = 1
+
+[[sample]]
+lat = 42.9664
+lon = -83.5991
+h = 249.154
+a = 119
+zb = 221.44
+hb = 45
+z0 = 286.88
+t = 1.5
+name = "Gabe K"
+exp = 1
+
+[[sample]]
+lat = 41.0971
+lon = -81.5527
+h = 328.436
+a = 174
+zb = 300
+hb = 21
+z0 = 300
+h0 = 8
+t = 3.5
+name = "Hillary N"
+exp = 1
+
+[[sample]]
+lat = 42.3015
+lon = -84.4062
+h = 286.21
+a = 85
+zb = 250
+z0 = 250
+h0 = 45
+t = 3.5
+name = "Madi S"
+exp = 1
+
+[[sample]]
+lat = 42.07
+lon = -83.9754
+h = 251.307
+a = 45
+zb = 3
+hb = 45
+z0 = 26.54
+h0 = 45
+t = 1.5
+name = "Alicia G"
+exp = 1
+
+[[sample]]
+lat = 41.9607
+lon = -87.8437
+h = 192.544
+a = 171
+zb = 70
+hb = 40
+z0 = 75.37
+h0 = 10
+t = 1.5
+name = "Olivia Z"
+exp = 1
+
+[[sample]]
+lat = 41.6686
+lon = -83.6474
+h = 187.953
+a = 64
+zb = 346.18
+hb = 45
+z0 = 337.99
+h0 = 45
+t = 1
+name = "Luanne B"
+exp = 1
+
+[[sample]]
+lat = 42.8838
+lon = -85.7715
+h = 195.311
+a = 4
+zb = 117.2
+hb = 62
+z0 = 86.89
+h0 = 16
+t = 3.5
+name = "Deanna H"
+exp = 1
+
+[[sample]]
+lat = 42.5488
+lon = -83.1218
+h = 196.69
+a = 180
+zb = 275.91
+hb = 30
+z0 = 257.18
+t = 7.5
+name = "Michelle G"
+exp = 1
+
+[[sample]]
+lat = 42.2275
+lon = -88.2206
+h = 263.374
+a = 183
+zb = 42.96
+hb = 67
+z0 = 75.92
+h0 = 16
+t = 3.5
+name = "Christine P"
+exp = 1
+
+[[sample]]
+lat = 42.6751
+lon = -83.3939
+h = 300.614
+a = 159
+zb = 138
+z0 = 138
+h0 = 42
+t = 3.5
+name = "Jazabelle S"
+exp = 1
+
+[[sample]]
+lat = 42.7403
+lon = -83.4019
+h = 310.167
+a = 96
+zb = 299.95
+z0 = 112.95
+t = 1.5
+name = "Melinda B"
+exp = 1
+
+[[sample]]
+lat = 41.9524
+lon = -83.9923
+h = 237.848
+a = 80
+zb = 312.04
+hb = 70
+z0 = 331.65
+h0 = 70
+t = 1.5
+name = "Hughes I"
+exp = 1
+
+[[sample]]
+lat = 42.829
+lon = -86.0204
+h = 197.229
+zb = 104.8
+hb = 86
+z0 = 108.01
+h0 = 60
+t = 7.5
+name = "Marjie G"
+exp = 1
+
+[[sample]]
+lat = 42.462
+lon = -83.5063
+h = 287.652
+a = 100
+zb = 8.6
+hb = 35
+z0 = 100
+h0 = 35
+t = 1.5
+name = "John S"
+exp = 1
+
+[[sample]]
+lat = 42.7118
+lon = -83.216
+h = 295.995
+a = 82
+zb = 22
+hb = 25
+z0 = 220
+h0 = 25
+t = 1.5
+name = "Stephen K"
+exp = 1
+
+[[sample]]
+lat = 42.2777
+lon = -83.7792
+h = 286.295
+a = 126
+zb = 80.95
+hb = 45
+z0 = 120.87
+h0 = 26
+t = 1.5
+name = "Becca D"
+exp = 1
+
+[[sample]]
+lat = 42.6135
+lon = -83.4354
+h = 283.861
+a = 46
+zb = 237.56
+hb = 53
+z0 = 238.59
+h0 = 49
+t = 3.5
+name = "Kristin M"
+exp = 1
+
+[[sample]]
+lat = 43.0463
+lon = -87.9934
+h = 193.473
+a = 179
+zb = 85.72
+hb = 20
+z0 = 84.65
+t = 1
+name = "Alissa K"
+exp = 1
+
+[[sample]]
+lat = 41.5003
+lon = -83.3002
+h = 186.244
+a = 287
+zb = 59.73
+hb = 45
+z0 = 312.63
+h0 = 45
+t = 7.5
+name = "Amy S"
+exp = 1
+
+[[sample]]
+lat = 42.8667
+lon = -83.396
+h = 329.282
+a = 124
+zb = 200
+hb = 60
+z0 = 250
+h0 = 37
+t = 1.5
+name = "Tracy M"
+exp = 1
+
+[[sample]]
+lat = 43.2809
+lon = -83.5216
+h = 232.379
+a = 50
+zb = 50.8
+hb = 59
+z0 = 58.04
+h0 = 75
+t = 1.5
+name = "Dylin P"
+exp = 1
+
+[[sample]]
+lat = 44.5651
+lon = -83.6419
+h = 278.879
+a = 280
+zb = 189.91
+hb = 40
+z0 = 160.85
+h0 = 40
+t = 1.5
+name = "Joyce H"
+exp = 1
+
+[[sample]]
+lat = 42.5383
+lon = -83.1762
+h = 213.982
+a = 346
+zb = 266
+hb = 53
+z0 = 266.87
+h0 = 23
+t = 1.5
+name = "Charles S"
+exp = 1
+
+[[sample]]
+lat = 41.898
+lon = -84.0361
+h = 237.001
+a = 190
+hb = 18
+z0 = 20
+h0 = 15
+t = 3.5
+name = "Ingrid W"
+exp = 1
+
+[[sample]]
+lat = 41.4889
+lon = -83.7112
+h = 199.386
+a = 180
+zb = 0.25
+hb = 90
+h0 = 30
+t = 3.5
+name = "Phil W"
+exp = 1
+
+[[sample]]
+lat = 42.1758
+lon = -84.6572
+h = 306.981
+a = 180
+zb = 45
+hb = 75
+z0 = 25
+h0 = 75
+t = 3.5
+name = "Sherri A"
+exp = 1
+
+[[sample]]
+lat = 42.62
+lon = -85.4049
+h = 275.663
+a = 143
+t = 1.5
+name = "Sara E"
+exp = 1
+
+[[sample]]
+lat = 42.9184
+lon = -85.7372
+h = 186.139
+a = 115
+zb = 80.32
+hb = 27
+z0 = 87.81
+h0 = 7
+t = 1.5
+name = "Lori T"
+exp = 1
+
+[[sample]]
+lat = 41.612
+lon = -84.537
+h = 273.911
+a = 125
+zb = 87.25
+hb = 10
+z0 = 11.78
+h0 = 5
+t = 3.5
+name = "Rupp J"
+exp = 1
+
+[[sample]]
+lat = 42.6545
+lon = -84.5627
+h = 268.604
+a = 263
+hb = 43
+z0 = 261.53
+h0 = 25
+t = 3.5
+name = "Rhonda J"
+exp = 1
+
+[[sample]]
+lat = 43.1064
+lon = -89.1508
+h = 265.338
+a = 190
+zb = 116.1
+hb = 25
+z0 = 107.89
+h0 = 15
+t = 1.5
+name = "Kristen H"
+exp = 1
+
+[[sample]]
+lat = 42.7423
+lon = -84.5103
+h = 262.032
+a = 88
+zb = 100
+hb = 45
+z0 = 44.48
+h0 = 45
+t = 3.5
+name = "Brad O"
+exp = 1
+
+[[sample]]
+lat = 42.6506
+lon = -83.4064
+h = 290.664
+a = 100
+zb = 10
+hb = 45
+z0 = 100
+h0 = 45
+t = 7.5
+name = "Bridget S"
+exp = 1
+
+[[sample]]
+lat = 41.9001
+lon = -84.0627
+h = 246.206
+a = 338
+zb = 359.59
+hb = 47
+z0 = 352
+h0 = 52
+t = 1.5
+name = "Kaysie B"
+exp = 1
+
+[[sample]]
+lat = 41.442
+lon = -81.719
+h = 222.759
+zb = 323.02
+hb = 40
+z0 = 318.68
+h0 = 11
+t = 1.5
+name = "Ryan T"
+exp = 1
+
+[[sample]]
+lat = 41.8735
+lon = -90.1863
+h = 192.518
+a = 203
+zb = 91.38
+hb = 45
+z0 = 65.4
+t = 3.5
+name = "Jodi B"
+exp = 1
+
+[[sample]]
+lat = 42.6194
+lon = -83.3225
+h = 287.442
+a = 101
+zb = 224.94
+hb = 45
+z0 = 236.81
+h0 = 45
+t = 7.5
+name = "Syd W"
+exp = 1
+
+[[sample]]
+lat = 42.3427
+lon = -83.3695
+h = 196.911
+a = 140
+zb = 46.1
+hb = 62
+z0 = 51.95
+t = 3.5
+name = "Abigail R"
+exp = 1
+
+[[sample]]
+lat = 42.4397
+lon = -82.9093
+h = 178.449
+a = 135
+zb = 305.57
+hb = 20
+z0 = 94.12
+h0 = 10
+t = 7.5
+name = "Cheryl K"
+exp = 1
+
+[[sample]]
+lat = 42.5441
+lon = -82.857
+h = 177.553
+a = 80
+zb = 113.44
+hb = 70
+z0 = 157.6
+h0 = 70
+t = 3.5
+name = "June C"
+exp = 1
+
+[[sample]]
+lat = 42.5443
+lon = -83.1063
+h = 193.57
+a = 180
+zb = 304.71
+hb = 84
+z0 = 299.77
+h0 = 26
+t = 3.5
+name = "Sarah B"
+exp = 1
+
+[[sample]]
+lat = 42.4938
+lon = -84.6596
+h = 271.1
+a = 179
+zb = 85.8
+hb = 29
+z0 = 84.71
+h0 = 30
+t = 1.5
+name = "Amanda V"
+exp = 1
+
+[[sample]]
+lat = 41.3801
+lon = -81.7262
+h = 291.798
+a = 180
+zb = 319.94
+hb = 90
+z0 = 309.04
+h0 = 33
+t = 3.5
+name = "Nancy B"
+exp = 1
+
+[[sample]]
+lat = 42.4649
+lon = -83.7582
+h = 275.332
+a = 98
+zb = 360
+hb = 45
+z0 = 180
+h0 = 45
+name = "Lisa S"
+exp = 1
+
+[[sample]]
+lat = 41.4027
+lon = -84.3618
+h = 216.526
+zb = 66.1
+hb = 60
+z0 = 22.67
+h0 = 45
+t = 1
+name = "S"
+exp = 1
+
+[[sample]]
+lat = 42.3571
+lon = -83.1423
+h = 185.565
+a = 112
+name = "Tamika W"
+exp = 1
+
+[[sample]]
+lat = 42.7321
+lon = -83.4519
+h = 327.82
+a = 180
+zb = 225
+hb = 59
+z0 = 225
+h0 = 29
+t = 3.5
+name = "Kevin B"
+exp = 1
+
+[[sample]]
+lat = 42.248
+lon = -83.6837
+h = 254.682
+a = 253
+zb = 19.43
+hb = 68
+z0 = 172.19
+h0 = 65
+t = 1.5
+name = "M C"
+exp = 1
+
+[[sample]]
+lat = 42.684
+lon = -83.4236
+h = 298.559
+a = 204
+zb = 213.09
+hb = 27
+z0 = 250.63
+h0 = 9
+t = 1.5
+name = "Lee R"
+exp = 1
+
+[[sample]]
+lat = 41.494
+lon = -83.0906
+h = 175.682
+a = 50
+zb = 270
+hb = 45
+z0 = 267
+t = 3.5
+name = "Jen G"
+exp = 1
+
+[[sample]]
+lat = 43.4141
+lon = -85.4684
+h = 274.141
+a = 110
+zb = 120
+hb = 55
+z0 = 80
+h0 = 30
+t = 1.5
+name = "Wendy S"
+exp = 1
+
+[[sample]]
+lat = 42.3988
+lon = -85.3984
+h = 271.65
+a = 182
+zb = 74.53
+z0 = 87.49
+t = 3.5
+name = "Veronica S"
+exp = 1
+
+[[sample]]
+lat = 42.2946
+lon = -83.7191
+h = 279.346
+a = 210
+zb = 349.35
+hb = 47
+z0 = 341.75
+h0 = 22
+t = 1
+name = "Bryan S"
+exp = 1
+
+[[sample]]
+lat = 42.4568
+lon = -88.9884
+h = 255.427
+a = 182
+zb = 82.38
+hb = 24
+z0 = 88.56
+h0 = 5
+t = 3.5
+name = "Matt D"
+exp = 1
+
+[[sample]]
+lat = 41.7597
+lon = -83.6196
+h = 198.071
+a = 99
+zb = 1
+hb = 45
+z0 = 330
+t = 3.5
+name = "Cassandra M"
+exp = 1
+
+[[sample]]
+lat = 42.562
+lon = -83.4959
+h = 283.636
+a = 20
+zb = 250.18
+hb = 50
+z0 = 258.56
+h0 = 60
+t = 1
+name = "Rachael N"
+exp = 1
+
+[[sample]]
+lat = 42.1242
+lon = -83.1735
+h = 178.813
+a = 174
+zb = 317.75
+hb = 61
+z0 = 310.44
+h0 = 26
+t = 3.5
+name = "Elisa H"
+exp = 1
+
+[[sample]]
+lat = 42.4539
+lon = -82.97
+h = 188.169
+a = 154
+zb = 318.97
+hb = 29
+z0 = 213.11
+h0 = 1
+t = 3.5
+name = "Jennifer M"
+exp = 1
+
+[[sample]]
+lat = 42.7901
+lon = -86.072
+h = 194.206
+zb = 99.96
+hb = 47
+z0 = 101.11
+h0 = 11
+t = 7.5
+name = "Gretchen S"
+exp = 1
+
+[[sample]]
+lat = 42.7899
+lon = -83.7344
+h = 281.455
+a = 110
+zb = 202.67
+hb = 53
+z0 = 205.83
+h0 = 49
+t = 3.5
+name = "C"
+exp = 1
+
+[[sample]]
+lat = 42.536
+lon = -84.6269
+h = 262.55
+a = 198
+zb = 69.66
+hb = 15
+z0 = 71.69
+h0 = 5
+t = 1.5
+name = "Kelly R"
+exp = 1
+
+[[sample]]
+lat = 42.5163
+lon = -83.2535
+h = 216.605
+a = 189
+zb = 291.45
+hb = 58
+z0 = 291.45
+h0 = 24
+t = 7.5
+name = "Valerie F"
+exp = 1
+
+[[sample]]
+lat = 42.2257
+lon = -88.3211
+h = 273.878
+a = 251
+zb = 80
+hb = 45
+z0 = 70
+h0 = 20
+t = 7.5
+name = "Jan V"
+exp = 1
+
+[[sample]]
+lat = 41.3732
+lon = -84.3608
+h = 60
+a = 243
+zb = 78.05
+hb = 31
+z0 = 22.59
+h0 = 19
+t = 20
+name = "Mark F"
+exp = 1
+
+[[sample]]
+lat = 42.6309
+lon = -83.3648
+h = 295.746
+a = 40
+zb = 102.12
+hb = 70
+z0 = 84.23
+h0 = 45
+t = 3.5
+name = "Brandy K"
+exp = 1
+
+[[sample]]
+lat = 42.3825
+lon = -83.3533
+h = 194.346
+a = 102
+zb = 273.66
+z0 = 72.53
+t = 3.5
+name = "Loftus"
+exp = 1
+
+[[sample]]
+lat = 43.1403
+lon = -83.8138
+h = 215.068
+a = 77
+zb = 99.02
+hb = 45
+z0 = 246.74
+h0 = 25
+t = 7.5
+name = "K I"
+exp = 1
+
+[[sample]]
+lat = 41.5167
+lon = -83.639
+h = 197.802
+a = 250
+zb = 5.92
+hb = 90
+z0 = 321.83
+h0 = 39
+t = 3.5
+name = "Eric L"
+exp = 1
+
+[[sample]]
+lat = 42.5821
+lon = -84.5231
+h = 280.915
+a = 125
+zb = 175.31
+hb = 19
+z0 = 166.7
+h0 = 18
+t = 7.5
+name = "Cheryl R"
+exp = 1
+
+[[sample]]
+lat = 42.4996
+lon = -83.4074
+h = 262.25
+a = 83
+hb = 28
+h0 = 12
+t = 1.5
+name = "Sharon H"
+exp = 1
+
+[[sample]]
+lat = 42.6609
+lon = -84.5254
+h = 268.881
+a = 258
+zb = 118.92
+hb = 19
+z0 = 100.95
+h0 = 27
+t = 1.5
+name = "S"
+exp = 1
+
+[[sample]]
+lat = 42.4524
+lon = -84.4408
+h = 291.502
+a = 106
+zb = 98
+hb = 35
+z0 = 110.18
+h0 = 31
+t = 1
+name = "Jaime S"
+exp = 1
+
+[[sample]]
+lat = 42.8565
+lon = -84.5158
+h = 251.683
+a = 203
+zb = 102.03
+hb = 30
+z0 = 99.05
+h0 = 24
+t = 7.5
+name = "Tasinda R"
+exp = 1
+
+[[sample]]
+lat = 41.4948
+lon = -81.7081
+h = 183.841
+a = 5
+zb = 343.56
+hb = 60
+z0 = 339.63
+h0 = 20
+t = 1
+name = "Lauren M"
+exp = 1
+
+[[sample]]
+lat = 42.4892
+lon = -83.8109
+h = 277.552
+a = 90
+zb = 359.25
+z0 = 358.1
+t = 1
+name = "Gretchen H"
+exp = 1
+
+[[sample]]
+lat = 42.7411
+lon = -84.6135
+h = 260.54
+a = 200
+zb = 150
+hb = 45
+z0 = 150
+h0 = 45
+t = 3.5
+name = "Corina S"
+exp = 1
+
+[[sample]]
+lat = 40.946
+lon = -82.3265
+h = 356.944
+a = 211
+zb = 111.76
+hb = 33
+z0 = 319.48
+h0 = 13
+t = 1.5
+name = "Starr B"
+exp = 1
+
+[[sample]]
+lat = 43.0175
+lon = -86.1029
+h = 189.268
+a = 269
+zb = 110.93
+hb = 45
+z0 = 79.2
+h0 = 45
+t = 1.5
+name = "Dawn V"
+exp = 1
+
+[[sample]]
+lat = 42.4329
+lon = -83.8614
+h = 269.534
+a = 264
+zb = 130.1
+hb = 80
+z0 = 334.39
+h0 = 70
+t = 3.5
+name = "Karen B"
+exp = 1
+
+[[sample]]
+lat = 42.6136
+lon = -84.1145
+h = 287.083
+zb = 4.83
+hb = 55
+h0 = 55
+t = 7.5
+name = "Chantel H"
+exp = 1
+
+[[sample]]
+lat = 42.5193
+lon = -83.3334
+h = 257.274
+name = "Arlene O"
+exp = 1
+
+[[sample]]
+lat = 41.7553
+lon = -88.1054
+h = 228.694
+zb = 75
+hb = 20
+z0 = 75
+h0 = 10
+t = 1.5
+name = "Audrey V"
+exp = 1
+
+[[sample]]
+lat = 42.89
+lon = -85.7761
+h = 189.766
+zb = 88.17
+hb = 31
+z0 = 86.69
+h0 = 11
+t = 1.5
+name = "Diane V"
+exp = 1
+
+[[sample]]
+lat = 41.8772
+lon = -85.9223
+h = 269.187
+a = 98
+zb = 18.79
+hb = 45
+z0 = 49.14
+h0 = 26
+t = 1
+name = "Hope A"
+exp = 1
+
+[[sample]]
+lat = 42.9927
+lon = -88.131
+h = 264.649
+a = 282
+zb = 175.61
+hb = 25
+z0 = 231.96
+h0 = 26
+t = 3.5
+name = "Zak F"
+exp = 1
+
+[[sample]]
+lat = 43.0531
+lon = -89.5026
+h = 332.765
+a = 180
+zb = 113.57
+hb = 23
+z0 = 117.81
+h0 = 11
+t = 3.5
+name = "Heather T"
+exp = 1
+
+[[sample]]
+lat = 42.3074
+lon = -83.7283
+h = 272.763
+a = 342
+hb = 60
+t = 3.5
+name = "Tonya H"
+exp = 1
+
+[[sample]]
+lat = 42.2852
+lon = -83.8006
+h = 283.168
+a = 271
+zb = 357.52
+hb = 89
+z0 = 0.37
+h0 = 90
+t = 1
+name = "Linda G"
+exp = 1
+
+[[sample]]
+lat = 40.5505
+lon = -88.9198
+h = 241.421
+a = 198
+zb = 57.27
+hb = 51
+z0 = 54.15
+h0 = 13
+t = 3.5
+name = "S B"
+exp = 1
+
+[[sample]]
+lat = 42.5369
+lon = -83.2248
+h = 229.497
+a = 75
+zb = 307.02
+hb = 65
+z0 = 290.71
+h0 = 60
+t = 1.5
+name = "Catherine F"
+exp = 1
+
+[[sample]]
+lat = 41.8078
+lon = -88.0542
+h = 226.446
+a = 201
+hb = 45
+z0 = 27.59
+h0 = 45
+t = 1.5
+name = "Lorraine P"
+exp = 1
+
+[[sample]]
+lat = 41.4857
+lon = -87.5985
+h = 201.053
+a = 51
+zb = 47.6
+hb = 45
+z0 = 26.79
+h0 = 42
+t = 3.5
+name = "Amelia R"
+exp = 1
+
+[[sample]]
+lat = 42.3818
+lon = -83.9233
+h = 269.855
+a = 115
+zb = 24.65
+hb = 50
+z0 = 12.52
+h0 = 40
+t = 3.5
+name = "David C"
+exp = 1
+
+[[sample]]
+lat = 42.6473
+lon = -83.536
+h = 293.233
+t = 3.5
+name = "Claudia S"
+exp = 1
+
+[[sample]]
+lat = 42.5663
+lon = -87.8692
+h = 210.649
+a = 187
+zb = 91.04
+hb = 85
+z0 = 89.69
+h0 = 2
+t = 7.5
+name = "Matt L"
+exp = 1
+
+[[sample]]
+lat = 42.1012
+lon = -87.7517
+h = 189.272
+a = 181
+zb = 61.16
+hb = 45
+z0 = 60.63
+h0 = 20
+t = 3.5
+name = "Sue V"
+exp = 1
+
+[[sample]]
+lat = 42.9619
+lon = -87.9947
+h = 242.444
+a = 188
+zb = 80
+hb = 68
+z0 = 75
+h0 = 23
+t = 3.5
+name = "Lisa W"
+exp = 1
+
+[[sample]]
+lat = 42.4891
+lon = -83.2518
+h = 207.524
+a = 140
+zb = 270
+hb = 80
+z0 = 270
+h0 = 30
+t = 7.5
+name = "Kimberly M"
+exp = 1
+
+[[sample]]
+lat = 39.3081
+lon = -81.8949
+h = 203.315
+a = 211
+zb = 341.27
+hb = 22
+z0 = 307.75
+h0 = 11
+t = 3.5
+name = "Shanna M"
+exp = 1
+
+[[sample]]
+lat = 41.9926
+lon = -83.9533
+h = 250.977
+a = 100
+zb = 60
+hb = 34
+z0 = 54.54
+h0 = 38
+t = 20
+name = "Dyonna W"
+exp = 1
+
+[[sample]]
+lat = 41.7821
+lon = -83.7557
+h = 211.651
+a = 15
+zb = 3.16
+hb = 30
+z0 = 10.28
+h0 = 20
+t = 3.5
+name = "Carol A"
+exp = 1
+
+[[sample]]
+lat = 42.2503
+lon = -83.406
+h = 202.547
+a = 194
+t = 3.5
+name = "James G"
+exp = 1
+
+[[sample]]
+lat = 42.7592
+lon = -83.4758
+h = 306.917
+a = 185
+zb = 170.19
+t = 1.5
+name = "Donise D"
+exp = 1
+
+[[sample]]
+lat = 43.338
+lon = -85.5389
+h = 263
+a = 179
+zb = 181.77
+hb = 30
+z0 = 180.9
+t = 3.5
+name = "Jennifer H"
+exp = 1
+
+[[sample]]
+lat = 42.6011
+lon = -83.4453
+h = 283.164
+a = 247
+zb = 247.54
+hb = 19
+z0 = 254.68
+h0 = 22
+t = 3.5
+name = "Nicole W"
+exp = 1
+
+[[sample]]
+lat = 41.7642
+lon = -83.5921
+h = 193.747
+a = 118
+zb = 352.58
+hb = 23
+z0 = 346.78
+h0 = 7
+t = 3.5
+name = "Kimberly S"
+exp = 1
+
+[[sample]]
+lat = 42.7872
+lon = -83.7367
+h = 283.693
+a = 253
+zb = 99.43
+hb = 9
+z0 = 178.2
+h0 = 13
+t = 7.5
+name = "Colleen W"
+exp = 1
+
+[[sample]]
+lat = 42.2573
+lon = -83.223
+h = 182.586
+a = 102
+zb = 20
+hb = 75
+z0 = 90
+h0 = 75
+t = 7.5
+name = "Stacia P"
+exp = 1
+
+[[sample]]
+lat = 40.7251
+lon = -83.5894
+h = 279.071
+a = 180
+zb = 353.94
+hb = 90
+z0 = 352.6
+h0 = 90
+t = 1
+name = "Amy G"
+exp = 1
+
+[[sample]]
+lat = 42.1692
+lon = -83.7791
+h = 243.802
+a = 277
+zb = 300.82
+hb = 31
+z0 = 329.7
+h0 = 37
+t = 3.5
+name = "Heidi M"
+exp = 1
+
+[[sample]]
+lat = 42.6645
+lon = -84.5546
+h = 268.027
+a = 330
+zb = 113.48
+hb = 16
+z0 = 78.39
+h0 = 17
+t = 1.5
+name = "Kristen V"
+exp = 1
+
+[[sample]]
+lat = 40.8018
+lon = -82.0258
+h = 349.594
+a = 195
+zb = 8.84
+hb = 23
+z0 = 350.17
+t = 1.5
+name = "Shannon G"
+exp = 1
+
+[[sample]]
+lat = 42.0463
+lon = -88.0374
+h = 224.229
+a = 206
+zb = 31.68
+hb = 22
+z0 = 24.66
+t = 1.5
+name = "Tracie B"
+exp = 1
+
+[[sample]]
+lat = 42.2171
+lon = -83.519
+h = 212.388
+a = 177
+zb = 300.68
+hb = 50
+z0 = 303.66
+h0 = 45
+t = 3.5
+name = "Pamela C"
+exp = 1
+
+[[sample]]
+lat = 42.5739
+lon = -83.9337
+h = 289.395
+a = 93
+zb = 302.76
+hb = 35
+z0 = 281.52
+h0 = 31
+t = 1.5
+name = "Dave H"
+exp = 1
+
+[[sample]]
+lat = 42.5939
+lon = -86.158
+h = 213.721
+a = 189
+zb = 89.93
+hb = 80
+z0 = 89.44
+h0 = 20
+t = 7.5
+name = "Clint W"
+exp = 1
+
+[[sample]]
+lat = 40.2788
+lon = -83.5084
+h = 332.767
+a = 70
+zb = 10
+hb = 70
+z0 = 350
+h0 = 55
+t = 1.5
+name = "Emily W"
+exp = 1
+
+[[sample]]
+lat = 43.0435
+lon = -83.362
+h = 261.376
+a = 4
+zb = 175.3
+hb = 60
+z0 = 179.93
+h0 = 40
+t = 3.5
+name = "John S"
+exp = 1
+
+[[sample]]
+lat = 42.7211
+lon = -83.0424
+h = 216.956
+a = 34
+zb = 258.15
+hb = 63
+z0 = 260
+h0 = 22
+t = 1.5
+name = "Mary E"
+exp = 1
+
+[[sample]]
+lat = 43.4989
+lon = -87.9642
+h = 275.909
+a = 178
+hb = 45
+z0 = 141.59
+t = 1.5
+name = "Sandy F"
+exp = 1
+
+[[sample]]
+lat = 42.2448
+lon = -83.6908
+h = 250.335
+a = 225
+zb = 90
+hb = 80
+z0 = 90
+h0 = 80
+t = 1.5
+name = "Benjamin I"
+exp = 1
+
+[[sample]]
+lat = 42.2448
+lon = -83.6908
+h = 250.335
+a = 225
+zb = 90
+hb = 80
+z0 = 90
+h0 = 80
+t = 1.5
+name = "Benjamin I"
+exp = 1
+
+[[sample]]
+lat = 43.425
+lon = -82.7212
+h = 228.316
+a = 239
+zb = 132.18
+hb = 45
+z0 = 100.37
+h0 = 29
+t = 1.5
+name = "Dani B"
+exp = 1
+
+[[sample]]
+lat = 33.5774
+lon = -83.8746
+h = 222.651
+a = 90
+zb = 180
+hb = 45
+z0 = 225
+h0 = 45
+t = 1.5
+name = "Bridgette O"
+exp = 1
+
+[[sample]]
+lat = 42.637
+lon = -82.9215
+h = 182.622
+a = 132
+zb = 271.65
+hb = 18
+z0 = 286.13
+h0 = 12
+t = 3.5
+name = "Jennifer F"
+exp = 1
+
+[[sample]]
+lat = 42.9135
+lon = -83.5338
+h = 262.708
+a = 60
+zb = 20
+hb = 70
+z0 = 60
+h0 = 55
+t = 3.5
+name = "Ken M"
+exp = 1
+
+[[sample]]
+lat = 41.3541
+lon = -84.5346
+h = 219.927
+a = 202
+zb = 360
+hb = 9
+z0 = 359.09
+t = 3.5
+name = "Charles F"
+exp = 1
+
+[[sample]]
+lat = 42.0024
+lon = -83.2703
+h = 180.971
+a = 98
+zb = 247.11
+hb = 90
+z0 = 56.4
+h0 = 80
+t = 3.5
+name = "Rose S"
+exp = 1
+
+[[sample]]
+lat = 42.4624
+lon = -83.4723
+h = 272.081
+a = 30
+zb = 348.15
+hb = 31
+z0 = 18.89
+h0 = 31
+t = 3.5
+name = "C"
+exp = 1
+
+[[sample]]
+lat = 41.6401
+lon = -84.1202
+h = 234.991
+a = 35
+zb = 9.52
+hb = 3
+z0 = 7.31
+t = 1.5
+name = "Courtney T"
+exp = 1
+
+[[sample]]
+lat = 41.3873
+lon = -83.6787
+h = 205.755
+a = 100
+zb = 30.98
+hb = 45
+t = 1.5
+name = "Shane B"
+exp = 1
+
+[[sample]]
+lat = 42.2947
+lon = -83.3654
+h = 198.535
+a = 40
+zb = 180
+hb = 45
+z0 = 180
+h0 = 45
+t = 7.5
+name = "Andrea D"
+exp = 1
+
+[[sample]]
+lat = 42.0266
+lon = -82.7502
+h = 184.077
+a = 182
+zb = 321.22
+hb = 35
+z0 = 310.67
+h0 = 15
+t = 7.5
+name = "Valerie J"
+exp = 1
+
+[[sample]]
+lat = 38.5523
+lon = -90.2804
+h = 138.686
+a = 193
+zb = 172.73
+hb = 32
+h0 = 15
+t = 1.5
+name = "Leena B"
+exp = 1
+
+[[sample]]
+lat = 42.3547
+lon = -83.3976
+h = 204.182
+a = 255
+zb = 20.66
+hb = 40
+z0 = 352.78
+h0 = 33
+t = 1.5
+name = "Elyssa K"
+exp = 1
+
+[[sample]]
+lat = 42.6183
+lon = -83.2084
+h = 266.62
+a = 134
+zb = 205.92
+hb = 51
+z0 = 210
+h0 = 35
+t = 1.5
+name = "Ria Z"
+exp = 1
+
+[[sample]]
+lat = 42.181
+lon = -83.1789
+h = 181.862
+a = 135
+zb = 125
+hb = 85
+z0 = 145
+t = 3.5
+name = "J H"
+exp = 1
+
+[[sample]]
+lat = 41.565
+lon = -87.8461
+h = 224.188
+a = 226
+zb = 39.51
+hb = 39
+z0 = 37.68
+h0 = 32
+t = 1.5
+name = "Connie M"
+exp = 1
+
+[[sample]]
+lat = 41.1122
+lon = -85.1081
+h = 241.44
+a = 231
+zb = 63.49
+hb = 19
+z0 = 9.36
+h0 = 7
+t = 1.5
+name = "JoAnne F"
+exp = 1
+
+[[sample]]
+lat = 42.5649
+lon = -83.0609
+h = 190.954
+a = 191
+zb = 348
+hb = 25
+z0 = 350
+h0 = 20
+t = 3.5
+name = "Joseph T"
+exp = 1
+
+[[sample]]
+lat = 42.768
+lon = -83.7525
+h = 275.739
+a = 208
+zb = 154.16
+hb = 55
+z0 = 106.55
+h0 = 12
+t = 3.5
+name = "Heather S"
+exp = 1
+
+[[sample]]
+lat = 41.5279
+lon = -87.6944
+h = 208.799
+a = 213
+zb = 67.2
+hb = 21
+z0 = 60.66
+h0 = 15
+t = 3.5
+name = "Matt O"
+exp = 1
+
+[[sample]]
+lat = 42.3954
+lon = -83.4576
+h = 233.03
+a = 346
+zb = 83.29
+hb = 44
+z0 = 68.49
+h0 = 16
+t = 3.5
+name = "Judy K"
+exp = 1
+
+[[sample]]
+lat = 42.4654
+lon = -84.7645
+h = 288.677
+a = 83
+zb = 360
+hb = 72
+z0 = 75.76
+t = 7.5
+name = "Matthew S"
+exp = 1
+
+[[sample]]
+lat = 42.0824
+lon = -83.2748
+h = 180.736
+a = 10
+zb = 22.92
+hb = 49
+z0 = 21.76
+h0 = 47
+t = 1
+name = "Ariana S"
+exp = 1
+
+[[sample]]
+lat = 43.2646
+lon = -82.6465
+h = 226.363
+a = 174
+zb = 273.33
+t = 1.5
+name = "B S"
+exp = 1
+
+[[sample]]
+lat = 42.7832
+lon = -86.0865
+h = 194.223
+a = 198
+hb = 45
+h0 = 20
+t = 3.5
+name = "Heidi K"
+exp = 1
+
+[[sample]]
+lat = 40.4529
+lon = -86.8524
+h = 167.375
+a = 247
+zb = 48.78
+hb = 58
+z0 = 8.88
+h0 = 16
+t = 1
+name = "Joshua A"
+exp = 1
+
+[[sample]]
+lat = 42.44
+lon = -83.7055
+h = 272.886
+a = 252
+zb = 75
+hb = 60
+z0 = 357.63
+h0 = 15
+t = 3.5
+name = "Corey W"
+exp = 1
+
+[[sample]]
+lat = 42.981
+lon = -84.1071
+h = 229.104
+a = 79
+zb = 92.06
+hb = 29
+z0 = 86.05
+h0 = 30
+t = 1
+name = "joyce s"
+exp = 1
+
+[[sample]]
+lat = 43.2503
+lon = -89.394
+h = 309.492
+a = 186
+zb = 130.58
+hb = 60
+z0 = 100.77
+t = 3.5
+name = "Andrew S"
+exp = 1
+
+[[sample]]
+lat = 42.0263
+lon = -87.8041
+h = 194.241
+a = 205
+zb = 53.97
+hb = 51
+z0 = 55.08
+t = 20
+name = "Bess N"
+exp = 1
+
+[[sample]]
+lat = 42.5977
+lon = -83.7481
+h = 299.059
+a = 93
+zb = 227.23
+hb = 37
+z0 = 251.4
+h0 = 35
+t = 1.5
+name = "Leslie N"
+exp = 1
+
+[[sample]]
+lat = 42.3314
+lon = -83.0457
+h = 182.361
+a = 168
+zb = 33.02
+z0 = 34.06
+h0 = 45
+t = 1.5
+name = "Terina O"
+exp = 1
+
+[[sample]]
+lat = 42.989
+lon = -90.0083
+h = 367.63
+a = 198
+zb = 105.85
+hb = 70
+z0 = 115.79
+h0 = 21
+t = 3.5
+name = "J L"
+exp = 1
+
+[[sample]]
+lat = 40.9722
+lon = -83.1054
+h = 276.034
+a = 53
+zb = 337.22
+hb = 65
+z0 = 331.15
+h0 = 51
+t = 3.5
+name = "Emily H"
+exp = 1
+
+[[sample]]
+lat = 41.6648
+lon = -85.7302
+h = 276.497
+a = 148
+zb = 30.69
+hb = 61
+h0 = 25
+t = 1.5
+name = "Leah Y"
+exp = 1
+
+[[sample]]
+lat = 41.7867
+lon = -88.074
+h = 213.298
+zb = 252.14
+hb = 29
+z0 = 246.4
+h0 = 1
+t = 3.5
+name = "Linda J"
+exp = 1
+
+[[sample]]
+lat = 43.1953
+lon = -83.7356
+h = 213.008
+a = 176
+zb = 163.54
+hb = 55
+z0 = 181.14
+h0 = 39
+t = 1.5
+name = "Heather L"
+exp = 1
+
+[[sample]]
+lat = 42.1156
+lon = -87.7678
+h = 194.052
+a = 323
+zb = 79.58
+hb = 63
+z0 = 58.29
+h0 = 16
+t = 3.5
+name = "Vi S"
+exp = 1
+
+[[sample]]
+lat = 42.5244
+lon = -83.5326
+h = 284.49
+a = 266
+zb = 62.19
+hb = 50
+z0 = 50
+h0 = 50
+t = 3.5
+name = "Deborah M"
+exp = 1
+
+[[sample]]
+lat = 41.5965
+lon = -87.5197
+h = 186.092
+a = 179
+zb = 253.17
+z0 = 37.14
+t = 3.5
+name = "Some dude D"
+exp = 1
+
+[[sample]]
+lat = 41.9755
+lon = -87.7291
+h = 181.405
+a = 20
+zb = 80
+hb = 65
+z0 = 65
+h0 = 20
+t = 7.5
+name = "Russ L"
+exp = 1
+
+[[sample]]
+lat = 42.2929
+lon = -83.3837
+h = 202.572
+a = 263
+zb = 259.09
+hb = 49
+z0 = 200.97
+h0 = 43
+t = 1.5
+name = "DEREK G"
+exp = 1
+
+[[sample]]
+lat = 40.0594
+lon = -80.7164
+h = 235.588
+a = 160
+zb = 5
+hb = 5
+z0 = 20
+h0 = 2
+t = 1
+name = "Lauren R"
+exp = 1
+
+[[sample]]
+lat = 42.7867
+lon = -83.7418
+h = 276.149
+h0 = 1
+t = 3.5
+name = "McWilliams J"
+exp = 1
+
+[[sample]]
+lat = 41.8296
+lon = -87.7028
+h = 184.452
+a = 180
+zb = 60.07
+z0 = 58.31
+t = 1.5
+name = "Elsbeth S"
+exp = 1
+
+[[sample]]
+lat = 42.3165
+lon = -83.654
+h = 252.543
+a = 102
+zb = 172.43
+hb = 29
+z0 = 175.06
+h0 = 7
+t = 1.5
+name = "Andrea B"
+exp = 1
+
+[[sample]]
+lat = 42.2494
+lon = -85.5915
+h = 266.928
+a = 13
+zb = 77.26
+hb = 64
+z0 = 65.97
+h0 = 20
+t = 7.5
+name = "Susan B"
+exp = 1
+
+[[sample]]
+lat = 42.563
+lon = -83.1337
+h = 202.754
+a = 95
+zb = 283.63
+hb = 45
+z0 = 261.53
+t = 1
+name = "Bhama R"
+exp = 1
+
+[[sample]]
+lat = 42.7578
+lon = -86.0943
+h = 203.693
+a = 207
+zb = 40.89
+t = 3.5
+name = "Gerrit K"
+exp = 1
+
+[[sample]]
+lat = 42.2527
+lon = -89.0292
+h = 262.861
+a = 200
+zb = 85
+hb = 45
+z0 = 85
+t = 3.5
+name = "eric l"
+exp = 1
+
+[[sample]]
+lat = 42.2861
+lon = -83.6881
+h = 265.239
+a = 83
+zb = 281.77
+hb = 45
+z0 = 75.73
+h0 = 45
+t = 3.5
+name = "Lou E"
+exp = 1
+
+[[sample]]
+lat = 42.6614
+lon = -83.5252
+h = 320.779
+a = 198
+zb = 260
+hb = 25
+z0 = 270
+h0 = 17
+t = 1.5
+name = "Koen K"
+exp = 1
+
+[[sample]]
+lat = 42.7485
+lon = -84.595
+h = 262.599
+a = 282
+zb = 117.39
+hb = 56
+z0 = 105.49
+h0 = 35
+t = 1.5
+name = "Shaun W"
+exp = 1
+
+[[sample]]
+lat = 44.7028
+lon = -85.7187
+h = 270.661
+a = 129
+zb = 125
+hb = 27
+z0 = 134.71
+t = 1.5
+name = "Stacie D"
+exp = 1
+
+[[sample]]
+lat = 39.5675
+lon = -86.1941
+h = 237.381
+h0 = 90
+t = 1
+name = "Karl H"
+exp = 1
+
+[[sample]]
+lat = 42.7456
+lon = -83.4853
+h = 345.48
+a = 173
+zb = 202.43
+z0 = 197.71
+t = 3.5
+name = "J H"
+exp = 1
+
+[[sample]]
+lat = 43.5217
+lon = -83.7388
+h = 178.802
+a = 18
+zb = 62.84
+hb = 90
+z0 = 14.95
+h0 = 90
+t = 3.5
+name = "Elizabeth L"
+exp = 1
+
+[[sample]]
+lat = 42.7148
+lon = -85.9146
+h = 198.419
+a = 184
+zb = 70
+hb = 40
+z0 = 76
+h0 = 18
+t = 3.5
+name = "Dawn W"
+exp = 1
+
+[[sample]]
+lat = 41.4141
+lon = -83.4598
+h = 198.866
+a = 90
+zb = 24.17
+hb = 47
+z0 = 39.2
+h0 = 48
+t = 3.5
+name = "Leeann B"
+exp = 1
+
+[[sample]]
+lat = 42.9879
+lon = -89.6012
+h = 306.446
+a = 190
+zb = 94.03
+hb = 29
+z0 = 94.76
+h0 = 16
+t = 1.5
+name = "Dan S"
+exp = 1
+
+[[sample]]
+lat = 42.7605
+lon = -84.8178
+h = 256.787
+a = 161
+zb = 192.94
+hb = 35
+z0 = 206.53
+h0 = 10
+t = 1.5
+name = "J W"
+exp = 1
+
+[[sample]]
+lat = 42.2637
+lon = -85.7859
+h = 280.417
+a = 3
+zb = 90.25
+hb = 58
+z0 = 90.33
+h0 = 1
+t = 3.5
+name = "Glenda P"
+exp = 1
+
+[[sample]]
+lat = 40.8858
+lon = -81.7644
+h = 340.415
+a = 199
+zb = 287.49
+hb = 29
+z0 = 291.87
+h0 = 11
+t = 3.5
+name = "Caleb H"
+exp = 1
+
+[[sample]]
+lat = 42.8624
+lon = -83.6139
+h = 283.94
+a = 120
+zb = 130.42
+hb = 44
+z0 = 238.92
+h0 = 23
+t = 3.5
+name = "Harold A"
+exp = 1
+
+[[sample]]
+lat = 42.628
+lon = -83.4515
+h = 310.433
+a = 90
+hb = 19
+z0 = 174.65
+t = 3.5
+name = "Amy K"
+exp = 1
+
+[[sample]]
+lat = 42.822
+lon = -83.4053
+h = 306.95
+a = 112
+zb = 195
+hb = 15
+z0 = 195
+h0 = 15
+t = 3.5
+name = "Scott H"
+exp = 1
+
+[[sample]]
+lat = 41.7247
+lon = -83.4906
+h = 173.703
+a = 180
+zb = 46.14
+hb = 10
+t = 3.5
+name = "A F"
+exp = 1
+
+[[sample]]
+lat = 42.5761
+lon = -83.5877
+h = 283.4
+a = 98
+zb = 104.21
+hb = 15
+z0 = 208.2
+h0 = 10
+t = 3.5
+name = "Gordon K"
+exp = 1
+
+[[sample]]
+lat = 41.554
+lon = -83.9284
+h = 206.523
+a = 34
+zb = 73.91
+hb = 33
+z0 = 26.79
+h0 = 19
+t = 3.5
+name = "Kris W"
+exp = 1
+
+[[sample]]
+lat = 41.1501
+lon = -80.6638
+h = 328.828
+zb = 322.41
+hb = 59
+z0 = 320.66
+h0 = 1
+t = 3.5
+name = "Kristina W"
+exp = 1
+
+[[sample]]
+lat = 42.4482
+lon = -83.1333
+h = 196.9
+a = 95
+zb = 90.57
+hb = 62
+z0 = 84.87
+h0 = 54
+t = 1
+name = "Jennifer P"
+exp = 1
+
+[[sample]]
+lat = 42.5839
+lon = -84.0366
+h = 272.571
+a = 162
+zb = 106.2
+hb = 10
+z0 = 247.16
+t = 1.5
+name = "Nick S"
+exp = 1
+
+[[sample]]
+lat = 42.7483
+lon = -83.3196
+h = 300.38
+a = 95
+hb = 22
+z0 = 257.67
+t = 3.5
+name = "Robin P"
+exp = 1
+
+[[sample]]
+lat = 42.7863
+lon = -87.831
+h = 208.489
+a = 14
+zb = 93.22
+hb = 30
+z0 = 85.33
+t = 3.5
+name = "Laurel M"
+exp = 1
+
+[[sample]]
+lat = 43.2221
+lon = -89.3234
+h = 290.627
+a = 10
+zb = 92
+hb = 35
+z0 = 90
+h0 = 25
+t = 3.5
+name = "Michele M"
+exp = 1
+
+[[sample]]
+lat = 42.9301
+lon = -84.5285
+h = 240.621
+a = 77
+zb = 32.16
+hb = 22
+z0 = 80
+h0 = 16
+t = 1.5
+name = "Kimmer P"
+exp = 1
+
+[[sample]]
+lat = 44.9919
+lon = -84.164
+h = 276.286
+a = 133
+zb = 136.02
+hb = 18
+z0 = 193.4
+t = 1.5
+name = "John R"
+exp = 1
+
+[[sample]]
+lat = 45.3813
+lon = -80.0128
+h = 199.024
+a = 126
+zb = 38.41
+z0 = 228.26
+t = 1.5
+name = "Todd D"
+exp = 1
+
+[[sample]]
+lat = 42.2463
+lon = -83.0467
+h = 180.753
+a = 100
+zb = 120
+hb = 45
+z0 = 90
+h0 = 30
+t = 1.5
+name = "Crystal M"
+exp = 1
+
+[[sample]]
+lat = 42.4
+lon = -83.8026
+h = 277.515
+a = 310
+zb = 271.84
+hb = 17
+z0 = 278.88
+h0 = 31
+t = 3.5
+name = "kelly b"
+exp = 1
+
+[[sample]]
+lat = 43.266
+lon = -82.5896
+h = 236.211
+a = 84
+zb = 68.84
+hb = 77
+z0 = 60.9
+h0 = 90
+t = 1.5
+name = "Ruth B"
+exp = 1
+
+[[sample]]
+lat = 41.6875
+lon = -88.0641
+h = 215.494
+a = 202
+zb = 91.16
+hb = 24
+z0 = 91.41
+h0 = 14
+t = 1.5
+name = "Timothy S"
+exp = 1
+
+[[sample]]
+lat = 42.5207
+lon = -83.6219
+h = 306.287
+a = 256
+zb = 282.45
+hb = 34
+z0 = 187.92
+h0 = 18
+t = 3.5
+name = "Amanda L"
+exp = 1
+
+[[sample]]
+lat = 42.4681
+lon = -83.1073
+h = 192.539
+a = 56
+zb = 180
+hb = 55
+z0 = 25
+h0 = 1
+t = 1.5
+name = "Jameson R"
+exp = 1
+
+[[sample]]
+lat = 42.5082
+lon = -83.7929
+h = 279.48
+a = 262
+zb = 12.47
+hb = 35
+z0 = 301.32
+h0 = 19
+t = 3.5
+name = "Justin C"
+exp = 1
+
+[[sample]]
+lat = 41.8553
+lon = -86.0992
+h = 243.054
+a = 31
+zb = 12.36
+hb = 62
+z0 = 0.11
+h0 = 29
+t = 7.5
+name = "Diana C"
+exp = 1
+
+[[sample]]
+lat = 41.0058
+lon = -81.1938
+h = 356.5
+a = 159
+zb = 304.94
+hb = 33
+z0 = 313.27
+h0 = 12
+t = 3.5
+name = "Lisa G"
+exp = 1
+
+[[sample]]
+lat = 43.0249
+lon = -88.2454
+h = 277.516
+a = 70
+zb = 110
+hb = 25
+z0 = 100
+h0 = 10
+t = 1
+name = "DAN M"
+exp = 1
+
+[[sample]]
+lat = 41.4781
+lon = -84.5186
+h = 225.15
+a = 248
+zb = 75.01
+hb = 47
+z0 = 54.71
+h0 = 59
+t = 1.5
+name = "Patrick F"
+exp = 1
+
+[[sample]]
+lat = 42.4734
+lon = -83.1975
+h = 205.483
+a = 159
+zb = 328.75
+hb = 26
+z0 = 358.18
+t = 3.5
+name = "roy b"
+exp = 1
+
+[[sample]]
+lat = 42.4657
+lon = -83.4529
+h = 259.235
+a = 266
+zb = 300.68
+hb = 29
+z0 = 262.34
+h0 = 11
+t = 3.5
+name = "Linda S"
+exp = 1
+
+[[sample]]
+lat = 41.1231
+lon = -80.3601
+h = 356.868
+a = 127
+zb = 322.08
+hb = 32
+z0 = 353.11
+h0 = 7
+t = 7.5
+name = "Genal H"
+exp = 1
+
+[[sample]]
+lat = 42.2822
+lon = -85.3441
+h = 303.144
+a = 192
+zb = 352.73
+hb = 90
+z0 = 39.82
+h0 = 5
+t = 20
+name = "Leslee S"
+exp = 1
+
+[[sample]]
+lat = 41.8757
+lon = -88.0801
+h = 230.369
+a = 13
+zb = 62.39
+hb = 45
+z0 = 65
+h0 = 5
+t = 1.5
+name = "Martha G"
+exp = 1
+
+[[sample]]
+lat = 43.1809
+lon = -89.2063
+h = 294.621
+a = 159
+zb = 96.09
+hb = 45
+z0 = 95.76
+h0 = 18
+t = 1.5
+name = "Linda M"
+exp = 1
+
+[[sample]]
+lat = 45.0551
+lon = -85.3115
+h = 247.471
+a = 172
+zb = 155.26
+hb = 22
+z0 = 172.25
+h0 = 33
+t = 1
+name = "Bruce P"
+exp = 1
+
+[[sample]]
+lat = 42.3391
+lon = -83.825
+h = 267.356
+zb = 148.38
+t = 1.5
+name = "Cynthia G"
+exp = 1
+
+[[sample]]
+lat = 46.2569
+lon = -83.5605
+h = 178.983
+a = 126
+zb = 116.66
+hb = 25
+z0 = 101.34
+h0 = 23
+t = 7.5
+name = "rebecca r"
+exp = 1
+
+[[sample]]
+lat = 41.4849
+lon = -87.873
+h = 230.13
+a = 20
+zb = 221.33
+hb = 43
+z0 = 77.32
+h0 = 29
+t = 7.5
+name = "Maria B"
+exp = 1
+
+[[sample]]
+lat = 42.4009
+lon = -82.9331
+h = 178.743
+a = 248
+zb = 289.23
+hb = 45
+z0 = 274.86
+h0 = 45
+t = 1.5
+name = "Phil L"
+exp = 1
+
+[[sample]]
+lat = 42.0552
+lon = -87.736
+h = 190.75
+a = 209
+zb = 90
+hb = 45
+z0 = 40
+h0 = 10
+t = 3.5
+name = "catherine a"
+exp = 1
+
+[[sample]]
+lat = 41.1277
+lon = -84.428
+h = 216.548
+a = 114
+zb = 22.25
+hb = 47
+z0 = 18.68
+h0 = 43
+t = 3.5
+name = "Miranda S"
+exp = 1
+
+[[sample]]
+lat = 42.5749
+lon = -83.5821
+h = 280.486
+a = 98
+zb = 220
+hb = 80
+z0 = 260
+h0 = 80
+t = 3.5
+name = "Simon G"
+exp = 1
+
+[[sample]]
+lat = 40.2646
+lon = -83.7565
+h = 351.266
+a = 193
+zb = 4
+hb = 67
+z0 = 345.48
+h0 = 17
+t = 1.5
+name = "Maggie S"
+exp = 1
+
+[[sample]]
+lat = 42.4045
+lon = -83.3259
+h = 192.864
+a = 338
+zb = 255
+hb = 55
+z0 = 257
+h0 = 33
+t = 3.5
+name = "Lindsay S"
+exp = 1
+
+[[sample]]
+lat = 41.0348
+lon = -81.7628
+h = 325.672
+a = 16
+zb = 306.67
+hb = 33
+z0 = 291.2
+h0 = 9
+t = 3.5
+name = "Tina M"
+exp = 1
+
+[[sample]]
+lat = 41.0192
+lon = -80.4149
+h = 316.058
+a = 243
+zb = 339.44
+hb = 13
+z0 = 324.7
+h0 = 11
+t = 3.5
+name = "Melanie F"
+exp = 1
+
+[[sample]]
+lat = 42.6865
+lon = -83.7428
+h = 314.391
+a = 175
+hb = 80
+h0 = 30
+t = 3.5
+name = "Elizabeth D"
+exp = 1
+
+[[sample]]
+lat = 42.2578
+lon = -88.0993
+h = 275.813
+a = 10
+zb = 83.72
+hb = 35
+z0 = 66.68
+h0 = 21
+t = 1.5
+name = "Deb G"
+exp = 1
+
+[[sample]]
+lat = 42.0075
+lon = -88.985
+h = 239.484
+a = 38
+zb = 77.03
+hb = 26
+z0 = 76.1
+h0 = 12
+t = 1.5
+name = "Robin B"
+exp = 1
+
+[[sample]]
+lat = 42.2771
+lon = -84.3038
+h = 305.127
+a = 231
+zb = 78.27
+hb = 45
+z0 = 76.95
+h0 = 8
+t = 7.5
+name = "Katherine K"
+exp = 1
+
+[[sample]]
+lat = 42.7211
+lon = -82.997
+h = 203.903
+a = 269
+zb = 255.05
+hb = 48
+z0 = 167.89
+h0 = 28
+t = 3.5
+name = "John B"
+exp = 1
+
+[[sample]]
+lat = 42.7297
+lon = -83.0507
+h = 241.495
+a = 168
+zb = 260
+hb = 25
+z0 = 265
+h0 = 24
+t = 1.5
+name = "Chris C"
+exp = 1
+
+[[sample]]
+lat = 42.4124
+lon = -83.3248
+h = 193.265
+a = 90
+zb = 315
+hb = 75
+z0 = 315
+h0 = 70
+t = 1.5
+name = "Alcantara M"
+exp = 1
+
+[[sample]]
+lat = 42.4307
+lon = -83.1722
+h = 202.786
+a = 247
+zb = 180
+z0 = 180
+t = 1.5
+name = "John P"
+exp = 1
+
+[[sample]]
+lat = 41.6198
+lon = -84.686
+h = 6
+a = 136
+zb = 90
+z0 = 216.52
+t = 7.5
+name = "Rich P"
+exp = 1
+
+[[sample]]
+lat = 41.8379
+lon = -90.1821
+h = 175.517
+zb = 83.55
+hb = 14
+z0 = 83.34
+h0 = 8
+t = 1.5
+name = "Simon M"
+exp = 1
+
+[[sample]]
+lat = 42.7039
+lon = -83.3722
+h = 299.855
+a = 271
+zb = 200
+hb = 45
+z0 = 200
+h0 = 45
+name = "Dale W"
+exp = 1
+
+[[sample]]
+lat = 41.7533
+lon = -87.9949
+h = 234.816
+a = 231
+zb = 84.05
+hb = 35
+z0 = 75.48
+h0 = 35
+t = 1.5
+name = "Christine C"
+exp = 1
+
+[[sample]]
+lat = 46.5463
+lon = -84.3492
+h = 216.968
+a = 174
+zb = 162.56
+hb = 39
+z0 = 172.62
+h0 = 5
+t = 1
+name = "Wendy N"
+exp = 1
+
+[[sample]]
+lat = 41.8733
+lon = -88.1082
+h = 230.445
+a = 191
+zb = 85.92
+hb = 31
+z0 = 87.21
+h0 = 9
+t = 1.5
+name = "Curt P"
+exp = 1
+
+[[sample]]
+lat = 43.8876
+lon = -86.3112
+h = 201.282
+zb = 352.58
+hb = 16
+z0 = 357.61
+h0 = 13
+t = 1.5
+name = "Toni M"
+exp = 1
+
+[[sample]]
+lat = 42.0699
+lon = -83.9708
+h = 254.181
+a = 225
+hb = 50
+h0 = 40
+t = 3.5
+name = "Cindy B"
+exp = 1
+
+[[sample]]
+lat = 41.9661
+lon = -87.8546
+h = 191.044
+a = 199
+zb = 80.36
+hb = 17
+z0 = 78.45
+h0 = 10
+t = 1.5
+name = "TONY N"
+exp = 1
+
+[[sample]]
+lat = 42.8524
+lon = -85.7377
+h = 213.078
+a = 210
+zb = 135
+hb = 90
+z0 = 135
+h0 = 45
+t = 3.5
+name = "Jan V"
+exp = 1
+
+[[sample]]
+lat = 41.3955
+lon = -85.4202
+h = 288.225
+a = 168
+zb = 54.13
+hb = 60
+z0 = 36.39
+h0 = 15
+t = 1.5
+name = "Ashley L"
+exp = 1
+
+[[sample]]
+lat = 40.8618
+lon = -80.7623
+h = 342.08
+a = 166
+zb = 319.25
+hb = 59
+z0 = 324.47
+h0 = 19
+t = 3.5
+name = "Carla I"
+exp = 1
+
+[[sample]]
+lat = 40.7929
+lon = -81.9805
+h = 273.146
+a = 190
+t = 1.5
+name = "Dan C"
+exp = 1
+
+[[sample]]
+lat = 42.0074
+lon = -92.9951
+h = 311.426
+a = 172
+zb = 86.24
+hb = 33
+z0 = 89.88
+t = 3.5
+name = "John W"
+exp = 1
+
+[[sample]]
+lat = 41.4809
+lon = -87.6368
+h = 217.832
+a = 207
+zb = 77.26
+hb = 51
+z0 = 70.02
+h0 = 21
+t = 1.5
+name = "Tim C"
+exp = 1
+
+[[sample]]
+lat = 41.3949
+lon = -81.4451
+h = 322.402
+a = 180
+zb = 271.48
+hb = 8
+z0 = 272.4
+h0 = 5
+t = 3.5
+name = "Kirsten S"
+exp = 1
+
+[[sample]]
+lat = 41.3043
+lon = -88.3428
+h = 167.176
+a = 200
+zb = 72.99
+hb = 22
+z0 = 86.29
+h0 = 10
+t = 1.5
+name = "Amy A"
+exp = 1
+
+[[sample]]
+lat = 42.5873
+lon = -82.9641
+h = 184.255
+a = 345
+zb = 256.16
+hb = 2
+z0 = 272.48
+t = 3.5
+name = "Zbikowski T"
+exp = 1
+
+[[sample]]
+lat = 42.9917
+lon = -84.191
+h = 225.221
+a = 114
+hb = 37
+t = 3.5
+name = "Chelsea W"
+exp = 1
+
+[[sample]]
+lat = 42.1282
+lon = -83.2499
+h = 182.208
+a = 140
+zb = 274.49
+hb = 31
+z0 = 352.56
+h0 = 8
+t = 1.5
+name = "Bubby A"
+exp = 1
+
+[[sample]]
+lat = 42.5795
+lon = -83.3535
+h = 293.208
+a = 207
+hb = 21
+h0 = 27
+t = 1.5
+name = "Gal N"
+exp = 1
+
+[[sample]]
+lat = 42.3731
+lon = -85.7179
+h = 236.847
+a = 3
+zb = 86.82
+hb = 17
+z0 = 87
+h0 = 12
+t = 1.5
+name = "Scott J"
+exp = 1
+
+[[sample]]
+lat = 43.0188
+lon = -85.6733
+h = 188.049
+a = 162
+zb = 80.45
+hb = 54
+h0 = 54
+name = "Pam W"
+exp = 1
+
+[[sample]]
+lat = 40.908
+lon = -80.3664
+h = 242.134
+a = 214
+zb = 327.93
+hb = 54
+z0 = 106.96
+h0 = 18
+t = 1.5
+name = "daniel u"
+exp = 1
+
+[[sample]]
+lat = 42.5785
+lon = -84.4358
+h = 275.36
+a = 263
+zb = 31.59
+hb = 27
+z0 = 338.26
+h0 = 17
+t = 3.5
+name = "Andrea W"
+exp = 1
+
+[[sample]]
+lat = 42.0413
+lon = -87.7054
+h = 180.739
+a = 9
+zb = 14.65
+hb = 17
+z0 = 12.96
+h0 = 21
+t = 7.5
+name = "marla n"
+exp = 1
+
+[[sample]]
+lat = 43.0472
+lon = -83.5505
+h = 238.866
+a = 121
+zb = 176.95
+hb = 60
+z0 = 195.33
+h0 = 27
+t = 3.5
+name = "Andrew J"
+exp = 1
+
+[[sample]]
+lat = 42.9058
+lon = -85.6723
+h = 204.664
+a = 19
+zb = 100
+hb = 60
+z0 = 92
+h0 = 20
+t = 3.5
+name = "Christine H"
+exp = 1
+
+[[sample]]
+lat = 41.9487
+lon = -88.0287
+h = 222.428
+a = 76
+zb = 57.4
+hb = 4
+z0 = 125.64
+h0 = 40
+t = 20
+name = "Christine W"
+exp = 1
+
+[[sample]]
+lat = 42.38
+lon = -82.9955
+h = 184.677
+a = 90
+zb = 90
+hb = 90
+z0 = 1
+h0 = 90
+name = "Felecia C"
+exp = 1
+
+[[sample]]
+lat = 42.4908
+lon = -83.6875
+h = 279.845
+a = 257
+zb = 323.49
+hb = 70
+z0 = 259.81
+h0 = 70
+t = 1.5
+name = "Danny J"
+exp = 1
+
+[[sample]]
+lat = 42.5052
+lon = -83.0855
+h = 192.481
+a = 178
+hb = 69
+h0 = 69
+t = 7.5
+name = "Aimee B"
+exp = 1
+
+[[sample]]
+lat = 38.055
+lon = -84.3532
+h = 306.569
+a = 244
+zb = 63.13
+hb = 45
+z0 = 25.74
+h0 = 22
+t = 7.5
+name = "Beth R"
+exp = 1
+
+[[sample]]
+lat = 41.8242
+lon = -88.2801
+h = 229.596
+a = 31
+zb = 87.09
+hb = 35
+z0 = 80.53
+h0 = 25
+t = 3.5
+name = "Lisa b"
+exp = 1
+
+[[sample]]
+lat = 41.3143
+lon = -81.3762
+h = 313.425
+zb = 300.84
+hb = 33
+z0 = 303.44
+h0 = 1
+t = 3.5
+name = "Cyndi C"
+exp = 1
+
+[[sample]]
+lat = 42.7079
+lon = -84.5771
+h = 264.962
+a = 43
+zb = 309.4
+hb = 27
+z0 = 326.58
+t = 1.5
+name = "Laura B"
+exp = 1
+
+[[sample]]
+lat = 44.8979
+lon = -88.2774
+h = 248.267
+a = 127
+zb = 133.45
+hb = 35
+z0 = 138.32
+h0 = 10
+t = 7.5
+name = "Heidi A"
+exp = 1
+
+[[sample]]
+lat = 42.4977
+lon = -83.4456
+h = 284.381
+a = 25
+zb = 13.84
+hb = 45
+z0 = 8.1
+h0 = 45
+t = 7.5
+name = "Christina K"
+exp = 1
+
+[[sample]]
+lat = 42.2781
+lon = -83.2044
+h = 189.407
+a = 45
+zb = 13.67
+hb = 45
+z0 = 214.36
+h0 = 45
+name = "Jennifer L"
+exp = 1
+
+[[sample]]
+lat = 42.8108
+lon = -82.9428
+h = 228.614
+a = 87
+zb = 75.98
+hb = 55
+z0 = 287.43
+h0 = 35
+t = 1.5
+name = "Diane S"
+exp = 1
+
+[[sample]]
+lat = 43.1929
+lon = -86.1551
+h = 197.101
+a = 91
+zb = 358.62
+hb = 33
+z0 = 0.22
+h0 = 39
+t = 1.5
+name = "Mariesa B"
+exp = 1
+
+[[sample]]
+lat = 42.2788
+lon = -85.6831
+h = 289.109
+a = 15
+zb = 99.29
+hb = 53
+z0 = 88.67
+h0 = 21
+t = 3.5
+name = "Becky Z"
+exp = 1
+
+[[sample]]
+lat = 42.4574
+lon = -83.4742
+h = 271.339
+a = 216
+hb = 90
+z0 = 325.39
+h0 = 90
+t = 1.5
+name = "Chris M"
+exp = 1
+
+[[sample]]
+lat = 42.3998
+lon = -83.7529
+h = 274.326
+a = 89
+hb = 45
+z0 = 309.76
+h0 = 43
+t = 3.5
+name = "Thomas C"
+exp = 1
+
+[[sample]]
+lat = 41.8815
+lon = -87.6253
+h = 183.985
+a = 184
+zb = 94.76
+hb = 22
+z0 = 87.31
+h0 = 9
+t = 1.5
+name = "Thomas V"
+exp = 1
+
+[[sample]]
+lat = 44.2248
+lon = -85.4817
+h = 397.406
+a = 14
+hb = 55
+z0 = 100
+h0 = 10
+t = 3.5
+name = "Bridgett V"
+exp = 1
+
+[[sample]]
+lat = 44.3894
+lon = -79.6903
+h = 224.762
+a = 1
+zb = 51.9
+z0 = 31.83
+t = 7.5
+name = "Derek M"
+exp = 1
+
+[[sample]]
+lat = 42.2966
+lon = -83.4283
+h = 204.036
+a = 268
+zb = 2.86
+hb = 1
+z0 = 327.89
+t = 1.5
+name = "Tami H"
+exp = 1
+
+[[sample]]
+lat = 42.2969
+lon = -85.5616
+h = 254.99
+a = 270
+hb = 5
+z0 = 62.45
+h0 = 5
+t = 3.5
+name = "Laurie A"
+exp = 1
+
+[[sample]]
+lat = 41.7185
+lon = -88.3728
+h = 202.886
+a = 203
+hb = 32
+h0 = 4
+t = 3.5
+name = "Victor J"
+exp = 2
+
+[[sample]]
+lat = 42.5124
+lon = -84.3817
+h = 295.906
+z0 = 90
+h0 = 45
+t = 1.5
+name = "Chuck D"
+exp = 2
+
+[[sample]]
+lat = 41.8638
+lon = -87.6242
+h = 180.251
+a = 192
+zb = 79.93
+hb = 21
+z0 = 66.99
+h0 = 20
+t = 3.5
+name = "Lisa K"
+exp = 2
+
+[[sample]]
+lat = 41.8012
+lon = -87.5851
+h = 179.998
+a = 51
+zb = 98.57
+hb = 33
+z0 = 63.3
+t = 7.5
+name = "Lisa V"
+exp = 2
+
+[[sample]]
+lat = 42.1939
+lon = -83.1795
+h = 179.369
+a = 203
+zb = 336.19
+hb = 80
+z0 = 301.61
+h0 = 45
+t = 3.5
+name = "Christina C"
+exp = 2
+
+[[sample]]
+lat = 43.1219
+lon = -89.3164
+h = 265.254
+a = 166
+zb = 66.82
+hb = 53
+z0 = 85.84
+h0 = 23
+t = 3.5
+name = "Rae H"
+exp = 2
+
+[[sample]]
+lat = 42.377
+lon = -83.5883
+h = 266.502
+a = 181
+zb = 344.34
+hb = 76
+z0 = 320.24
+h0 = 44
+t = 7.5
+name = "Wayne T"
+exp = 2
+
+[[sample]]
+lat = 42.3277
+lon = -88.8474
+h = 262.192
+a = 184
+zb = 75.88
+hb = 63
+z0 = 239.05
+t = 7.5
+name = "Julia A"
+exp = 2
+
+[[sample]]
+lat = 42.0814
+lon = -87.8095
+h = 191.979
+a = 20
+zb = 90
+hb = 57
+z0 = 70
+h0 = 5
+t = 1.5
+name = "Katerina P"
+exp = 2
+
+[[sample]]
+lat = 42.3636
+lon = -83.3402
+h = 193.486
+a = 224
+zb = 296.9
+hb = 39
+z0 = 287.09
+h0 = 18
+t = 1
+name = "Pete C"
+exp = 2
+
+[[sample]]
+lat = 41.8847
+lon = -87.6163
+h = 184.419
+a = 205
+zb = 90.08
+hb = 53
+z0 = 85.34
+h0 = 18
+t = 1.5
+name = "Drew M"
+exp = 2
+
+[[sample]]
+lat = 42.6228
+lon = -83.9128
+h = 282.647
+a = 83
+zb = 167.42
+hb = 59
+z0 = 212.56
+h0 = 45
+t = 3.5
+name = "Russ L"
+exp = 2
+
+[[sample]]
+lat = 41.9966
+lon = -84.9721
+h = 300.847
+a = 159
+hb = 70
+z0 = 68.23
+t = 3.5
+name = "Angela R"
+exp = 2
+
+[[sample]]
+lat = 42.2739
+lon = -84.3264
+h = 299.528
+a = 180
+z0 = 176.25
+t = 1.5
+name = "Tj K"
+exp = 2
+
+[[sample]]
+lat = 41.8442
+lon = -87.9559
+h = 205.796
+a = 212
+zb = 92
+hb = 47
+z0 = 80
+h0 = 17
+t = 3.5
+name = "Vik J"
+exp = 2
+
+[[sample]]
+lat = 42.6141
+lon = -84.003
+h = 273.391
+a = 37
+zb = 134.66
+hb = 47
+z0 = 30.13
+h0 = 23
+t = 20
+name = "Charlie S"
+exp = 2
+
+[[sample]]
+lat = 42.2644
+lon = -83.3832
+h = 200.89
+a = 269
+zb = 61.18
+hb = 38
+z0 = 42.82
+h0 = 38
+t = 1.5
+name = "Chris M"
+exp = 2
+
+[[sample]]
+lat = 42.3158
+lon = -83.5055
+h = 213.542
+a = 104
+zb = 295.29
+hb = 60
+z0 = 331.14
+h0 = 48
+t = 3.5
+name = "Nathan H"
+exp = 2
+
+[[sample]]
+lat = 42.3739
+lon = -89.402
+h = 257.189
+a = 204
+zb = 93.62
+hb = 44
+z0 = 92.1
+h0 = 1
+t = 3.5
+name = "Steve S"
+exp = 2
+
+[[sample]]
+lat = 41.5087
+lon = -83.5037
+h = 198.717
+a = 212
+zb = 354.03
+hb = 45
+z0 = 348.13
+t = 1.5
+name = "Christy S"
+exp = 2
+
+[[sample]]
+lat = 41.7874
+lon = -87.8355
+h = 182.206
+a = 179
+zb = 70.99
+hb = 25
+z0 = 69.39
+t = 1.5
+name = "Chris H"
+exp = 2
+
+[[sample]]
+lat = 42.5029
+lon = -83.1316
+h = 196.812
+a = 283
+zb = 276.64
+z0 = 234.89
+t = 1.5
+name = "Ed W"
+exp = 2
+
+[[sample]]
+lat = 42.2704
+lon = -83.7326
+h = 262.625
+a = 96
+zb = 87.61
+hb = 35
+z0 = 107.77
+h0 = 18
+t = 1.5
+name = "Mikaela M"
+exp = 2
+
+[[sample]]
+lat = 42.6395
+lon = -87.8583
+h = 208.12
+a = 180
+zb = 90
+hb = 60
+z0 = 90
+h0 = 45
+t = 7.5
+name = "Gloria S"
+exp = 2
+
+[[sample]]
+lat = 42.5359
+lon = -83.1734
+h = 213.699
+a = 179
+zb = 85
+hb = 90
+z0 = 85
+h0 = 40
+t = 3.5
+name = "Zachary C"
+exp = 2
+
+[[sample]]
+lat = 42.3829
+lon = -83.4754
+h = 234.861
+a = 102
+zb = 317.66
+hb = 50
+z0 = 267.45
+h0 = 30
+t = 7.5
+name = "Eileen S"
+exp = 2
+
+[[sample]]
+lat = 42.5606
+lon = -83.2007
+h = 240.923
+a = 346
+zb = 255.93
+hb = 75
+z0 = 233.27
+h0 = 90
+t = 3.5
+name = "Tarkrkaczmar M"
+exp = 2
+
+[[sample]]
+lat = 41.3791
+lon = -81.523
+h = 294.385
+a = 180
+zb = 293.37
+hb = 50
+z0 = 291.98
+h0 = 45
+t = 3.5
+name = "Lisa B"
+exp = 2
+
+[[sample]]
+lat = 42.8284
+lon = -84.5678
+h = 256.25
+a = 95
+zb = 116
+hb = 55
+z0 = 116
+h0 = 45
+t = 1.5
+name = "Lisa S"
+exp = 2
+
+[[sample]]
+lat = 42.3023
+lon = -83.7717
+h = 284.166
+a = 84
+zb = 343.64
+hb = 43
+z0 = 356.75
+h0 = 40
+t = 1.5
+name = "Karen J"
+exp = 2
+
+[[sample]]
+lat = 41.6851
+lon = -88.0717
+h = 213.789
+a = 228
+zb = 7.45
+hb = 27
+z0 = 42.15
+h0 = 29
+t = 3.5
+name = "Josh D"
+exp = 2
+
+[[sample]]
+lat = 41.3641
+lon = -81.4026
+h = 315.078
+a = 173
+zb = 295.71
+hb = 53
+z0 = 294.54
+h0 = 14
+t = 1.5
+name = "Nick H"
+exp = 2
+
+[[sample]]
+lat = 41.4596
+lon = -87.6171
+h = 220.467
+a = 244
+zb = 79.8
+hb = 30
+z0 = 72.9
+t = 3.5
+name = "Felice H"
+exp = 2
+
+[[sample]]
+lat = 42.2544
+lon = -82.4325
+h = 180.301
+a = 243
+zb = 132.37
+hb = 22
+z0 = 94.15
+h0 = 22
+t = 1.5
+name = "Autumn A"
+exp = 2
+
+[[sample]]
+lat = 42.1292
+lon = -87.8308
+h = 197.67
+a = 223
+zb = 90
+hb = 50
+z0 = 75
+h0 = 20
+t = 1.5
+name = "Thomas P"
+exp = 2
+
+[[sample]]
+lat = 42.7321
+lon = -83.2379
+h = 314.627
+a = 91
+zb = 195.55
+hb = 19
+z0 = 195.74
+h0 = 20
+t = 3.5
+name = "Mariah H"
+exp = 2
+
+[[sample]]
+lat = 42.4637
+lon = -83.6817
+h = 276.204
+a = 12
+h0 = 35
+t = 1.5
+name = "Jessica P"
+exp = 2
+
+[[sample]]
+lat = 42.6173
+lon = -83.6215
+h = 304.469
+a = 215
+zb = 199
+hb = 65
+z0 = 150
+h0 = 50
+t = 1.5
+name = "Jennifer M"
+exp = 2
+
+[[sample]]
+lat = 42.1426
+lon = -83.3101
+h = 187.657
+hb = 73
+z0 = 284.16
+h0 = 80
+t = 3.5
+name = "Jessica D"
+exp = 2
+
+[[sample]]
+lat = 42.4537
+lon = -83.6472
+h = 279.28
+a = 93
+zb = 354.68
+hb = 27
+z0 = 0.82
+h0 = 31
+t = 20
+name = "A B"
+exp = 2
+
+[[sample]]
+lat = 42.0509
+lon = -88.011
+h = 209.778
+a = 230
+zb = 38.02
+hb = 75
+z0 = 33.82
+h0 = 20
+t = 7.5
+name = "Lucas R"
+exp = 2
+
+[[sample]]
+lat = 42.8064
+lon = -83.7384
+h = 274.965
+zb = 171.03
+hb = 51
+z0 = 169.47
+h0 = 47
+t = 1
+name = "B R"
+exp = 2
+
+[[sample]]
+lat = 43.4665
+lon = -85.8602
+h = 255.55
+a = 264
+zb = 110.93
+hb = 60
+z0 = 112.28
+h0 = 42
+t = 1
+name = "Nate S"
+exp = 2
+
+[[sample]]
+lat = 42.285
+lon = -83.7932
+h = 283.689
+a = 268
+zb = 190.57
+hb = 35
+z0 = 143.53
+h0 = 39
+t = 3.5
+name = "Sarah L"
+exp = 2
+
+[[sample]]
+lat = 41.9871
+lon = -84.1317
+h = 276.257
+a = 108
+zb = 91.36
+hb = 90
+z0 = 24.65
+h0 = 9
+t = 3.5
+name = "Steve R"
+exp = 2
+
+[[sample]]
+lat = 42.2055
+lon = -85.5745
+h = 260.244
+a = 192
+zb = 72.26
+hb = 15
+z0 = 61.09
+h0 = 2
+t = 3.5
+name = "P P"
+exp = 2
+
+[[sample]]
+lat = 41.0584
+lon = -83.6645
+h = 237.11
+a = 252
+zb = 1.27
+hb = 47
+z0 = 333.33
+h0 = 65
+t = 1
+name = "Joseph B"
+exp = 2
+
+[[sample]]
+lat = 42.7431
+lon = -83.4652
+h = 308.455
+a = 70
+zb = 282.68
+hb = 40
+z0 = 250.92
+h0 = 30
+t = 3.5
+name = "Lee W"
+exp = 2
+
+[[sample]]
+lat = 42.2045
+lon = -83.8
+h = 256.765
+a = 105
+zb = 118.57
+hb = 53
+z0 = 327.59
+h0 = 31
+t = 3.5
+name = "E. F"
+exp = 2
+
+[[sample]]
+lat = 42.2703
+lon = -85.6446
+h = 277.608
+a = 55
+zb = 80
+hb = 33
+z0 = 56
+h0 = 20
+t = 7.5
+name = "Michelle M"
+exp = 2
+
+[[sample]]
+lat = 43.0112
+lon = -83.8142
+h = 233.034
+a = 60
+zb = 151.92
+hb = 56
+z0 = 195.72
+h0 = 47
+t = 1.5
+name = "Mark R"
+exp = 2
+
+[[sample]]
+lat = 42.4571
+lon = -84.0928
+h = 289.753
+a = 268
+hb = 58
+h0 = 37
+t = 1.5
+name = "Devin W"
+exp = 2
+
+[[sample]]
+lat = 42.4942
+lon = -83.4763
+h = 288.973
+a = 180
+h0 = 90
+t = 3.5
+name = "J S"
+exp = 2
+
+[[sample]]
+lat = 42.6066
+lon = -83.6582
+h = 310.533
+a = 82
+zb = 188.53
+hb = 23
+z0 = 250.11
+h0 = 18
+t = 3.5
+name = "T C"
+exp = 2
+
+[[sample]]
+lat = 42.2431
+lon = -83.598
+h = 230.241
+a = 260
+zb = 338.93
+hb = 80
+z0 = 310.67
+h0 = 80
+t = 1.5
+name = "Tyler W"
+exp = 2
+
+[[sample]]
+lat = 41.5247
+lon = -83.2616
+h = 184.13
+a = 183
+zb = 317.22
+hb = 77
+z0 = 318.96
+h0 = 21
+t = 1.5
+name = "Aimee A"
+exp = 2
+
+[[sample]]
+lat = 42.4985
+lon = -83.3676
+h = 260.069
+a = 10
+zb = 238.87
+hb = 50
+z0 = 222.38
+h0 = 25
+t = 3.5
+name = "Liam H"
+exp = 2
+
+[[sample]]
+lat = 42.5442
+lon = -83.9107
+h = 305.381
+zb = 146.99
+hb = 74
+z0 = 336.28
+h0 = 55
+t = 3.5
+name = "Dane B"
+exp = 2
+
+[[sample]]
+lat = 44.4517
+lon = -83.8383
+h = 288.874
+a = 179
+zb = 179.49
+hb = 17
+z0 = 180.57
+h0 = 18
+t = 1.5
+name = "chris R"
+exp = 2
+
+[[sample]]
+lat = 42.2271
+lon = -83.2186
+h = 182.781
+a = 115
+hb = 19
+t = 3.5
+name = "Christy M"
+exp = 2
+
+[[sample]]
+lat = 43.2211
+lon = -87.9107
+h = 211.13
+a = 187
+zb = 105.81
+hb = 75
+z0 = 100.92
+h0 = 24
+t = 3.5
+name = "Adam H"
+exp = 2
+
+[[sample]]
+lat = 42.2994
+lon = -83.2314
+h = 183.658
+a = 26
+zb = 300
+hb = 50
+z0 = 310
+h0 = 50
+t = 3.5
+name = "Mark H"
+exp = 2
+
+[[sample]]
+lat = 42.7088
+lon = -83.1177
+h = 245.882
+a = 89
+zb = 3.28
+hb = 37
+z0 = 252.93
+h0 = 23
+t = 3.5
+name = "Track C"
+exp = 2
+
+[[sample]]
+lat = 42.2726
+lon = -84.3844
+h = 294.117
+a = 67
+zb = 95.58
+hb = 22
+z0 = 88.63
+h0 = 22
+t = 3.5
+name = "Laeth S"
+exp = 2
+
+[[sample]]
+lat = 42.1976
+lon = -83.252
+h = 185.173
+a = 198
+zb = 90
+hb = 60
+z0 = 300
+h0 = 34
+t = 20
+name = "Ronreese R"
+exp = 2
+
+[[sample]]
+lat = 42.6681
+lon = -84.5423
+h = 265.13
+a = 342
+zb = 84.51
+hb = 46
+z0 = 86.1
+h0 = 43
+t = 7.5
+name = "Mary R"
+exp = 2
+
+[[sample]]
+lat = 41.145
+lon = -85.0534
+h = 245.619
+a = 242
+zb = 11.64
+hb = 40
+z0 = 347.14
+h0 = 25
+t = 3.5
+name = "Shellie G"
+exp = 2
+
+[[sample]]
+lat = 41.3493
+lon = -79.6655
+h = 462.358
+a = 8
+zb = 291.43
+hb = 50
+z0 = 279.92
+h0 = 5
+t = 3.5
+name = "Garrett W"
+exp = 2
+
+[[sample]]
+lat = 42.6206
+lon = -83.2214
+h = 265.092
+a = 97
+zb = 328.86
+hb = 70
+z0 = 122.6
+h0 = 45
+t = 7.5
+name = "Mike W"
+exp = 2
+
+[[sample]]
+lat = 42.2879
+lon = -83.7653
+h = 272.818
+a = 103
+zb = 340
+hb = 47
+z0 = 350
+h0 = 45
+t = 3.5
+name = "Joshua C"
+exp = 2
+
+[[sample]]
+lat = 40.4898
+lon = -83.2612
+h = 290.271
+a = 262
+zb = 30.89
+hb = 48
+z0 = 335.79
+h0 = 40
+t = 1.5
+name = "Shanda H"
+exp = 2
+
+[[sample]]
+lat = 42.5941
+lon = -83.2165
+h = 266.107
+a = 103
+zb = 250
+hb = 45
+z0 = 250
+h0 = 37
+t = 7.5
+name = "Shannon H"
+exp = 2
+
+[[sample]]
+lat = 41.8646
+lon = -88.3387
+h = 216.895
+a = 180
+zb = 70
+hb = 85
+z0 = 75
+h0 = 25
+t = 7.5
+name = "Heather H"
+exp = 2
+
+[[sample]]
+lat = 42.4457
+lon = -86.2048
+h = 191.797
+a = 216
+zb = 90.06
+hb = 65
+z0 = 66.21
+h0 = 5
+t = 3.5
+name = "M D"
+exp = 2
+
+[[sample]]
+lat = 42.449
+lon = -83.1238
+h = 194.336
+a = 283
+zb = 73.79
+hb = 63
+z0 = 333.43
+h0 = 59
+t = 3.5
+name = "Cindy W"
+exp = 2
+
+[[sample]]
+lat = 41.8639
+lon = -83.9372
+h = 216.914
+a = 93
+zb = 1.16
+hb = 57
+z0 = 42.36
+h0 = 53
+t = 3.5
+name = "Randy W"
+exp = 2
+
+[[sample]]
+lat = 40.5228
+lon = -81.477
+h = 273.195
+a = 194
+zb = 318.47
+hb = 50
+z0 = 318.66
+h0 = 10
+t = 3.5
+name = "Jim G"
+exp = 2
+
+[[sample]]
+lat = 41.9721
+lon = -87.7662
+h = 182.316
+a = 190
+zb = 57.01
+hb = 60
+z0 = 50
+h0 = 20
+name = "Laura R"
+exp = 2
+
+[[sample]]
+lat = 42.7767
+lon = -83.7863
+h = 273.301
+a = 109
+zb = 120.8
+hb = 29
+z0 = 209.29
+h0 = 24
+t = 3.5
+name = "Natalie C"
+exp = 2
+
+[[sample]]
+lat = 43.0163
+lon = -86.1959
+h = 181.582
+a = 198
+zb = 92.44
+z0 = 86.22
+t = 3.5
+name = "Rhonda C"
+exp = 2
+
+[[sample]]
+lat = 42.4803
+lon = -82.9865
+h = 189.32
+a = 332
+zb = 278.69
+hb = 45
+z0 = 279.58
+h0 = 30
+t = 1.5
+name = "THOMAS K"
+exp = 2
+
+[[sample]]
+lat = 42.0116
+lon = -87.808
+h = 194.339
+a = 195
+zb = 69.48
+hb = 45
+z0 = 75.2
+h0 = 25
+t = 1.5
+name = "Bradley P"
+exp = 2
+
+[[sample]]
+lat = 43.0201
+lon = -88.3212
+h = 320.031
+a = 19
+zb = 120.19
+hb = 63
+z0 = 113.53
+t = 3.5
+name = "Peggy H"
+exp = 2
+
+[[sample]]
+lat = 42.528
+lon = -82.9296
+h = 188.143
+a = 248
+zb = 20
+hb = 70
+z0 = 310
+h0 = 29
+name = "Steph C"
+exp = 2
+
+[[sample]]
+lat = 42.0522
+lon = -83.6689
+h = 207.091
+a = 239
+zb = 340
+hb = 25
+z0 = 300.99
+h0 = 7
+t = 3.5
+name = "Sarah S"
+exp = 2
+
+[[sample]]
+lat = 41.4803
+lon = -84.5223
+h = 224.207
+a = 234
+zb = 49.87
+hb = 65
+z0 = 6.55
+h0 = 47
+t = 3.5
+name = "Bryan L"
+exp = 2
+
+[[sample]]
+lat = 40.7838
+lon = -79.9867
+h = 376.549
+a = 180
+zb = 310
+hb = 20
+z0 = 310
+t = 3.5
+name = "Charles R"
+exp = 2
+
+[[sample]]
+lat = 42.256
+lon = -83.5859
+h = 231.781
+a = 6
+zb = 222.31
+hb = 90
+z0 = 223.93
+h0 = 90
+t = 1.5
+name = "Angela C"
+exp = 2
+
+[[sample]]
+lat = 43.6911
+lon = -85.49
+h = 294.922
+a = 18
+zb = 175.92
+hb = 29
+z0 = 146.02
+t = 3.5
+name = "Rachael G"
+exp = 2
+
+[[sample]]
+lat = 42.3478
+lon = -83.3308
+h = 192.136
+a = 94
+zb = 94.52
+hb = 60
+z0 = 293.1
+h0 = 40
+t = 3.5
+name = "Michelle B"
+exp = 2
+
+[[sample]]
+lat = 41.945
+lon = -83.32
+h = 179.621
+a = 270
+t = 1.5
+name = "Emily G"
+exp = 2
+
+[[sample]]
+lat = 42.4629
+lon = -83.5684
+h = 298.524
+a = 269
+zb = 299.04
+hb = 45
+z0 = 200
+h0 = 25
+t = 7.5
+name = "Bryan S"
+exp = 2
+
+[[sample]]
+lat = 42.4676
+lon = -83.0989
+h = 192.755
+a = 76
+zb = 270
+hb = 54
+z0 = 330
+h0 = 52
+t = 1.5
+name = "Michelle K"
+exp = 2
+
+[[sample]]
+lat = 43.1396
+lon = -88.2488
+h = 290.889
+a = 187
+zb = 90
+hb = 10
+z0 = 90
+h0 = 5
+t = 3.5
+name = "Jason F"
+exp = 2
+
+[[sample]]
+lat = 41.6265
+lon = -83.6932
+h = 193.505
+a = 356
+hb = 71
+z0 = 355.76
+h0 = 63
+t = 3.5
+name = "Katherine L"
+exp = 2
+
+[[sample]]
+lat = 42.199
+lon = -83.2108
+h = 182.376
+a = 56
+zb = 290.73
+hb = 45
+z0 = 269.5
+h0 = 50
+t = 1.5
+name = "Seth M"
+exp = 2
+
+[[sample]]
+lat = 42.2635
+lon = -83.6543
+h = 252.849
+a = 90
+zb = 90
+hb = 43
+z0 = 120
+h0 = 28
+t = 1.5
+name = "H T"
+exp = 2
+
+[[sample]]
+lat = 43.1465
+lon = -87.991
+h = 225.074
+a = 258
+zb = 85.17
+hb = 61
+z0 = 92.24
+h0 = 55
+t = 3.5
+name = "William M"
+exp = 2
+
+[[sample]]
+lat = 43.0125
+lon = -83.0724
+h = 252.548
+a = 126
+zb = 197.56
+hb = 81
+z0 = 233.64
+h0 = 14
+t = 1.5
+name = "Alexis W"
+exp = 2
+
+[[sample]]
+lat = 40.5611
+lon = -83.8376
+h = 305.83
+a = 97
+zb = 245.87
+hb = 34
+z0 = 293.47
+h0 = 16
+t = 3.5
+name = "Adam B"
+exp = 2
+
+[[sample]]
+lat = 42.0265
+lon = -88.1116
+h = 253.913
+a = 14
+zb = 259.75
+hb = 21
+z0 = 21.96
+h0 = 6
+t = 3.5
+name = "Frank S"
+exp = 2
+
+[[sample]]
+lat = 42.1943
+lon = -83.4774
+h = 205.323
+a = 248
+zb = 334.61
+hb = 45
+z0 = 265.77
+h0 = 17
+t = 1.5
+name = "Amanda D"
+exp = 2
+
+[[sample]]
+lat = 42.4146
+lon = -83.2766
+h = 193.161
+a = 114
+zb = 319.05
+hb = 12
+z0 = 197.96
+h0 = 3
+t = 1.5
+name = "Ethan M"
+exp = 2
+
+[[sample]]
+lat = 42.245
+lon = -83.1695
+h = 178.162
+a = 112
+zb = 0.9
+hb = 22
+z0 = 20.74
+h0 = 19
+name = "R W"
+exp = 2
+
+[[sample]]
+lat = 42.5564
+lon = -82.943
+h = 185.26
+z0 = 283.74
+t = 1
+name = "Scott L"
+exp = 2
+
+[[sample]]
+lat = 42.1148
+lon = -83.8819
+h = 261.227
+a = 240
+zb = 50.85
+hb = 20
+z0 = 356.61
+h0 = 4
+t = 7.5
+name = "Tom T"
+exp = 2
+
+[[sample]]
+lat = 42.2786
+lon = -83.8427
+h = 276.32
+a = 123
+zb = 339.44
+hb = 43
+z0 = 279.78
+h0 = 13
+t = 3.5
+name = "Beth D"
+exp = 2
+
+[[sample]]
+lat = 44.7576
+lon = -88.786
+h = 297.478
+a = 230
+zb = 67.17
+hb = 44
+z0 = 60.57
+h0 = 21
+t = 3.5
+name = "Sarah R"
+exp = 2
+
+[[sample]]
+lat = 42.4443
+lon = -83.2928
+h = 195.85
+a = 182
+zb = 18.37
+hb = 90
+z0 = 4.48
+h0 = 90
+t = 1.5
+name = "Vallon T"
+exp = 2
+
+[[sample]]
+lat = 41.4629
+lon = -81.9903
+h = 194.846
+a = 195
+zb = 338.71
+hb = 66
+z0 = 338.16
+h0 = 40
+t = 1.5
+name = "Christopher C"
+exp = 2
+
+[[sample]]
+lat = 42.3782
+lon = -84.9701
+h = 281.624
+a = 3
+zb = 78.86
+hb = 31
+z0 = 74.57
+h0 = 25
+t = 1.5
+name = "N A"
+exp = 2
+
+[[sample]]
+lat = 41.5148
+lon = -84.2579
+h = 225.03
+a = 90
+hb = 50
+z0 = 25.27
+h0 = 50
+t = 1.5
+name = "Steve S"
+exp = 2
+
+[[sample]]
+lat = 42.679
+lon = -84.1747
+h = 269.995
+a = 182
+zb = 127.07
+hb = 67
+z0 = 127.54
+h0 = 26
+t = 3.5
+name = "Kristopher C"
+exp = 2
+
+[[sample]]
+lat = 42.0663
+lon = -87.9633
+h = 206.868
+a = 15
+zb = 80
+hb = 30
+z0 = 85
+h0 = 10
+t = 3.5
+name = "Mark M"
+exp = 2
+
+[[sample]]
+lat = 41.2828
+lon = -85.8585
+h = 252.432
+a = 14
+zb = 56.15
+hb = 80
+z0 = 30.38
+h0 = 5
+t = 1.5
+name = "Paul F"
+exp = 2
+
+[[sample]]
+lat = 43.0184
+lon = -83.2929
+h = 258.826
+zb = 106.82
+hb = 45
+z0 = 102.66
+h0 = 37
+t = 3.5
+name = "Carole Ann S"
+exp = 2
+
+[[sample]]
+lat = 41.8305
+lon = -86.3591
+h = 215.93
+a = 171
+zb = 70.06
+hb = 33
+z0 = 67
+t = 3.5
+name = "Kara R"
+exp = 2
+
+[[sample]]
+lat = 42.9756
+lon = -87.8656
+h = 199.378
+a = 162
+zb = 75.62
+hb = 5
+z0 = 79.07
+h0 = 3
+t = 1.5
+name = "courtney l"
+exp = 2
+
+[[sample]]
+lat = 42.7484
+lon = -84.7588
+h = 258.899
+a = 85
+zb = 130.16
+hb = 51
+z0 = 139.14
+h0 = 48
+t = 7.5
+name = "Chris M"
+exp = 2
+
+[[sample]]
+lat = 41.8745
+lon = -87.6797
+h = 181.885
+a = 221
+zb = 88.59
+hb = 23
+z0 = 62.7
+h0 = 9
+t = 20
+name = "Brittany P"
+exp = 2
+
+[[sample]]
+lat = 42.6304
+lon = -82.4312
+h = 175.963
+a = 102
+zb = 281.36
+hb = 58
+z0 = 78.41
+h0 = 59
+t = 3.5
+name = "Jenna T"
+exp = 2
+
+[[sample]]
+lat = 44.4533
+lon = -90.2142
+h = 324.228
+a = 184
+zb = 96.59
+hb = 44
+z0 = 100.59
+t = 3.5
+name = "Scott D"
+exp = 2
+
+[[sample]]
+lat = 42.3496
+lon = -83.6942
+h = 297.559
+a = 93
+zb = 263.7
+hb = 31
+z0 = 260.51
+h0 = 25
+t = 3.5
+name = "Doris H"
+exp = 2
+
+[[sample]]
+lat = 42.1558
+lon = -83.1891
+h = 180.736
+zb = 85.06
+hb = 45
+z0 = 85.06
+h0 = 45
+t = 3.5
+name = "christina f"
+exp = 2
+
+[[sample]]
+lat = 40.2017
+lon = -83.9155
+h = 355.998
+a = 92
+zb = 313.52
+hb = 56
+z0 = 285.87
+h0 = 55
+t = 3.5
+name = "J L"
+exp = 2
+
+[[sample]]
+lat = 41.9302
+lon = -84.053
+h = 256.356
+a = 100
+zb = 44.29
+hb = 24
+z0 = 121.03
+h0 = 14
+t = 1.5
+name = "Anne T"
+exp = 2
+
+[[sample]]
+lat = 41.8338
+lon = -87.895
+h = 196.673
+a = 42
+zb = 9.17
+hb = 13
+z0 = 21.35
+h0 = 8
+t = 1.5
+name = "Tom H"
+exp = 2
+
+[[sample]]
+lat = 42.7408
+lon = -84.6932
+h = 255.487
+a = 3
+zb = 90
+hb = 45
+z0 = 138.61
+h0 = 10
+t = 3.5
+name = "Rachel W"
+exp = 2
+
+[[sample]]
+lat = 42.7164
+lon = -84.4142
+h = 265.227
+a = 69
+hb = 28
+h0 = 12
+t = 1.5
+name = "Molly N"
+exp = 2
+
+[[sample]]
+lat = 42.6386
+lon = -85.7975
+h = 254.472
+a = 6
+zb = 179.56
+hb = 50
+z0 = 178.59
+h0 = 13
+t = 3.5
+name = "Erika K"
+exp = 2
+
+[[sample]]
+lat = 40.0148
+lon = -88.7445
+h = 212.878
+a = 206
+zb = 52.82
+hb = 56
+z0 = 34.08
+h0 = 9
+t = 1.5
+name = "Brad I"
+exp = 2
+
+[[sample]]
+lat = 41.0996
+lon = -80.765
+h = 344.974
+a = 92
+zb = 311.72
+hb = 29
+z0 = 298.34
+h0 = 10
+t = 1.5
+name = "Scott W"
+exp = 2
+
+[[sample]]
+lat = 43.9137
+lon = -90.9909
+h = 229.454
+a = 190
+zb = 91.66
+hb = 61
+z0 = 91.38
+h0 = 4
+t = 3.5
+name = "J E"
+exp = 2
+
+[[sample]]
+lat = 41.5365
+lon = -88.1501
+h = 191.075
+a = 211
+zb = 65
+hb = 45
+z0 = 35
+h0 = 20
+t = 3.5
+name = "Susan K"
+exp = 2
+
+[[sample]]
+lat = 41.0015
+lon = -83.9862
+h = 225.445
+zb = 30
+hb = 90
+h0 = 90
+t = 1.5
+name = "Leah B"
+exp = 2
+
+[[sample]]
+lat = 42.2142
+lon = -88.3106
+h = 274.87
+a = 185
+zb = 39.09
+hb = 21
+z0 = 95.39
+h0 = 12
+t = 1.5
+name = "Kay F"
+exp = 2
+
+[[sample]]
+lat = 41.8166
+lon = -89.4794
+h = 234.341
+a = 10
+zb = 82
+hb = 35
+z0 = 82
+h0 = 8
+t = 1.5
+name = "Roc F"
+exp = 2
+
+[[sample]]
+lat = 42.5355
+lon = -83.6171
+h = 286.929
+a = 224
+hb = 60
+h0 = 35
+t = 3.5
+name = "Vegh J"
+exp = 2
+
+[[sample]]
+lat = 44.8376
+lon = -85.128
+h = 324.454
+a = 159
+zb = 84.74
+hb = 36
+z0 = 110.1
+h0 = 13
+t = 1.5
+name = "N K"
+exp = 2
+
+[[sample]]
+lat = 41.6952
+lon = -88.2998
+h = 206.375
+a = 240
+zb = 88.62
+hb = 31
+z0 = 78.07
+t = 3.5
+name = "Jennifer S"
+exp = 2
+
+[[sample]]
+lat = 42.6244
+lon = -83.0735
+h = 208.254
+a = 116
+zb = 227.36
+hb = 25
+z0 = 259.97
+h0 = 15
+t = 3.5
+name = "Vanessa M"
+exp = 2
+
+[[sample]]
+lat = 41.9184
+lon = -87.9321
+h = 207.839
+a = 15
+hb = 20
+z0 = 95
+h0 = 5
+t = 3.5
+name = "Tony T"
+exp = 2
+
+[[sample]]
+lat = 42.6212
+lon = -83.532
+h = 294.428
+a = 80
+hb = 45
+h0 = 45
+t = 3.5
+name = "Craig D"
+exp = 2
+
+[[sample]]
+lat = 41.5379
+lon = -83.6187
+h = 195.165
+a = 8
+zb = 78.55
+hb = 26
+z0 = 65.47
+h0 = 17
+t = 3.5
+name = "Amy R"
+exp = 2
+
+[[sample]]
+lat = 42.4578
+lon = -83.106
+h = 193.166
+a = 252
+zb = 295.95
+hb = 31
+z0 = 332.3
+h0 = 30
+t = 3.5
+name = "Kat S"
+exp = 2
+
+[[sample]]
+lat = 42.7441
+lon = -83.8812
+h = 264.815
+a = 100
+zb = 213.16
+hb = 45
+z0 = 260.66
+h0 = 17
+t = 1.5
+name = "Mike K"
+exp = 2
+
+[[sample]]
+lat = 41.9973
+lon = -87.7142
+h = 180.954
+a = 190
+hb = 45
+z0 = 64.79
+h0 = 28
+t = 3.5
+name = "Bruce C"
+exp = 2
+
+[[sample]]
+lat = 42.9976
+lon = -83.5659
+h = 241.494
+a = 96
+hb = 17
+z0 = 180
+h0 = 17
+t = 1.5
+name = "Julia M"
+exp = 2
+
+[[sample]]
+lat = 42.7558
+lon = -83.1882
+h = 286.273
+a = 45
+zb = 200.84
+hb = 30
+z0 = 154.42
+t = 1.5
+name = "Brandy L"
+exp = 2
+
+[[sample]]
+lat = 42.2999
+lon = -83.4518
+h = 204.806
+a = 87
+zb = 134
+hb = 27
+z0 = 83.47
+t = 3.5
+name = "C H"
+exp = 2
+
+[[sample]]
+lat = 43.0259
+lon = -89.2882
+h = 269.588
+zb = 89.35
+hb = 25
+z0 = 92.32
+h0 = 11
+t = 1.5
+name = "brent l"
+exp = 2
+
+[[sample]]
+lat = 42.6792
+lon = -83.0903
+h = 221.416
+a = 150
+hb = 45
+z0 = 231.02
+h0 = 20
+t = 3.5
+name = "Michael K"
+exp = 2
+
+[[sample]]
+lat = 42.6391
+lon = -83.0437
+h = 200.733
+a = 84
+h0 = 1
+t = 7.5
+name = "Kim B"
+exp = 2
+
+[[sample]]
+lat = 43.0934
+lon = -84.0768
+h = 225.11
+a = 52
+zb = 4.43
+z0 = 2.72
+h0 = 5
+t = 1
+name = "Margaret L"
+exp = 2
+
+[[sample]]
+lat = 42.6812
+lon = -86.1349
+h = 223.168
+a = 180
+zb = 98.84
+hb = 60
+z0 = 87.64
+h0 = 25
+t = 7.5
+name = "Mike P"
+exp = 2
+
+[[sample]]
+lat = 43.0605
+lon = -88.109
+h = 252.884
+a = 168
+zb = 90.49
+hb = 38
+z0 = 93.74
+h0 = 23
+t = 1
+name = "Danielle H"
+exp = 2
+
+[[sample]]
+lat = 42.4668
+lon = -83.7388
+h = 271.747
+a = 278
+zb = 354.48
+hb = 76
+z0 = 305.73
+h0 = 71
+t = 1.5
+name = "T T"
+exp = 2
+
+[[sample]]
+lat = 42.2832
+lon = -83.4603
+h = 206.217
+a = 95
+hb = 45
+h0 = 45
+t = 1.5
+name = "Reagan B"
+exp = 2
+
+[[sample]]
+lat = 42.4537
+lon = -83.3837
+h = 223.951
+a = 252
+zb = 260
+hb = 45
+z0 = 260
+h0 = 27
+t = 1.5
+name = "David M"
+exp = 2
+
+[[sample]]
+lat = 41.7261
+lon = -88.3586
+h = 199.802
+a = 176
+zb = 79.31
+hb = 44
+z0 = 83.98
+h0 = 10
+t = 1.5
+name = "Kyle W"
+exp = 2
+
+[[sample]]
+lat = 42.7836
+lon = -83.4089
+h = 343.493
+a = 84
+zb = 90
+hb = 70
+z0 = 90
+h0 = 60
+t = 7.5
+name = "Elizabeth B"
+exp = 2
+
+[[sample]]
+lat = 43.2126
+lon = -80.231
+h = 220.495
+a = 166
+zb = 248.14
+hb = 37
+z0 = 256.09
+h0 = 10
+t = 3.5
+name = "Mark F"
+exp = 2
+
+[[sample]]
+lat = 40.0238
+lon = -88.121
+h = 207.157
+a = 179
+zb = 29.79
+hb = 80
+z0 = 28.55
+h0 = 15
+t = 3.5
+name = "Jarid T"
+exp = 2
+
+[[sample]]
+lat = 42.7156
+lon = -83.2156
+h = 298.955
+zb = 241.81
+hb = 74
+z0 = 241.54
+h0 = 59
+t = 3.5
+name = "Tom M"
+exp = 2
+
+[[sample]]
+lat = 43.2083
+lon = -86.2155
+h = 187.183
+a = 7
+zb = 138.81
+hb = 90
+z0 = 140.45
+t = 3.5
+name = "Patricia S"
+exp = 2
+
+[[sample]]
+lat = 42.1597
+lon = -85.443
+h = 267.427
+a = 120
+zb = 118.47
+hb = 29
+z0 = 40.98
+t = 3.5
+name = "Deborah N"
+exp = 2
+
+[[sample]]
+lat = 45.1095
+lon = -85.3363
+h = 213.689
+a = 116
+zb = 159.23
+hb = 69
+z0 = 156.43
+h0 = 71
+t = 3.5
+name = "Vivian w"
+exp = 2
+
+[[sample]]
+lat = 41.8462
+lon = -88.3591
+h = 219.851
+a = 206
+zb = 85
+hb = 54
+z0 = 85
+h0 = 17
+t = 3.5
+name = "Elyse N"
+exp = 2
+
+[[sample]]
+lat = 40.5026
+lon = -88.9312
+h = 244.739
+a = 187
+zb = 84.02
+hb = 20
+z0 = 83.06
+t = 1.5
+name = "Aaron Y"
+exp = 2
+
+[[sample]]
+lat = 40.7652
+lon = -88.1901
+h = 203.031
+a = 10
+zb = 85.96
+hb = 40
+z0 = 71.68
+h0 = 15
+t = 3.5
+name = "Steve R"
+exp = 2
+
+[[sample]]
+lat = 42.5968
+lon = -84.7269
+h = 272.953
+a = 94
+zb = 330.71
+hb = 50
+z0 = 55.92
+h0 = 50
+t = 1.5
+name = "Richard M"
+exp = 2
+
+[[sample]]
+lat = 42.5464
+lon = -83.6742
+h = 293.091
+a = 79
+zb = 60
+hb = 50
+z0 = 60
+h0 = 40
+t = 1.5
+name = "Eric E"
+exp = 2
+
+[[sample]]
+lat = 44.807
+lon = -83.3474
+h = 209.895
+a = 92
+zb = 94.58
+hb = 31
+z0 = 110.59
+h0 = 28
+t = 1.5
+name = "Dan B"
+exp = 2
+
+[[sample]]
+lat = 41.3728
+lon = -88.8364
+h = 187.363
+a = 203
+zb = 77.1
+hb = 24
+z0 = 71.04
+h0 = 20
+t = 3.5
+name = "Loraine D"
+exp = 2
+
+[[sample]]
+lat = 42.0663
+lon = -87.9599
+h = 207.462
+a = 190
+zb = 68.45
+hb = 45
+z0 = 80.09
+h0 = 20
+t = 3.5
+name = "Juan H"
+exp = 2
+
+[[sample]]
+lat = 42.2985
+lon = -85.7585
+h = 264.456
+a = 211
+zb = 87.79
+hb = 33
+z0 = 76.79
+h0 = 6
+t = 3.5
+name = "Kris P"
+exp = 2
+
+[[sample]]
+lat = 42.2984
+lon = -85.7585
+h = 263.766
+a = 193
+zb = 77.62
+hb = 29
+z0 = 76.51
+h0 = 15
+t = 1.5
+name = "B A"
+exp = 2
+
+[[sample]]
+lat = 40.212
+lon = -88.214
+h = 223.434
+a = 266
+zb = 90
+hb = 3
+z0 = 40
+t = 20
+name = "Dawn G"
+exp = 2
+
+[[sample]]
+lat = 42.5235
+lon = -83.8313
+h = 309.966
+a = 4
+zb = 290.69
+hb = 75
+z0 = 287.83
+h0 = 78
+t = 1.5
+name = "Thomas C"
+exp = 2
+
+[[sample]]
+lat = 43.9044
+lon = -86.4158
+h = 241.037
+a = 30
+hb = 35
+h0 = 30
+t = 1.5
+name = "Cindy H"
+exp = 2
+
+[[sample]]
+lat = 42.7332
+lon = -82.8855
+h = 190.955
+a = 107
+zb = 259.56
+hb = 47
+z0 = 275.51
+h0 = 27
+t = 1.5
+name = "Gabrielle Q"
+exp = 2
+
+[[sample]]
+lat = 43.587
+lon = -88.3808
+h = 324.966
+a = 188
+zb = 91.62
+hb = 68
+z0 = 89.57
+h0 = 6
+t = 3.5
+name = "Quinn L"
+exp = 2
+
+[[sample]]
+lat = 41.5228
+lon = -87.9635
+h = 203.945
+a = 20
+zb = 73.02
+hb = 75
+z0 = 73.77
+h0 = 10
+t = 3.5
+name = "Kevin R"
+exp = 3
+
+[[sample]]
+lat = 41.8063
+lon = -87.5858
+h = 179.095
+a = 6
+zb = 70
+hb = 60
+z0 = 60
+t = 3.5
+name = "Robert G"
+exp = 3
+
+[[sample]]
+lat = 42.7158
+lon = -83.0289
+h = 204.641
+a = 24
+zb = 236.48
+hb = 45
+z0 = 215.07
+t = 1.5
+name = "Brian R"
+exp = 3
+
+[[sample]]
+lat = 41.432
+lon = -82.2022
+h = 188.365
+a = 180
+zb = 275
+hb = 65
+z0 = 275
+h0 = 5
+t = 1.5
+name = "matthew s"
+exp = 3
+
+[[sample]]
+lat = 43.4147
+lon = -88.1966
+h = 312.778
+a = 180
+hb = 90
+z0 = 270.03
+t = 3.5
+name = "Jim D"
+exp = 3
+
+[[sample]]
+lat = 42.7419
+lon = -84.4999
+h = 264.913
+a = 122
+zb = 120
+hb = 75
+z0 = 115.44
+h0 = 77
+t = 1.5
+name = "Joe H"
+exp = 3
+
+[[sample]]
+lat = 42.8139
+lon = -84.7342
+h = 243.332
+a = 18
+zb = 110
+hb = 80
+z0 = 110
+h0 = 20
+t = 3.5
+name = "Daniel Z"
+exp = 3
+
+[[sample]]
+lat = 44.4082
+lon = -88.0188
+h = 234.439
+a = 180
+zb = 88.56
+hb = 44
+z0 = 90.84
+h0 = 1
+t = 7.5
+name = "Jen and Mike M"
+exp = 3
+
+[[sample]]
+lat = 42.5707
+lon = -84.8133
+h = 268.077
+a = 88
+t = 3.5
+name = "Robert M"
+exp = 3
+
+[[sample]]
+lat = 43.2564
+lon = -86.2115
+h = 185.534
+a = 177
+zb = 76.69
+hb = 65
+z0 = 76.93
+h0 = 35
+t = 7.5
+name = "Maggie H"
+exp = 3
+
+[[sample]]
+lat = 43.5786
+lon = -85.4492
+h = 293.891
+a = 163
+zb = 130
+hb = 61
+z0 = 140
+h0 = 27
+t = 1.5
+name = "M S"
+exp = 3
+
+[[sample]]
+lat = 42.5217
+lon = -83.3359
+h = 261.369
+a = 75
+zb = 120
+hb = 50
+z0 = 140
+h0 = 50
+t = 1.5
+name = "O"
+exp = 3
+
+[[sample]]
+lat = 42.9215
+lon = -84.2225
+h = 244.074
+a = 124
+zb = 19.63
+hb = 45
+z0 = 140.35
+h0 = 30
+t = 3.5
+name = "Amy R"
+exp = 3
+
+[[sample]]
+lat = 42.5232
+lon = -83.0212
+h = 185.887
+a = 173
+zb = 192.26
+hb = 70
+z0 = 257.84
+h0 = 30
+t = 3.5
+name = "Jorden L"
+exp = 3
+
+[[sample]]
+lat = 43.1915
+lon = -85.8958
+h = 212.421
+a = 2
+zb = 1.16
+hb = 25
+z0 = 169.88
+h0 = 4
+t = 7.5
+name = "Alisha L"
+exp = 3
+
+[[sample]]
+lat = 42.6769
+lon = -83.2161
+h = 284.094
+a = 147
+zb = 130.4
+hb = 39
+z0 = 261.41
+h0 = 1
+t = 1.5
+name = "Heidi K"
+exp = 3
+
+[[sample]]
+lat = 41.9991
+lon = -87.6541
+h = 175.214
+a = 60
+zb = 90
+hb = 55
+z0 = 20
+t = 1.5
+name = "Kim A"
+exp = 3
+
+[[sample]]
+lat = 41.5737
+lon = -84.1344
+h = 234.633
+a = 99
+zb = 13.34
+hb = 43
+h0 = 35
+t = 3.5
+name = "Brett D"
+exp = 3
+
+[[sample]]
+lat = 41.3701
+lon = -88.4977
+h = 169.011
+a = 197
+zb = 66.75
+hb = 81
+z0 = 60.04
+h0 = 5
+t = 1.5
+name = "Dale R"
+exp = 3
+
+[[sample]]
+lat = 42.53
+lon = -83.7819
+h = 282.886
+a = 110
+zb = 10
+hb = 70
+h0 = 60
+t = 1.5
+name = "Mark C"
+exp = 3
+
+[[sample]]
+lat = 41.7809
+lon = -83.5685
+h = 189.781
+a = 185
+zb = 1.74
+hb = 7
+z0 = 329.2
+h0 = 1
+t = 1.5
+name = "JOY F"
+exp = 3
+
+[[sample]]
+lat = 42.3182
+lon = -83.7168
+h = 291.323
+a = 96
+zb = 277.18
+hb = 61
+z0 = 296.62
+h0 = 56
+t = 3.5
+name = "Damon h"
+exp = 3
+
+[[sample]]
+lat = 42.4193
+lon = -84.1733
+h = 289.129
+a = 123
+zb = 262.62
+hb = 35
+z0 = 250.3
+h0 = 21
+t = 3.5
+name = "N P"
+exp = 3
+
+[[sample]]
+lat = 42.7414
+lon = -83.2038
+h = 286.819
+a = 218
+hb = 29
+h0 = 36
+t = 3.5
+name = "Sierra L"
+exp = 3
+
+[[sample]]
+lat = 42.6733
+lon = -83.6279
+h = 315.185
+a = 300
+zb = 206.35
+hb = 45
+z0 = 209.85
+h0 = 45
+t = 3.5
+name = "A"
+exp = 3
+
+[[sample]]
+lat = 42.259
+lon = -83.6761
+h = 237.693
+zb = 276.69
+hb = 80
+z0 = 274.23
+h0 = 80
+t = 1
+name = "Hoyt B"
+exp = 3
+
+[[sample]]
+lat = 42.6186
+lon = -83.9038
+h = 296.902
+a = 126
+zb = 60.16
+hb = 19
+z0 = 96.32
+h0 = 17
+t = 3.5
+name = "Dennis L"
+exp = 3
+
+[[sample]]
+lat = 42.7419
+lon = -84.4999
+h = 264.994
+a = 180
+zb = 120
+hb = 64
+z0 = 120
+h0 = 18
+t = 3.5
+name = "Kandus L"
+exp = 3
+
+[[sample]]
+lat = 42.9548
+lon = -83.8507
+h = 240.281
+a = 100
+hb = 51
+h0 = 16
+t = 3.5
+name = "J C"
+exp = 3
+
+[[sample]]
+lat = 42.5014
+lon = -82.971
+h = 189.012
+a = 75
+hb = 43
+z0 = 264.98
+t = 1.5
+name = "Emily S"
+exp = 3
+
+[[sample]]
+lat = 41.6824
+lon = -86.1185
+h = 226.526
+a = 271
+zb = 72.81
+hb = 17
+z0 = 43.04
+h0 = 16
+t = 3.5
+name = "David K"
+exp = 3
+
+[[sample]]
+lat = 42.9274
+lon = -83.6333
+h = 256.128
+a = 156
+zb = 251.97
+hb = 45
+z0 = 231.14
+h0 = 30
+t = 3.5
+name = "Max M"
+exp = 3
+
+[[sample]]
+lat = 41.5619
+lon = -87.4627
+h = 181.128
+a = 239
+zb = 69.42
+hb = 35
+z0 = 54.35
+h0 = 15
+t = 1.5
+name = "Rosalinda N"
+exp = 3
+
+[[sample]]
+lat = 42.8482
+lon = -85.9863
+h = 212.77
+a = 191
+zb = 125.68
+hb = 56
+z0 = 97.12
+h0 = 5
+t = 1.5
+name = "Hailey S"
+exp = 3
+
+[[sample]]
+lat = 42.9702
+lon = -83.0576
+h = 256.06
+a = 95
+zb = 340
+hb = 55
+z0 = 60
+h0 = 45
+t = 3.5
+name = "Laura P"
+exp = 3
+
+[[sample]]
+lat = 42.5821
+lon = -83.3963
+h = 297.06
+a = 270
+zb = 274.83
+hb = 80
+z0 = 275.49
+h0 = 80
+name = "Caitlin P"
+exp = 3
+
+[[sample]]
+lat = 42.5535
+lon = -84.8552
+h = 282.289
+a = 134
+zb = 332.89
+hb = 27
+z0 = 108.4
+h0 = 30
+t = 3.5
+name = "donald k"
+exp = 3
+
+[[sample]]
+lat = 42.6247
+lon = -87.8516
+h = 202.9
+zb = 90.67
+hb = 90
+z0 = 89.32
+t = 1.5
+name = "Chris K"
+exp = 3
+
+[[sample]]
+lat = 41.5735
+lon = -83.5216
+h = 189.178
+a = 140
+zb = 280
+hb = 30
+t = 20
+name = "Sara G"
+exp = 3
+
+[[sample]]
+lat = 42.5423
+lon = -83.5184
+h = 283.949
+a = 95
+hb = 90
+z0 = 275.73
+h0 = 38
+t = 7.5
+name = "Cory B"
+exp = 3
+
+[[sample]]
+lat = 44.4473
+lon = -85.3959
+h = 332.092
+a = 179
+zb = 130
+hb = 60
+z0 = 140
+h0 = 28
+t = 3.5
+name = "Travis T"
+exp = 3
+
+[[sample]]
+lat = 42.436
+lon = -83.8545
+h = 267.368
+a = 178
+zb = 223.51
+hb = 15
+z0 = 270.19
+h0 = 9
+t = 3.5
+name = "Eric E"
+exp = 3
+
+[[sample]]
+lat = 41.9362
+lon = -88.812
+h = 269.336
+a = 179
+zb = 91.5
+hb = 73
+z0 = 145.05
+h0 = 19
+t = 3.5
+name = "Eric C"
+exp = 3
+
+[[sample]]
+lat = 42.2589
+lon = -84.6706
+h = 307.565
+a = 234
+zb = 61.11
+hb = 29
+z0 = 57.9
+h0 = 27
+t = 3.5
+name = "Ray P"
+exp = 3
+
+[[sample]]
+lat = 41.4794
+lon = -83.8341
+h = 201.775
+a = 92
+zb = 180
+hb = 47
+z0 = 140
+h0 = 28
+t = 1.5
+name = "Mark K"
+exp = 3
+
+[[sample]]
+lat = 41.8339
+lon = -85.4074
+h = 281.426
+a = 51
+zb = 112.61
+hb = 66
+z0 = 36.89
+h0 = 14
+t = 3.5
+name = "LARRY D"
+exp = 3
+
+[[sample]]
+lat = 42.5337
+lon = -83.1921
+h = 223.579
+a = 155
+zb = 270
+hb = 70
+z0 = 270
+h0 = 35
+t = 3.5
+name = "Tom P"
+exp = 3
+
+[[sample]]
+lat = 42.2202
+lon = -83.7706
+h = 253.979
+a = 130
+zb = 340
+hb = 50
+z0 = 30
+h0 = 35
+t = 3.5
+name = "Jennifer A"
+exp = 3
+
+[[sample]]
+lat = 42.3479
+lon = -83.3355
+h = 192.755
+a = 45
+zb = 46.45
+z0 = 2.73
+t = 1.5
+name = "daniel m"
+exp = 3
+
+[[sample]]
+lat = 41.2159
+lon = -81.8331
+h = 358.446
+a = 170
+zb = 350
+hb = 41
+z0 = 350
+h0 = 47
+t = 3.5
+name = "Michael L"
+exp = 3
+
+[[sample]]
+lat = 41.8662
+lon = -83.6
+h = 196.997
+a = 247
+zb = 94.62
+hb = 49
+z0 = 34.74
+t = 1.5
+name = "Lance C"
+exp = 3
+
+[[sample]]
+lat = 42.5288
+lon = -83.476
+h = 285.917
+a = 170
+zb = 271.96
+hb = 77
+z0 = 266.03
+h0 = 13
+t = 3.5
+name = "David D"
+exp = 3
+
+[[sample]]
+lat = 41.671
+lon = -86.1497
+h = 221.057
+a = 192
+zb = 70.95
+hb = 22
+z0 = 68.02
+h0 = 17
+t = 1.5
+name = "Becky W"
+exp = 3
+
+[[sample]]
+lat = 41.7142
+lon = -83.664
+h = 204.256
+a = 180
+zb = 78.52
+hb = 59
+z0 = 358.2
+h0 = 32
+t = 3.5
+name = "Missey R"
+exp = 3
+
+[[sample]]
+lat = 41.6677
+lon = -83.5564
+h = 185.268
+a = 279
+zb = 339.98
+hb = 65
+z0 = 312.64
+h0 = 65
+t = 1
+name = "Ellie D"
+exp = 3
+
+[[sample]]
+lat = 41.9162
+lon = -86.3493
+h = 220.613
+a = 223
+zb = 64.89
+hb = 29
+z0 = 30.5
+h0 = 15
+t = 3.5
+name = "Billings I"
+exp = 3
+
+[[sample]]
+lat = 42.8249
+lon = -83.4322
+h = 292.983
+a = 120
+zb = 121.33
+hb = 39
+z0 = 237.59
+h0 = 27
+t = 3.5
+name = "Veronica K"
+exp = 3
+
+[[sample]]
+lat = 42.5377
+lon = -84.3751
+h = 285.234
+a = 259
+zb = 100.92
+hb = 60
+z0 = 89.17
+h0 = 50
+t = 3.5
+name = "Sara A"
+exp = 3
+
+[[sample]]
+lat = 42.2896
+lon = -85.6026
+h = 271.941
+a = 181
+zb = 85
+hb = 45
+z0 = 85
+h0 = 10
+t = 3.5
+name = "Cara C"
+exp = 3
+
+[[sample]]
+lat = 41.8039
+lon = -83.7192
+h = 207.007
+a = 81
+zb = 268.42
+hb = 75
+h0 = 77
+t = 7.5
+name = "Lois K"
+exp = 3
+
+[[sample]]
+lat = 41.4375
+lon = -81.8503
+h = 227.38
+a = 180
+zb = 309
+hb = 30
+z0 = 309
+h0 = 10
+t = 3.5
+name = "Jim S"
+exp = 3
+
+[[sample]]
+lat = 41.9933
+lon = -87.9574
+h = 204.338
+a = 198
+zb = 266.73
+hb = 34
+z0 = 261.63
+h0 = 26
+t = 1.5
+name = "Amanda S"
+exp = 3
+
+[[sample]]
+lat = 40.4687
+lon = -84.9795
+h = 283.943
+a = 90
+zb = 2.71
+hb = 32
+z0 = 36.85
+h0 = 22
+t = 1.5
+name = "Jonathan C"
+exp = 3
+
+[[sample]]
+lat = 42.0501
+lon = -83.3928
+h = 186.942
+a = 91
+zb = 244.25
+hb = 37
+z0 = 43.68
+h0 = 39
+t = 1.5
+name = "mary r"
+exp = 3
+
+[[sample]]
+lat = 42.3479
+lon = -83.3355
+h = 192.771
+a = 45
+zb = 87.23
+hb = 55
+z0 = 15.84
+h0 = 55
+t = 1.5
+name = "daniel m"
+exp = 3
+
+[[sample]]
+lat = 42.7098
+lon = -83.0495
+h = 215.347
+a = 253
+zb = 170.83
+hb = 25
+z0 = 123.67
+h0 = 20
+t = 1.5
+name = "Larry S"
+exp = 3
+
+[[sample]]
+lat = 44.677
+lon = -85.6512
+h = 273.622
+a = 180
+hb = 30
+t = 3.5
+name = "Lacie G"
+exp = 3
+
+[[sample]]
+lat = 42.6325
+lon = -83.1161
+h = 215.836
+a = 180
+zb = 240
+hb = 45
+z0 = 270
+h0 = 9
+t = 3.5
+name = "Pranav S"
+exp = 3
+
+[[sample]]
+lat = 42.7012
+lon = -82.9424
+h = 188.67
+a = 194
+zb = 244.69
+hb = 45
+z0 = 222.6
+h0 = 10
+t = 3.5
+name = "J D"
+exp = 3
+
+[[sample]]
+lat = 41.6284
+lon = -87.9619
+h = 226.251
+a = 253
+zb = 17
+hb = 29
+z0 = 1
+h0 = 23
+t = 7.5
+name = "Emalisa P"
+exp = 3
+
+[[sample]]
+lat = 40.4375
+lon = -88.1049
+h = 227.133
+a = 255
+zb = 39.33
+hb = 37
+z0 = 28.19
+h0 = 15
+t = 3.5
+name = "Kasey C"
+exp = 3
+
+[[sample]]
+lat = 42.6894
+lon = -83.427
+h = 305.963
+a = 257
+zb = 210
+hb = 18
+z0 = 230.48
+h0 = 15
+t = 3.5
+name = "O"
+exp = 3
+
+[[sample]]
+lat = 43.5824
+lon = -84.7439
+h = 236.474
+a = 157
+zb = 61.15
+z0 = 36.52
+t = 1
+name = "Katie H"
+exp = 3
+
+[[sample]]
+lat = 43.7972
+lon = -84.6677
+h = 246.014
+a = 167
+zb = 6.04
+hb = 36
+h0 = 25
+t = 3.5
+name = "Cruz S"
+exp = 3
+
+[[sample]]
+lat = 41.9603
+lon = -83.36
+h = 182.317
+a = 8
+zb = 282.66
+hb = 41
+z0 = 96.7
+h0 = 31
+t = 3.5
+name = "nick l"
+exp = 3
+
+[[sample]]
+lat = 41.5799
+lon = -83.6664
+h = 192.956
+a = 236
+zb = 345
+hb = 18
+z0 = 340
+h0 = 10
+t = 3.5
+name = "Sue C"
+exp = 3
+
+[[sample]]
+lat = 40.7995
+lon = -81.3798
+h = 321.434
+a = 174
+zb = 316.41
+hb = 43
+z0 = 319.25
+h0 = 22
+t = 3.5
+name = "Dale L"
+exp = 3
+
+[[sample]]
+lat = 43.8348
+lon = -84.7483
+h = 257.688
+a = 163
+zb = 80.85
+hb = 38
+z0 = 107.98
+h0 = 8
+t = 3.5
+name = "Jan C"
+exp = 3
+
+[[sample]]
+lat = 44.2496
+lon = -85.4017
+h = 394.631
+a = 153
+zb = 105.08
+hb = 45
+z0 = 114.76
+h0 = 15
+t = 3.5
+name = "Terri A"
+exp = 3
+
+[[sample]]
+lat = 42.8842
+lon = -86.0579
+h = 204.52
+a = 179
+zb = 91
+hb = 45
+z0 = 89.9
+h0 = 20
+t = 3.5
+name = "Christopher B"
+exp = 3
+
+[[sample]]
+lat = 42.1992
+lon = -85.7754
+h = 284.154
+a = 28
+zb = 23.07
+hb = 58
+z0 = 15.19
+h0 = 26
+t = 7.5
+name = "Gene R"
+exp = 3
+
+[[sample]]
+lat = 42.5337
+lon = -83.1921
+h = 223.621
+a = 162
+zb = 270
+hb = 60
+z0 = 270
+h0 = 44
+t = 1.5
+name = "Tom P"
+exp = 3
+
+[[sample]]
+lat = 42.3733
+lon = -83.534
+h = 264.873
+a = 268
+zb = 55.12
+hb = 62
+z0 = 272.99
+h0 = 49
+t = 7.5
+name = "cheryl r"
+exp = 3
+
+[[sample]]
+lat = 41.4506
+lon = -83.4874
+h = 203.911
+a = 179
+hb = 20
+z0 = 23.03
+t = 1.5
+name = "Renee L"
+exp = 3
+
+[[sample]]
+lat = 42.6845
+lon = -84.5134
+h = 264.254
+a = 143
+zb = 62.1
+hb = 36
+z0 = 111.97
+h0 = 17
+t = 7.5
+name = "Jared B"
+exp = 3
+
+[[sample]]
+lat = 42.5982
+lon = -83.5482
+h = 285.133
+a = 102
+zb = 170
+hb = 35
+z0 = 215
+h0 = 35
+t = 3.5
+name = "David B"
+exp = 3
+
+[[sample]]
+lat = 41.9271
+lon = -88.2725
+h = 236.391
+a = 104
+zb = 85.55
+hb = 32
+z0 = 82.14
+h0 = 31
+t = 1.5
+name = "Louis R"
+exp = 3
+
+[[sample]]
+lat = 43.3173
+lon = -88.3562
+h = 307.177
+a = 180
+zb = 95
+hb = 25
+z0 = 95
+h0 = 5
+t = 3.5
+name = "Jake S"
+exp = 3
+
+[[sample]]
+lat = 42.7237
+lon = -83.3661
+h = 301.132
+a = 117
+zb = 180
+hb = 40
+z0 = 250
+h0 = 30
+t = 3.5
+name = "Tim H"
+exp = 3
+
+[[sample]]
+lat = 42.3111
+lon = -83.4266
+h = 204.151
+a = 165
+zb = 348.09
+hb = 56
+z0 = 356.9
+h0 = 51
+t = 3.5
+name = "David S"
+exp = 3
+
+[[sample]]
+lat = 43.1812
+lon = -80.2273
+h = 220.586
+a = 170
+zb = 270
+hb = 55
+z0 = 290
+h0 = 20
+t = 1.5
+name = "Scott L"
+exp = 3
+
+[[sample]]
+lat = 42.4542
+lon = -83.3218
+h = 200.609
+a = 95
+zb = 280
+hb = 25
+z0 = 280
+h0 = 20
+t = 1.5
+name = "Keith V"
+exp = 3
+
+[[sample]]
+lat = 42.4257
+lon = -88.6089
+h = 302.162
+a = 354
+zb = 88.69
+hb = 73
+z0 = 89.15
+h0 = 1
+t = 3.5
+name = "Jessica W"
+exp = 3
+
+[[sample]]
+lat = 42.6873
+lon = -82.8129
+h = 184.312
+a = 132
+hb = 45
+z0 = 307.84
+h0 = 45
+t = 3.5
+name = "Kara C"
+exp = 3
+
+[[sample]]
+lat = 43.2618
+lon = -80.177
+h = 217.713
+a = 154
+zb = 242.86
+hb = 65
+z0 = 261.43
+h0 = 16
+t = 3.5
+name = "Devin G"
+exp = 3
+
+[[sample]]
+lat = 42.4113
+lon = -83.2838
+h = 190.572
+a = 177
+zb = 131.98
+hb = 20
+z0 = 153.96
+h0 = 1
+t = 1.5
+name = "Rebecca V"
+exp = 3
+
+[[sample]]
+lat = 42.6879
+lon = -82.8885
+h = 184.754
+a = 114
+zb = 343.86
+hb = 30
+h0 = 30
+t = 1.5
+name = "Linda A"
+exp = 3
+
+[[sample]]
+lat = 41.199
+lon = -90.6828
+h = 229.914
+a = 178
+zb = 88.81
+hb = 35
+z0 = 89.4
+t = 3.5
+name = "Chelsea R"
+exp = 3
+
+[[sample]]
+lat = 43.144
+lon = -87.9294
+h = 195.889
+a = 191
+zb = 47.52
+hb = 49
+z0 = 42.8
+h0 = 27
+t = 1
+name = "David H"
+exp = 3
+
+[[sample]]
+lat = 40.5341
+lon = -79.8217
+h = 253.463
+a = 180
+zb = 315.48
+hb = 40
+z0 = 318.38
+t = 1
+name = "Cris R"
+exp = 3
+
+[[sample]]
+lat = 42.4648
+lon = -83.1544
+h = 202.7
+zb = 325.08
+hb = 59
+z0 = 310.63
+h0 = 63
+t = 3.5
+name = "Ray L"
+exp = 3
+
+[[sample]]
+lat = 42.9796
+lon = -89.372
+h = 270.4
+a = 24
+zb = 138.74
+hb = 45
+z0 = 156.15
+h0 = 30
+t = 3.5
+name = "Jack B"
+exp = 3
+
+[[sample]]
+lat = 42.3098
+lon = -83.3803
+h = 199.217
+a = 215
+zb = 1.01
+hb = 26
+z0 = 356.49
+h0 = 19
+t = 3.5
+name = "Mark B"
+exp = 3
+
+[[sample]]
+lat = 42.1101
+lon = -88.4287
+h = 276.892
+a = 31
+zb = 74.81
+hb = 39
+z0 = 60.82
+h0 = 19
+t = 3.5
+name = "G L"
+exp = 3
+
+[[sample]]
+lat = 41.5271
+lon = -88.1405
+h = 193.067
+a = 8
+zb = 74.21
+hb = 50
+z0 = 72.09
+h0 = 40
+t = 1
+name = "Bill N"
+exp = 3
+
+[[sample]]
+lat = 42.3899
+lon = -83.3757
+h = 202.587
+a = 80
+zb = 240.92
+hb = 50
+z0 = 296.09
+h0 = 61
+t = 3.5
+name = "joseph p"
+exp = 3
+
+[[sample]]
+lat = 42.4216
+lon = -83.5613
+h = 292.019
+a = 163
+zb = 268.8
+hb = 85
+z0 = 277.79
+h0 = 45
+t = 3.5
+name = "Mark M"
+exp = 3
+
+[[sample]]
+lat = 39.2073
+lon = -81.0451
+h = 251.686
+a = 182
+zb = 304.09
+hb = 21
+z0 = 303.31
+t = 1.5
+name = "Roger B"
+exp = 3
+
+[[sample]]
+lat = 42.2686
+lon = -83.1924
+h = 180.65
+a = 180
+zb = 260
+z0 = 308.91
+h0 = 36
+t = 1
+name = "Rylee K"
+exp = 3
+
+[[sample]]
+lat = 40.0689
+lon = -88.5452
+h = 215.89
+a = 182
+zb = 46.75
+hb = 30
+z0 = 49.02
+t = 1.5
+name = "Marsha M"
+exp = 3
+
+[[sample]]
+lat = 41.8039
+lon = -88.1959
+h = 211.686
+a = 162
+zb = 75.26
+hb = 70
+z0 = 77
+h0 = 46
+t = 3.5
+name = "Jim M"
+exp = 3
+
+[[sample]]
+lat = 42.3032
+lon = -85.5711
+h = 241.721
+a = 261
+zb = 87.53
+hb = 22
+z0 = 82.45
+h0 = 8
+t = 3.5
+name = "Melanie H"
+exp = 3
+
+[[sample]]
+lat = 42.6908
+lon = -83.7267
+h = 304.403
+a = 90
+zb = 20.49
+hb = 25
+z0 = 35
+h0 = 30
+t = 1.5
+name = "Mary K"
+exp = 3
+
+[[sample]]
+lat = 42.4817
+lon = -83.0117
+h = 190.558
+a = 251
+zb = 324.19
+hb = 27
+z0 = 324.89
+h0 = 21
+t = 1.5
+name = "Dennis K"
+exp = 3
+
+[[sample]]
+lat = 44.6136
+lon = -88.0326
+h = 180.926
+a = 194
+zb = 126.79
+hb = 60
+z0 = 121.89
+h0 = 15
+t = 3.5
+name = "Cameron M"
+exp = 3
+
+[[sample]]
+lat = 42.3152
+lon = -88.9078
+h = 257.444
+a = 162
+zb = 66.82
+hb = 61
+z0 = 83.93
+h0 = 30
+t = 7.5
+name = "Cindy M"
+exp = 3
+
+[[sample]]
+lat = 42.7474
+lon = -84.518
+h = 263.46
+a = 184
+zb = 90
+hb = 45
+z0 = 90
+h0 = 10
+t = 1
+name = "Geoff R"
+exp = 3
+
+[[sample]]
+lat = 42.1937
+lon = -88.0967
+h = 261.539
+a = 7
+hb = 60
+z0 = 351.35
+h0 = 10
+t = 1.5
+name = "James J"
+exp = 3
+
+[[sample]]
+lat = 43.0599
+lon = -86.2224
+h = 185.199
+a = 2
+zb = 103
+hb = 30
+z0 = 110.25
+h0 = 7
+t = 1.5
+name = "Geri C"
+exp = 3
+
+[[sample]]
+lat = 41.1299
+lon = -86.0384
+h = 266.296
+a = 230
+zb = 72.83
+hb = 60
+z0 = 61.42
+h0 = 30
+t = 7.5
+name = "Tara M"
+exp = 3
+
+[[sample]]
+lat = 43.5442
+lon = -80.4942
+h = 318.525
+a = 145
+zb = 246.79
+hb = 68
+z0 = 250.13
+h0 = 1
+t = 1.5
+name = "Craig R"
+exp = 3
+
+[[sample]]
+lat = 41.8129
+lon = -83.6838
+h = 206.621
+a = 225
+zb = 31.55
+hb = 3
+z0 = 334.04
+h0 = 1
+t = 3.5
+name = "Zeke E"
+exp = 3
+
+[[sample]]
+lat = 41.4806
+lon = -81.9864
+h = 192.371
+a = 6
+zb = 282.4
+hb = 58
+z0 = 279.46
+h0 = 18
+t = 3.5
+name = "B.J. H"
+exp = 3
+
+[[sample]]
+lat = 41.6294
+lon = -87.9118
+h = 215.231
+a = 339
+zb = 75.83
+hb = 45
+z0 = 80.4
+h0 = 23
+t = 1.5
+name = "Mike P"
+exp = 3
+
+[[sample]]
+lat = 42.7843
+lon = -83.7863
+h = 286.293
+a = 12
+zb = 81.54
+hb = 74
+z0 = 272.15
+h0 = 3
+t = 3.5
+name = "Todd J"
+exp = 3
+
+[[sample]]
+lat = 42.8325
+lon = -83.2563
+h = 335.598
+a = 94
+zb = 169.48
+t = 20
+name = "Jessica D"
+exp = 3
+
+[[sample]]
+lat = 42.1254
+lon = -83.9812
+h = 265.17
+a = 259
+zb = 42.81
+hb = 29
+z0 = 25
+h0 = 23
+t = 3.5
+name = "Angela S"
+exp = 3
+
+[[sample]]
+lat = 42.2087
+lon = -83.4245
+h = 200.382
+a = 240
+zb = 326.62
+hb = 26
+z0 = 304.23
+h0 = 12
+t = 3.5
+name = "Rohn C"
+exp = 3
+
+[[sample]]
+lat = 41.2256
+lon = -82.6404
+h = 215.092
+a = 261
+zb = 341.23
+hb = 30
+z0 = 318.01
+h0 = 25
+t = 3.5
+name = "Kathryn S"
+exp = 3
+
+[[sample]]
+lat = 43.0583
+lon = -83.1682
+h = 268.747
+a = 107
+zb = 150.15
+hb = 35
+z0 = 230.22
+h0 = 9
+t = 3.5
+name = "Kelly A"
+exp = 3
+
+[[sample]]
+lat = 43.0602
+lon = -83.1683
+h = 267.817
+a = 111
+zb = 155.59
+hb = 33
+z0 = 221.99
+h0 = 8
+t = 3.5
+name = "Kelly A"
+exp = 3
+
+[[sample]]
+lat = 40.8788
+lon = -80.5997
+h = 384.877
+zb = 301.73
+hb = 57
+z0 = 303.98
+h0 = 16
+t = 7.5
+name = "Katie H"
+exp = 3
+
+[[sample]]
+lat = 42.2451
+lon = -90.4142
+h = 186.146
+a = 180
+zb = 76.82
+hb = 30
+z0 = 76.56
+t = 1.5
+name = "Scott G"
+exp = 3
+
+[[sample]]
+lat = 42.0811
+lon = -84.1612
+h = 304.439
+zb = 33.44
+hb = 15
+z0 = 35.94
+h0 = 39
+t = 1.5
+name = "Lori M"
+exp = 3
+
+[[sample]]
+lat = 43.1733
+lon = -80.243
+h = 219.241
+a = 179
+zb = 255
+hb = 70
+z0 = 260
+h0 = 15
+t = 1.5
+name = "Matt M"
+exp = 3
+
+[[sample]]
+lat = 42.3383
+lon = -83.4003
+h = 202.204
+a = 288
+zb = 18
+hb = 90
+z0 = 18
+h0 = 90
+t = 1.5
+name = "Sharon S"
+exp = 3
+
+[[sample]]
+lat = 42.9065
+lon = -89.3796
+h = 320.589
+a = 183
+zb = 97
+hb = 38
+z0 = 95
+t = 3.5
+name = "Clint C"
+exp = 3
+
+[[sample]]
+lat = 40.6854
+lon = -82.62
+h = 441.246
+a = 215
+zb = 35
+hb = 17
+z0 = 30
+t = 3.5
+name = "Jean M"
+exp = 3
+
+[[sample]]
+lat = 46.3315
+lon = -84.302
+h = 201.856
+a = 124
+zb = 166.43
+hb = 34
+z0 = 173.48
+h0 = 40
+t = 1.5
+name = "Cathy H"
+exp = 3
+
+[[sample]]
+lat = 42.5312
+lon = -83.5639
+h = 281.711
+a = 83
+zb = 257.66
+hb = 17
+z0 = 49.72
+h0 = 20
+t = 3.5
+name = "Nancy K"
+exp = 3
+
+[[sample]]
+lat = 42.5312
+lon = -83.5639
+h = 282.143
+a = 86
+zb = 272.23
+hb = 17
+z0 = 343.04
+h0 = 17
+t = 3.5
+name = "Nancy K"
+exp = 3
+
+[[sample]]
+lat = 42.2824
+lon = -83.06
+h = 183.765
+t = 7.5
+name = "Timothy C"
+exp = 3
+
+[[sample]]
+lat = 42.1115
+lon = -82.4699
+h = 185.786
+a = 186
+zb = 339.44
+hb = 81
+z0 = 341.11
+h0 = 25
+t = 1.5
+name = "Jon H"
+exp = 3
+
+[[sample]]
+lat = 43.386
+lon = -83.7384
+h = 193.343
+a = 181
+zb = 184
+hb = 90
+z0 = 179
+t = 3.5
+name = "Stephanie B"
+exp = 3
+
+[[sample]]
+lat = 42.2484
+lon = -83.6414
+h = 238.412
+a = 192
+zb = 1.29
+hb = 32
+z0 = 335
+h0 = 10
+t = 1.5
+name = "Christopher L"
+exp = 3
+
+[[sample]]
+lat = 42.5935
+lon = -83.5184
+h = 288.514
+a = 163
+zb = 274.21
+hb = 34
+z0 = 284.13
+h0 = 15
+t = 3.5
+name = "Andy L"
+exp = 3
+
+[[sample]]
+lat = 42.2805
+lon = -82.984
+h = 188.86
+a = 104
+zb = 260.98
+hb = 49
+z0 = 294.74
+h0 = 45
+t = 3.5
+name = "Brie B"
+exp = 3
+
+[[sample]]
+lat = 40.5609
+lon = -89.4065
+h = 207.107
+a = 186
+hb = 11
+h0 = 5
+t = 7.5
+name = "Ashley B"
+exp = 4
+
+[[sample]]
+lat = 42.4584
+lon = -83.7025
+h = 276.889
+a = 83
+zb = 98.45
+hb = 69
+z0 = 310.04
+h0 = 70
+t = 3.5
+name = "Christine Z"
+exp = 4
+
+[[sample]]
+lat = 42.7071
+lon = -84.5346
+h = 257.047
+a = 181
+hb = 20
+t = 20
+name = "A M"
+exp = 4
+
+[[sample]]
+lat = 42.6414
+lon = -83.4469
+h = 319.761
+a = 125
+hb = 75
+z0 = 298.82
+h0 = 55
+t = 3.5
+name = "Mike T"
+exp = 4
+
+[[sample]]
+lat = 41.7105
+lon = -88.2076
+h = 211.273
+a = 188
+zb = 90
+hb = 65
+z0 = 85
+h0 = 25
+t = 3.5
+name = "Janine P"
+exp = 4
+
+[[sample]]
+lat = 41.8016
+lon = -83.7734
+h = 212.142
+a = 210
+zb = 28.09
+hb = 63
+z0 = 322.84
+h0 = 17
+t = 3.5
+name = "Dane E"
+exp = 4
+
+[[sample]]
+lat = 42.4507
+lon = -83.3146
+h = 201.527
+zb = 277.97
+hb = 70
+z0 = 270.62
+h0 = 18
+t = 20
+name = "Roderick D"
+exp = 4
+
+[[sample]]
+lat = 42.7391
+lon = -83.7169
+h = 325.13
+a = 80
+zb = 166.58
+hb = 60
+z0 = 180.82
+h0 = 55
+t = 3.5
+name = "Veronica N"
+exp = 4
+
+[[sample]]
+lat = 41.8066
+lon = -88.0388
+h = 230.962
+a = 192
+zb = 70.09
+hb = 39
+z0 = 72.92
+t = 1.5
+name = "Adam S"
+exp = 4
+
+[[sample]]
+lat = 42.5291
+lon = -83.0769
+h = 191.388
+a = 126
+zb = 253.52
+hb = 30
+z0 = 265.99
+h0 = 31
+t = 3.5
+name = "Fred K"
+exp = 4
+
+[[sample]]
+lat = 41.2748
+lon = -81.8686
+h = 295.915
+a = 182
+zb = 295.8
+hb = 90
+z0 = 305.47
+t = 45
+name = "Shannon M"
+exp = 4
+
+[[sample]]
+lat = 42.4582
+lon = -83.3353
+h = 203.138
+a = 96
+zb = 23.08
+hb = 23
+z0 = 171.11
+h0 = 10
+t = 1.5
+name = "Thomas L"
+exp = 4
+
+[[sample]]
+lat = 44.5596
+lon = -83.8645
+h = 296.288
+a = 180
+zb = 179
+hb = 90
+z0 = 179
+t = 1.5
+name = "Heather C"
+exp = 4
+
+[[sample]]
+lat = 40.4146
+lon = -83.3373
+h = 294.884
+a = 90
+t = 7.5
+name = "jerry m"
+exp = 4
+
+[[sample]]
+lat = 41.7228
+lon = -83.5489
+h = 182.343
+a = 204
+zb = 359.05
+hb = 77
+z0 = 354.34
+h0 = 22
+t = 3.5
+name = "Tom M"
+exp = 4
+
+[[sample]]
+lat = 42.6982
+lon = -83.1056
+h = 242.971
+a = 87
+zb = 163.54
+hb = 84
+z0 = 251.72
+h0 = 81
+t = 3.5
+name = "Steven S"
+exp = 4
+
+[[sample]]
+lat = 42.5549
+lon = -83.3893
+h = 298.773
+a = 268
+zb = 261.14
+hb = 90
+z0 = 267.67
+h0 = 70
+t = 3.5
+name = "Dan V"
+exp = 4
+
+[[sample]]
+lat = 42.3198
+lon = -83.054
+h = 169.524
+a = 180
+zb = 60
+z0 = 98.99
+t = 3.5
+name = "Michael B"
+exp = 4
+
+[[sample]]
+lat = 42.5759
+lon = -83.4147
+h = 285.368
+a = 176
+zb = 227
+hb = 77
+z0 = 245.96
+h0 = 23
+t = 3.5
+name = "Franklin H"
+exp = 4
+
+[[sample]]
+lat = 42.8011
+lon = -83.7066
+h = 268.267
+a = 224
+hb = 35
+h0 = 39
+t = 3.5
+name = "george h"
+exp = 4
+
+[[sample]]
+lat = 42.625
+lon = -83.3836
+h = 284.474
+a = 135
+zb = 250
+hb = 45
+z0 = 265
+h0 = 20
+t = 3.5
+name = "Eric N"
+exp = 4
+
+[[sample]]
+lat = 42.471
+lon = -83.4073
+h = 250.542
+a = 45
+hb = 70
+z0 = 93.86
+t = 1.5
+name = "Deborah H"
+exp = 5
+
+[[sample]]
+lat = 42.6868
+lon = -84.4135
+h = 277.141
+a = 180
+zb = 119.58
+hb = 35
+z0 = 117.33
+h0 = 15
+t = 1.5
+name = "Mark V"
+exp = 5
+
+[[sample]]
+lat = 42.3308
+lon = -85.4445
+h = 279.88
+a = 230
+zb = 160
+hb = 90
+z0 = 222
+h0 = 17
+t = 3.5
+name = "Chelsey S"
+exp = 5
+
+[[sample]]
+lat = 46.4313
+lon = -84.3221
+h = 207.769
+a = 130
+zb = 132.46
+hb = 44
+z0 = 172.01
+t = 3.5
+name = "Cathy H"
+exp = 5
+
+[[sample]]
+lat = 42.4942
+lon = -83.5789
+h = 285.709
+a = 104
+zb = 57.95
+hb = 67
+z0 = 260.25
+h0 = 61
+t = 1.5
+name = "Todd S"
+exp = 5
+
+[[sample]]
+lat = 40.9877
+lon = -81.6532
+h = 354.888
+a = 225
+zb = 315
+hb = 45
+z0 = 315
+t = 3.5
+name = "Louis S"
+exp = 5
+
+[answer]
+lat = 42.451
+lon = -83.857
+h = 19730
+bearing = 301.56
+incidence = 23.86
+speed = 15.83
+
+[meta]
+url_imo = "https://fireball.amsmeteors.org/members/imo_view/event/2018/168"
+url_strewnify = "https://www.strewnify.com/hamburg/"

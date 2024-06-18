@@ -1,0 +1,444 @@
+[[sample]]
+lat = 51.0799
+lon = 13.7073
+h = 111.812
+a = 131
+zb = 30
+hb = 45
+z0 = 30
+h0 = 20
+t = 3.5
+name = "Christoph L"
+exp = 1
+
+[[sample]]
+lat = 54.3409
+lon = 13.4977
+h = 8.28689
+a = 236
+zb = 171.65
+hb = 32
+z0 = 156.66
+t = 3.5
+name = "Juliane P"
+exp = 1
+
+[[sample]]
+lat = 50.7047
+lon = 14.546
+h = 347.056
+a = 84
+zb = 298.35
+hb = 29
+z0 = 291.9
+h0 = 12
+t = 3.5
+name = "Vojta K"
+exp = 1
+
+[[sample]]
+lat = 51.5296
+lon = 9.94736
+h = 171.581
+a = 103
+zb = 81.88
+hb = 31
+z0 = 85.36
+h0 = 13
+t = 3.5
+name = "Sergen K"
+exp = 1
+
+[[sample]]
+lat = 51.149
+lon = 12.5153
+h = 138.807
+a = 46
+zb = 45
+hb = 45
+z0 = 80
+h0 = 20
+t = 3.5
+name = "Loritta G"
+exp = 1
+
+[[sample]]
+lat = 51.3149
+lon = 12.3262
+h = 116.932
+a = 169
+zb = 75
+hb = 59
+z0 = 90
+h0 = 5
+t = 3.5
+name = "Patrick S"
+exp = 1
+
+[[sample]]
+lat = 52.7
+lon = 13.1
+h = 0
+a = 239
+zb = 324.04
+hb = 15
+z0 = 313.7
+t = 3.5
+name = "Nicole K"
+exp = 1
+
+[[sample]]
+lat = 51.3149
+lon = 12.3262
+h = 116.903
+a = 172
+zb = 83
+hb = 45
+z0 = 88
+t = 3.5
+name = "Katrin W"
+exp = 1
+
+[[sample]]
+lat = 48.6162
+lon = 13.5979
+h = 470.087
+a = 100
+zb = 326.64
+hb = 45
+z0 = 5.18
+h0 = 35
+t = 7.5
+name = "Manuela K"
+exp = 1
+
+[[sample]]
+lat = 52.4047
+lon = 16.9216
+h = 75.9307
+a = 238
+zb = 250
+hb = 51
+z0 = 180
+h0 = 32
+t = 1.5
+name = "Panorama Poznania Online H"
+exp = 1
+
+[[sample]]
+lat = 53.6355
+lon = 11.4012
+h = 55.657
+a = 191
+zb = 81.33
+hb = 35
+z0 = 81.01
+h0 = 6
+t = 3.5
+name = "Jannis B"
+exp = 1
+
+[[sample]]
+lat = 52.4183
+lon = 16.6342
+h = 94.0883
+a = 258
+zb = 286.57
+hb = 33
+z0 = 227.78
+h0 = 25
+t = 3.5
+name = "Sebastian H"
+exp = 1
+
+[[sample]]
+lat = 52.7164
+lon = 15.2695
+h = 22.5612
+a = 257
+zb = 166.64
+hb = 31
+z0 = 127.06
+h0 = 20
+t = 3.5
+name = "Konrad K"
+exp = 1
+
+[[sample]]
+lat = 51.4496
+lon = 13.5206
+h = 91.349
+a = 174
+zb = 69.8
+hb = 69
+z0 = 82.47
+h0 = 44
+t = 1.5
+name = "Marcel R"
+exp = 1
+
+[[sample]]
+lat = 49.924
+lon = 18.27
+h = 234.407
+a = 149
+zb = 318.48
+hb = 15
+z0 = 334.77
+h0 = 3
+t = 3.5
+name = "Jakub Å"
+exp = 2
+
+[[sample]]
+lat = 52.4559
+lon = 16.8789
+h = 98.4451
+a = 269
+zb = 250.26
+hb = 33
+z0 = 212.3
+h0 = 28
+t = 3.5
+name = "Konrad P"
+exp = 2
+
+[[sample]]
+lat = 53.214
+lon = 10.474
+h = 58.3733
+a = 200
+zb = 120
+hb = 20
+z0 = 99
+h0 = 12
+t = 7.5
+name = "Caro E"
+exp = 2
+
+[[sample]]
+lat = 52.411
+lon = 13.3511
+h = 47.4546
+a = 180
+zb = 157.68
+hb = 45
+z0 = 161.59
+h0 = 1
+t = 3.5
+name = "Ã–zkan B"
+exp = 2
+
+[[sample]]
+lat = 52.4604
+lon = 13.2994
+h = 54.352
+a = 202
+zb = 121.32
+hb = 42
+z0 = 102.78
+h0 = 21
+t = 3.5
+name = "Fabian V"
+exp = 2
+
+[[sample]]
+lat = 52.3981
+lon = 13.8589
+h = 40.838
+a = 240
+zb = 140.61
+hb = 27
+z0 = 91.26
+h0 = 19
+t = 7.5
+name = "Marco F"
+exp = 2
+
+[[sample]]
+lat = 52.5914
+lon = 13.3499
+h = 47.5656
+a = 244
+zb = 157.34
+hb = 30
+z0 = 107.46
+h0 = 15
+t = 3.5
+name = "Jacqueline T"
+exp = 2
+
+[[sample]]
+lat = 55.7213
+lon = 11.4667
+h = 10.5449
+a = 223
+zb = 150.3
+hb = 20
+z0 = 122.23
+h0 = 6
+t = 3.5
+name = "Helle A"
+exp = 2
+
+[[sample]]
+lat = 54.2797
+lon = 10.2466
+h = 36.5554
+a = 212
+zb = 46.32
+hb = 46
+z0 = 49.3
+h0 = 10
+t = 1.5
+name = "Maria-Sophie K"
+exp = 2
+
+[[sample]]
+lat = 52.3367
+lon = 12.9832
+h = 61.8736
+a = 239
+hb = 45
+h0 = 19
+t = 1.5
+name = "Nicole P"
+exp = 2
+
+[[sample]]
+lat = 48.6241
+lon = 15.6536
+h = 362.454
+a = 123
+hb = 57
+z0 = 52.75
+h0 = 17
+t = 1.5
+name = "Roman F"
+exp = 2
+
+[[sample]]
+lat = 48.5739
+lon = 13.6816
+h = 547.088
+a = 97
+zb = 2.01
+hb = 25
+z0 = 46.58
+t = 7.5
+name = "Birgit W"
+exp = 2
+
+[[sample]]
+lat = 53.3134
+lon = 13.8688
+h = 39.2518
+a = 223
+zb = 148
+hb = 53
+z0 = 133
+h0 = 24
+t = 3.5
+name = "Theo L"
+exp = 3
+
+[[sample]]
+lat = 51.8427
+lon = 12.0279
+h = 54.7172
+a = 253
+zb = 289.57
+hb = 36
+z0 = 196.75
+h0 = 13
+t = 3.5
+name = "Ron Z"
+exp = 3
+
+[[sample]]
+lat = 52.2979
+lon = 13.6475
+h = 34.5777
+a = 194
+zb = 105
+hb = 90
+z0 = 103.65
+h0 = 17
+t = 7.5
+name = "Stefan W"
+exp = 3
+
+[[sample]]
+lat = 53.8279
+lon = 10.7164
+h = 14.234
+a = 240
+zb = 139
+hb = 23
+z0 = 129
+h0 = 11
+t = 3.5
+name = "Phil R"
+exp = 3
+
+[[sample]]
+lat = 49.515
+lon = 17.7959
+h = 269.855
+a = 104
+zb = 297.03
+hb = 15
+z0 = 303.05
+h0 = 11
+t = 7.5
+name = "AntonÃ­n Ä"
+exp = 3
+
+[[sample]]
+lat = 51.057
+lon = 14.0037
+h = 254.835
+a = 143
+hb = 40
+z0 = 30
+t = 7.5
+name = "Marcus D"
+exp = 4
+
+[[sample]]
+lat = 53.0112
+lon = 17.7556
+h = 74.5348
+a = 249
+zb = 245.54
+hb = 29
+z0 = 213.13
+h0 = 11
+t = 7.5
+name = "Wiktor K"
+exp = 4
+
+[[sample]]
+lat = 52.4474
+lon = 12.921
+h = 40.1957
+a = 242
+zb = 125
+hb = 45
+z0 = 110
+h0 = 20
+t = 7.5
+name = "Jurgen R"
+exp = 5
+
+[answer]
+lat = 51.7024
+lon = 16.1257
+h = 25000
+bearing = 93
+incidence = 73
+speed = 17.5
+
+[meta]
+url_imo = "https://fireball.amsmeteors.org/members/imo_view/event/2020/111"
+url_strewnify = "https://www.strewnify.com/glogow/"
